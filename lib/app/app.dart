@@ -1,5 +1,6 @@
 import 'package:feyam_app/core/theme/cupertino_theme.dart';
 import 'package:feyam_app/core/theme/material_theme.dart';
+import 'package:feyam_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,22 +15,14 @@ class FeyamApp extends StatelessWidget {
       return CupertinoApp(
         title: 'Feyam App',
         theme: buildCupertinoTheme(),
-        home: const CupertinoPageScaffold(
-          child: Center(
-            child: Text('Hello, Feyam App!'),
-          ),
-        ),
+        home: LoginScreen(),
       );
     }
 
     return MaterialApp(
       title: 'Feyam App',
       theme: buildMaterialTheme(),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Hello, Feyam App!'),
-        ),
-      ),
+      home: LoginScreen(),
     );
   }
 
