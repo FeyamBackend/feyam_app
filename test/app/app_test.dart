@@ -5,7 +5,12 @@ void main() {
   testWidgets('renders login screen', (tester) async {
     await tester.pumpWidget(const FeyamApp());
 
-    expect(find.text('Inicia sesión para continuar'), findsOneWidget);
     expect(find.text('Iniciar Sesión'), findsOneWidget);
+    expect(
+      find.text(
+        'Serás redirigido a una pagina segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.',
+      ),
+      findsOneWidget,
+    );
   });
 }
