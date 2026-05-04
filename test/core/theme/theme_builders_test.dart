@@ -1,4 +1,4 @@
-import 'package:feyam_app/core/theme/app_theme.dart';
+import 'package:feyam/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

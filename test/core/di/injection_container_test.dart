@@ -1,6 +1,6 @@
-import 'package:feyam_app/core/config/app_config.dart';
-import 'package:feyam_app/core/config/app_flavor.dart';
-import 'package:feyam_app/core/di/injection_container.dart';
+import 'package:feyam/core/config/app_config.dart';
+import 'package:feyam/core/config/app_flavor.dart';
+import 'package:feyam/core/di/injection_container.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

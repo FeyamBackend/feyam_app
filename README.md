@@ -1,4 +1,4 @@
-# feyam_app
+# feyam
 
 A new Flutter project.
 

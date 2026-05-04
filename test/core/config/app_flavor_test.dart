@@ -1,4 +1,4 @@
-import 'package:feyam_app/core/config/app_flavor.dart';
+import 'package:feyam/core/config/app_flavor.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

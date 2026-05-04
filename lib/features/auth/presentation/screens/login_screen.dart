@@ -1,8 +1,12 @@
-import 'package:feyam_app/core/widgets/adaptive/adaptive_app_button.dart';
-import 'package:feyam_app/core/widgets/adaptive/adaptive_app_disclaimer.dart';
+import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/widgets/adaptive/adaptive_app_button.dart';
+import 'package:feyam/core/widgets/adaptive/adaptive_app_disclaimer.dart';
+import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 const String _loginBackgroundAsset = 'assets/images/ios_login_background.png';
 
@@ -11,9 +15,12 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = Theme(
-      data: Theme.of(context).copyWith(platform: defaultTargetPlatform),
-      child: const _SharedLoginPage(),
+    final content = BlocProvider<AuthBloc>(
+      create: (_) => sl<AuthBloc>(),
+      child: Theme(
+        data: Theme.of(context).copyWith(platform: defaultTargetPlatform),
+        child: const _LoginContent(),
+      ),
     );
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
@@ -21,6 +28,60 @@ class LoginScreen extends StatelessWidget {
     }
 
     return Scaffold(body: content);
+  }
+}
+
+class _LoginContent extends StatefulWidget {
+  const _LoginContent();
+
+  @override
+  State<_LoginContent> createState() => _LoginContentState();
+}
+
+class _LoginContentState extends State<_LoginContent>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      context.read<AuthBloc>().add(AuthSessionChecked());
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<AuthBloc>().add(AuthSessionChecked());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status &&
+          current.status == AuthStatus.success,
+      listener: (context, state) {
+        final isCupertino =
+            !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+        final route = isCupertino
+            ? CupertinoPageRoute<void>(builder: (_) => const HomeScreen())
+            : MaterialPageRoute<void>(builder: (_) => const HomeScreen());
+        Navigator.of(context).pushReplacement(route);
+      },
+      child: const _SharedLoginPage(),
+    );
   }
 }
 
@@ -67,7 +128,7 @@ class _SharedLoginPage extends StatelessWidget {
                   child: Container(
                     height: panelHeight + bottomInset,
                     width: double.infinity,
-                    padding: EdgeInsets.fromLTRB(32, 50, 32, 22 + bottomInset),
+                    padding: EdgeInsets.fromLTRB(32, 40, 32, 18 + bottomInset),
                     decoration: BoxDecoration(
                       color: panelColor,
                       borderRadius: const BorderRadius.vertical(
@@ -84,36 +145,72 @@ class _SharedLoginPage extends StatelessWidget {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 520),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            AdaptiveAppButton(
-                              text: 'Iniciar Sesión',
-                              icon: const Icon(Icons.arrow_forward),
-                              onPressed: () {
-                                // Handle login logic here.
-                              },
-                              height: 72,
-                              borderRadius: BorderRadius.circular(28),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
+                        child: SingleChildScrollView(
+                          physics: const ClampingScrollPhysics(),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              BlocBuilder<AuthBloc, AuthState>(
+                                builder: (context, state) {
+                                  final isLoading =
+                                      state.status == AuthStatus.loading;
+
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      AdaptiveAppButton(
+                                        text: 'Iniciar Sesión',
+                                        icon: const Icon(Icons.arrow_forward),
+                                        isLoading: isLoading,
+                                        onPressed: isLoading
+                                            ? null
+                                            : () {
+                                                context.read<AuthBloc>().add(
+                                                  SignInPressed(),
+                                                );
+                                              },
+                                        height: 72,
+                                        borderRadius: BorderRadius.circular(28),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                        ),
+                                      ),
+                                      if (state.status == AuthStatus.failure &&
+                                          state.errorMessage !=
+                                              null) ...<Widget>[
+                                        const SizedBox(height: 14),
+                                        Text(
+                                          state.errorMessage!,
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: colorScheme.error,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                },
                               ),
-                            ),
-                            const SizedBox(height: 32),
-                            AdaptiveAppDisclaimer(
-                              message:
-                                  'Serás redirigido a una pagina segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.',
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 22,
+                              const SizedBox(height: 24),
+                              AdaptiveAppDisclaimer(
+                                message:
+                                    'Serás redirigido a una página segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.',
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 22,
+                                  vertical: 18,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                backgroundColor: colorScheme.surface.withValues(
+                                  alpha: 0.72,
+                                ),
+                                foregroundColor: colorScheme.onSurface,
                               ),
-                              borderRadius: BorderRadius.circular(24),
-                              backgroundColor: colorScheme.surface.withValues(
-                                alpha: 0.72,
-                              ),
-                              foregroundColor: colorScheme.onSurface,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

@@ -1,0 +1,10 @@
+{
+  "dart.env": {
+    "ANDROID_HOME": "/Users/diego/Documents/android-sdk",
+    "ANDROID_SDK_ROOT": "/Users/diego/Documents/android-sdk"
+  },
+  "terminal.integrated.env.osx": {
+    "ANDROID_HOME": "/Users/diego/Documents/android-sdk",
+    "ANDROID_SDK_ROOT": "/Users/diego/Documents/android-sdk"
+  }
+}

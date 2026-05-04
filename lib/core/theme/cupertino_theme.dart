@@ -1,5 +1,5 @@
-import 'package:feyam_app/core/theme/app_theme_palette.dart';
-import 'package:feyam_app/core/theme/app_theme_tokens.dart';
+import 'package:feyam/core/theme/app_theme_palette.dart';
+import 'package:feyam/core/theme/app_theme_tokens.dart';
 import 'package:flutter/cupertino.dart';
 
 const List<String> _appleSystemFallback = <String>[

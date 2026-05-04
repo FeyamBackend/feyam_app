@@ -1,4 +1,4 @@
-package com.example.feyam_app
+package com.feyamuniversellc.feyam
 
 import io.flutter.embedding.android.FlutterActivity
 

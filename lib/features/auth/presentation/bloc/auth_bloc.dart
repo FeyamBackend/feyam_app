@@ -1,0 +1,105 @@
+import 'package:equatable/equatable.dart';
+import 'package:feyam/features/auth/domain/failures/auth_failure.dart';
+import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
+import 'package:feyam/features/auth/domain/usecases/login.dart';
+import 'package:feyam/features/auth/domain/usecases/logout.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+part 'auth_event.dart';
+part 'auth_state.dart';
+
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  AuthBloc({
+    required LoginUseCase loginUseCase,
+    required LogoutUseCase logoutUseCase,
+    required CheckAuthSessionUseCase checkAuthSessionUseCase,
+  }) : _loginUseCase = loginUseCase,
+       _logoutUseCase = logoutUseCase,
+       _checkAuthSessionUseCase = checkAuthSessionUseCase,
+       super(const AuthState()) {
+    on<SignInPressed>(_onSignInPressed);
+    on<SignOutPressed>(_onSignOutPressed);
+    on<AuthSessionChecked>(_onAuthSessionChecked);
+  }
+
+  final LoginUseCase _loginUseCase;
+  final LogoutUseCase _logoutUseCase;
+  final CheckAuthSessionUseCase _checkAuthSessionUseCase;
+
+  Future<void> _onSignInPressed(
+    SignInPressed event,
+    Emitter<AuthState> emit,
+  ) async {
+    if (state.status == AuthStatus.loading) {
+      return;
+    }
+
+    emit(state.copyWith(status: AuthStatus.loading, clearErrorMessage: true));
+
+    try {
+      await _loginUseCase();
+      emit(state.copyWith(status: AuthStatus.success, clearErrorMessage: true));
+    } on AuthFailure catch (failure) {
+      if (failure.code == AuthFailureCode.cancelled) {
+        emit(
+          state.copyWith(status: AuthStatus.initial, clearErrorMessage: true),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: _getErrorMessage(failure.code),
+          ),
+        );
+      }
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: _getErrorMessage(AuthFailureCode.unknown),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSignOutPressed(
+    SignOutPressed event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      await _logoutUseCase();
+      emit(state.copyWith(status: AuthStatus.initial, clearErrorMessage: true));
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: _getErrorMessage(AuthFailureCode.unknown),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onAuthSessionChecked(
+    AuthSessionChecked event,
+    Emitter<AuthState> emit,
+  ) async {
+    if (state.status == AuthStatus.loading) {
+      return;
+    }
+
+    final isAuthenticated = await _checkAuthSessionUseCase();
+    if (isAuthenticated) {
+      emit(state.copyWith(status: AuthStatus.success, clearErrorMessage: true));
+    }
+  }
+
+  String _getErrorMessage(AuthFailureCode code) {
+    switch (code) {
+      case AuthFailureCode.cancelled:
+        return 'Inicio de sesión cancelado.';
+      case AuthFailureCode.unknown:
+      default:
+        return 'No pudimos iniciar sesión. Intentá nuevamente.';
+    }
+  }
+}
