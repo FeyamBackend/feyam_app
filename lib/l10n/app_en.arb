@@ -1,0 +1,10 @@
+{
+    "login": "Sign In",
+    "@login": {
+        "description": "Label for the button that initiates the sign-in process."
+    },
+    "loginDisclaimer": "You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.",
+    "@loginDisclaimer": {
+        "description": "Disclaimer shown to users before they are redirected to the sign-in page."
+    }
+}

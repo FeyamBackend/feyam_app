@@ -3,6 +3,7 @@ import 'package:feyam/core/widgets/adaptive/adaptive_app_button.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_app_disclaimer.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
+import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -96,6 +97,7 @@ class _SharedLoginPage extends StatelessWidget {
         ? CupertinoTheme.of(context).scaffoldBackgroundColor
         : colorScheme.surface;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final l10n = AppLocalizations.of(context)!;
 
     return Stack(
       fit: StackFit.expand,
@@ -159,7 +161,7 @@ class _SharedLoginPage extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: <Widget>[
                                       AdaptiveAppButton(
-                                        text: 'Iniciar Sesión',
+                                        text: l10n.login,
                                         icon: const Icon(Icons.arrow_forward),
                                         isLoading: isLoading,
                                         onPressed: isLoading
@@ -197,8 +199,7 @@ class _SharedLoginPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 24),
                               AdaptiveAppDisclaimer(
-                                message:
-                                    'Serás redirigido a una página segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.',
+                                message: l10n.loginDisclaimer,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 22,
                                   vertical: 18,
