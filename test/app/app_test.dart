@@ -8,10 +8,10 @@ void main() {
 
     await tester.pumpWidget(const FeyamApp());
 
-    expect(find.text('Iniciar Sesión'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
     expect(
       find.text(
-        'Serás redirigido a una página segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.',
+        'You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.',
       ),
       findsOneWidget,
     );

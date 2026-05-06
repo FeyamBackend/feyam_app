@@ -1,6 +1,7 @@
 import 'package:feyam/core/theme/cupertino_theme.dart';
 import 'package:feyam/core/theme/material_theme.dart';
 import 'package:feyam/features/auth/presentation/screens/login_screen.dart';
+import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,14 +15,18 @@ class FeyamApp extends StatelessWidget {
       return CupertinoApp(
         title: 'Feyam',
         theme: buildCupertinoTheme(),
-        home: LoginScreen(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const LoginScreen(),
       );
     }
 
     return MaterialApp(
       title: 'Feyam',
       theme: buildMaterialTheme(),
-      home: LoginScreen(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const LoginScreen(),
     );
   }
 
