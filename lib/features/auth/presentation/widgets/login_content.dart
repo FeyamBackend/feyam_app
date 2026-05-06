@@ -1,6 +1,6 @@
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/auth/presentation/widgets/login_page.dart';
-import 'package:feyam/features/home/presentation/screens/home_screen.dart';
+import 'package:feyam/features/main/presentation/screens/main_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -51,8 +51,8 @@ class _LoginContentState extends State<LoginContent>
         final isCupertino =
             !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
         final route = isCupertino
-            ? CupertinoPageRoute<void>(builder: (_) => const HomeScreen())
-            : MaterialPageRoute<void>(builder: (_) => const HomeScreen());
+            ? CupertinoPageRoute<void>(builder: (_) => const MainScreen())
+            : MaterialPageRoute<void>(builder: (_) => const MainScreen());
         Navigator.of(context).pushReplacement(route);
       },
       child: const LoginPage(),
