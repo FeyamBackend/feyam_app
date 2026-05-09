@@ -14,4 +14,79 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loginDisclaimer =>
       'You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navCart => 'Cart';
+
+  @override
+  String get navOrders => 'Orders';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get addToCartTitle => 'Add to cart';
+
+  @override
+  String get addToCartPlaceholder => 'Coming soon';
+
+  @override
+  String get homeImportOrderTitle => 'Import Order';
+
+  @override
+  String get homePasteProductLink => 'Paste product link';
+
+  @override
+  String get homeImportButton => 'Import';
+
+  @override
+  String get homeImportProductTitle => 'Import Product';
+
+  @override
+  String get homePasteProductExample => 'https://example.com/product/123';
+
+  @override
+  String get homeAddToCartButton => 'Add to cart';
+
+  @override
+  String get homePopularStoresTitle => 'Popular stores';
+
+  @override
+  String get homePopularStoresTitleMaterial => 'Popular Stores';
+
+  @override
+  String get homeSeeAll => 'See all';
+
+  @override
+  String get homeRecentOrdersTitle => 'Recent orders';
+
+  @override
+  String get homeRecentOrdersTitleMaterial => 'Recent Orders';
+
+  @override
+  String get homeStatusInTransit => 'In Transit';
+
+  @override
+  String get homeStatusDelivered => 'Delivered';
+
+  @override
+  String get homeCupertinoOrder1Product => 'Premium Sneakers Red Edition';
+
+  @override
+  String get homeCupertinoOrder1Origin => 'Imported from Amazon USA';
+
+  @override
+  String get homeCupertinoOrder2Product => 'Minimalist Analog Watch';
+
+  @override
+  String get homeCupertinoOrder2Origin => 'Imported from eBay';
+
+  @override
+  String get homeCupertinoOrder3Product => 'Wireless Noise Cancelling Headset';
+
+  @override
+  String get homeCupertinoOrder3Origin => 'Imported from BestBuy';
 }

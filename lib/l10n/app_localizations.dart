@@ -109,6 +109,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.'**
   String get loginDisclaimer;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get navCart;
+
+  /// No description provided for @navOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get navOrders;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
+  /// No description provided for @addToCartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to cart'**
+  String get addToCartTitle;
+
+  /// No description provided for @addToCartPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get addToCartPlaceholder;
+
+  /// No description provided for @homeImportOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Order'**
+  String get homeImportOrderTitle;
+
+  /// No description provided for @homePasteProductLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste product link'**
+  String get homePasteProductLink;
+
+  /// No description provided for @homeImportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get homeImportButton;
+
+  /// No description provided for @homeImportProductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Product'**
+  String get homeImportProductTitle;
+
+  /// No description provided for @homePasteProductExample.
+  ///
+  /// In en, this message translates to:
+  /// **'https://example.com/product/123'**
+  String get homePasteProductExample;
+
+  /// No description provided for @homeAddToCartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to cart'**
+  String get homeAddToCartButton;
+
+  /// No description provided for @homePopularStoresTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular stores'**
+  String get homePopularStoresTitle;
+
+  /// No description provided for @homePopularStoresTitleMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular Stores'**
+  String get homePopularStoresTitleMaterial;
+
+  /// No description provided for @homeSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get homeSeeAll;
+
+  /// No description provided for @homeRecentOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent orders'**
+  String get homeRecentOrdersTitle;
+
+  /// No description provided for @homeRecentOrdersTitleMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Orders'**
+  String get homeRecentOrdersTitleMaterial;
+
+/// No description provided for @homeStatusInTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'In Transit'**
+  String get homeStatusInTransit;
+
+  /// No description provided for @homeStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get homeStatusDelivered;
+
+  /// No description provided for @homeCupertinoOrder1Product.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Sneakers Red Edition'**
+  String get homeCupertinoOrder1Product;
+
+  /// No description provided for @homeCupertinoOrder1Origin.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported from Amazon USA'**
+  String get homeCupertinoOrder1Origin;
+
+  /// No description provided for @homeCupertinoOrder2Product.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimalist Analog Watch'**
+  String get homeCupertinoOrder2Product;
+
+  /// No description provided for @homeCupertinoOrder2Origin.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported from eBay'**
+  String get homeCupertinoOrder2Origin;
+
+  /// No description provided for @homeCupertinoOrder3Product.
+  ///
+  /// In en, this message translates to:
+  /// **'Wireless Noise Cancelling Headset'**
+  String get homeCupertinoOrder3Product;
+
+  /// No description provided for @homeCupertinoOrder3Origin.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported from BestBuy'**
+  String get homeCupertinoOrder3Origin;
 }
 
 class _AppLocalizationsDelegate

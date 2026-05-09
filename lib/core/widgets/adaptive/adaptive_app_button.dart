@@ -244,6 +244,13 @@ class _ButtonContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
+        if (icon != null) ...<Widget>[
+          IconTheme.merge(
+            data: IconThemeData(color: progressColor, size: 24),
+            child: icon!,
+          ),
+          const SizedBox(width: 12),
+        ],
         Flexible(
           child: Text(
             text,
@@ -252,13 +259,6 @@ class _ButtonContent extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ),
-        if (icon != null) ...<Widget>[
-          const SizedBox(width: 12),
-          IconTheme.merge(
-            data: IconThemeData(color: progressColor, size: 24),
-            child: icon!,
-          ),
-        ],
       ],
     );
   }

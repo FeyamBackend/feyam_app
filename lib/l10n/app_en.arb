@@ -6,5 +6,30 @@
     "loginDisclaimer": "You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.",
     "@loginDisclaimer": {
         "description": "Disclaimer shown to users before they are redirected to the sign-in page."
-    }
+    },
+    "navHome": "Home",
+    "navCart": "Cart",
+    "navOrders": "Orders",
+    "navProfile": "Profile",
+    "addToCartTitle": "Add to cart",
+    "addToCartPlaceholder": "Coming soon",
+    "homeImportOrderTitle": "Import Order",
+    "homePasteProductLink": "Paste product link",
+    "homeImportButton": "Import",
+    "homeImportProductTitle": "Import Product",
+    "homePasteProductExample": "https://example.com/product/123",
+    "homeAddToCartButton": "Add to cart",
+    "homePopularStoresTitle": "Popular stores",
+    "homePopularStoresTitleMaterial": "Popular Stores",
+    "homeSeeAll": "See all",
+    "homeRecentOrdersTitle": "Recent orders",
+    "homeRecentOrdersTitleMaterial": "Recent Orders",
+    "homeStatusInTransit": "In Transit",
+    "homeStatusDelivered": "Delivered",
+    "homeCupertinoOrder1Product": "Premium Sneakers Red Edition",
+    "homeCupertinoOrder1Origin": "Imported from Amazon USA",
+    "homeCupertinoOrder2Product": "Minimalist Analog Watch",
+    "homeCupertinoOrder2Origin": "Imported from eBay",
+    "homeCupertinoOrder3Product": "Wireless Noise Cancelling Headset",
+    "homeCupertinoOrder3Origin": "Imported from BestBuy"
 }

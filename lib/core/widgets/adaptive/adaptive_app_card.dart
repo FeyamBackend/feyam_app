@@ -142,19 +142,23 @@ class _CupertinoAdaptiveCard extends StatelessWidget {
     final surface =
         backgroundColor ??
         theme.scaffoldBackgroundColor.withValues(alpha: 0.76);
+    final resolvedElevation = elevation ?? 34;
+    final shadows = resolvedElevation <= 0
+        ? const <BoxShadow>[]
+        : <BoxShadow>[
+            BoxShadow(
+              color: theme.primaryColor.withValues(alpha: 0.10),
+              blurRadius: resolvedElevation,
+              offset: const Offset(0, 18),
+            ),
+          ];
 
     return Container(
       width: width,
       margin: margin,
       decoration: BoxDecoration(
         borderRadius: radius,
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: theme.primaryColor.withValues(alpha: 0.10),
-            blurRadius: elevation ?? 34,
-            offset: const Offset(0, 18),
-          ),
-        ],
+        boxShadow: shadows,
       ),
       child: ClipRRect(
         borderRadius: radius,
