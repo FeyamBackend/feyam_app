@@ -343,6 +343,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open settings'**
   String get profileSettingsSemanticLabel;
+
+  /// No description provided for @cartItemChronographName.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Chronograph'**
+  String get cartItemChronographName;
+
+  /// No description provided for @cartItemChronographDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Midnight Blue Edition'**
+  String get cartItemChronographDetail;
+
+  /// No description provided for @cartItemAeroName.
+  ///
+  /// In en, this message translates to:
+  /// **'Aero Performance Pro'**
+  String get cartItemAeroName;
+
+  /// No description provided for @cartItemAeroDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Crimson / White'**
+  String get cartItemAeroDetail;
+
+  /// No description provided for @cartItemSonicName.
+  ///
+  /// In en, this message translates to:
+  /// **'Sonic Bliss Wireless'**
+  String get cartItemSonicName;
+
+  /// No description provided for @cartItemSonicDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Noise Cancelling Black'**
+  String get cartItemSonicDetail;
+
+  /// No description provided for @cartSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get cartSummaryTitle;
+
+  /// No description provided for @cartSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get cartSubtotal;
+
+  /// No description provided for @cartShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping'**
+  String get cartShipping;
+
+  /// No description provided for @cartTaxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes (10%)'**
+  String get cartTaxes;
+
+  /// No description provided for @cartTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get cartTotal;
+
+  /// No description provided for @cartCheckoutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Checkout'**
+  String get cartCheckoutButton;
+
+  /// No description provided for @cartSecurePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'100% Secure Payment'**
+  String get cartSecurePayment;
+
+  /// No description provided for @cartSearchSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search cart'**
+  String get cartSearchSemanticLabel;
+
+  /// No description provided for @cartRemoveItemSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove item'**
+  String get cartRemoveItemSemanticLabel;
+
+  /// No description provided for @cartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Cart'**
+  String get cartTitle;
+
+  /// No description provided for @cartEstimatedShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Shipping'**
+  String get cartEstimatedShipping;
+
+  /// No description provided for @cartCheckoutMaterialButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Checkout'**
+  String get cartCheckoutMaterialButton;
+
+  /// No description provided for @cartMaterialFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax calculated at checkout. Secure SSL encrypted payment processing.'**
+  String get cartMaterialFootnote;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
+import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
@@ -36,7 +37,9 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     return AdaptiveAppScaffold(
-      title: _currentIndex == 0 || _currentIndex == 3 ? null : currentLabel,
+      title: _currentIndex == 0 || _currentIndex == 1 || _currentIndex == 3
+          ? null
+          : currentLabel,
       body: _MainTabContent(currentIndex: _currentIndex),
       bottomNavigationBar: bottomNavigationBar,
     );
@@ -103,10 +106,9 @@ class _MainTabContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final pages = <Widget>[
       const HomeScreen(),
-      Center(child: Text(l10n.navCart)),
+      const CartScreen(),
       const OrderScreen(),
       const ProfileScreen(),
     ];

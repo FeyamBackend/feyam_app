@@ -69,45 +69,42 @@ class _MaterialHomeHeader extends StatelessWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: SizedBox(
-          height: 148 * scale,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              28 * scale,
-              22 * scale,
-              28 * scale,
-              18 * scale,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.menu,
-                      color: const Color(0xFF0059C7),
-                      size: 32 * scale,
-                    ),
-                    const Spacer(),
-                    Icon(
-                      Icons.search,
-                      color: const Color(0xFF0059C7),
-                      size: 36 * scale,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 18 * scale),
-                Text(
-                  'Feyam',
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: const Color(0xFF111315),
-                    fontSize: 58 * scale,
-                    fontWeight: FontWeight.w800,
-                    height: 0.95,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            28 * scale,
+            22 * scale,
+            28 * scale,
+            18 * scale,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.menu,
+                    color: const Color(0xFF0059C7),
+                    size: 32 * scale,
                   ),
+                  const Spacer(),
+                  Icon(
+                    Icons.search,
+                    color: const Color(0xFF0059C7),
+                    size: 36 * scale,
+                  ),
+                ],
+              ),
+              SizedBox(height: 18 * scale),
+              Text(
+                'Feyam',
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  color: const Color(0xFF111315),
+                  fontSize: 58 * scale,
+                  fontWeight: FontWeight.w800,
+                  height: 0.95,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

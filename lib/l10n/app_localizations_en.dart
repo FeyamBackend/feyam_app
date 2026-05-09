@@ -131,4 +131,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSettingsSemanticLabel => 'Open settings';
+
+  @override
+  String get cartItemChronographName => 'Premium Chronograph';
+
+  @override
+  String get cartItemChronographDetail => 'Midnight Blue Edition';
+
+  @override
+  String get cartItemAeroName => 'Aero Performance Pro';
+
+  @override
+  String get cartItemAeroDetail => 'Crimson / White';
+
+  @override
+  String get cartItemSonicName => 'Sonic Bliss Wireless';
+
+  @override
+  String get cartItemSonicDetail => 'Noise Cancelling Black';
+
+  @override
+  String get cartSummaryTitle => 'Summary';
+
+  @override
+  String get cartSubtotal => 'Subtotal';
+
+  @override
+  String get cartShipping => 'Shipping';
+
+  @override
+  String get cartTaxes => 'Taxes (10%)';
+
+  @override
+  String get cartTotal => 'Total';
+
+  @override
+  String get cartCheckoutButton => 'Continue to Checkout';
+
+  @override
+  String get cartSecurePayment => '100% Secure Payment';
+
+  @override
+  String get cartSearchSemanticLabel => 'Search cart';
+
+  @override
+  String get cartRemoveItemSemanticLabel => 'Remove item';
+
+  @override
+  String get cartTitle => 'Your Cart';
+
+  @override
+  String get cartEstimatedShipping => 'Estimated Shipping';
+
+  @override
+  String get cartCheckoutMaterialButton => 'Continue to Checkout';
+
+  @override
+  String get cartMaterialFootnote =>
+      'Tax calculated at checkout. Secure SSL encrypted payment processing.';
 }
