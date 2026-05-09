@@ -89,4 +89,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeCupertinoOrder3Origin => 'Imported from BestBuy';
+
+  @override
+  String get profileName => 'Anais Fourati';
+
+  @override
+  String get profileMembershipLevel => 'Gold Member';
+
+  @override
+  String get profileAccountSection => 'Account';
+
+  @override
+  String get profileMyAddresses => 'My Addresses';
+
+  @override
+  String get profileMyOrders => 'My Orders';
+
+  @override
+  String get profilePersonalDetailsSection => 'Personal Details';
+
+  @override
+  String get profilePersonalInformation => 'Personal information';
+
+  @override
+  String get profilePaymentMethods => 'Payment methods';
+
+  @override
+  String get profileGeneralSection => 'General';
+
+  @override
+  String get profileNotifications => 'Notifications';
+
+  @override
+  String get profileHelpSupport => 'Help & Support';
+
+  @override
+  String get profileLogOut => 'Log out';
+
+  @override
+  String get profileMenuSemanticLabel => 'Open menu';
+
+  @override
+  String get profileSettingsSemanticLabel => 'Open settings';
 }

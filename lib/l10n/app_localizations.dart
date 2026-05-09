@@ -212,7 +212,7 @@ abstract class AppLocalizations {
   /// **'Recent Orders'**
   String get homeRecentOrdersTitleMaterial;
 
-/// No description provided for @homeStatusInTransit.
+  /// No description provided for @homeStatusInTransit.
   ///
   /// In en, this message translates to:
   /// **'In Transit'**
@@ -259,6 +259,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Imported from BestBuy'**
   String get homeCupertinoOrder3Origin;
+
+  /// No description provided for @profileName.
+  ///
+  /// In en, this message translates to:
+  /// **'Anais Fourati'**
+  String get profileName;
+
+  /// No description provided for @profileMembershipLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold Member'**
+  String get profileMembershipLevel;
+
+  /// No description provided for @profileAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileAccountSection;
+
+  /// No description provided for @profileMyAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'My Addresses'**
+  String get profileMyAddresses;
+
+  /// No description provided for @profileMyOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'My Orders'**
+  String get profileMyOrders;
+
+  /// No description provided for @profilePersonalDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Details'**
+  String get profilePersonalDetailsSection;
+
+  /// No description provided for @profilePersonalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal information'**
+  String get profilePersonalInformation;
+
+  /// No description provided for @profilePaymentMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment methods'**
+  String get profilePaymentMethods;
+
+  /// No description provided for @profileGeneralSection.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get profileGeneralSection;
+
+  /// No description provided for @profileNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get profileNotifications;
+
+  /// No description provided for @profileHelpSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Support'**
+  String get profileHelpSupport;
+
+  /// No description provided for @profileLogOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogOut;
+
+  /// No description provided for @profileMenuSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open menu'**
+  String get profileMenuSemanticLabel;
+
+  /// No description provided for @profileSettingsSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get profileSettingsSemanticLabel;
 }
 
 class _AppLocalizationsDelegate

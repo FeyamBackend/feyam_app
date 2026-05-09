@@ -20,7 +20,10 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final useCupertino = AdaptivePlatform.isCupertino(context);
-    final items = _bottomNavigationItems(useCupertino: useCupertino, l10n: l10n);
+    final items = _bottomNavigationItems(
+      useCupertino: useCupertino,
+      l10n: l10n,
+    );
     final currentLabel = items[_currentIndex].label;
     final bottomNavigationBar = AdaptiveAppBottomNavigationBar(
       currentIndex: _currentIndex,
@@ -33,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     return AdaptiveAppScaffold(
-      title: useCupertino && _currentIndex == 0 ? null : currentLabel,
+      title: _currentIndex == 0 || _currentIndex == 3 ? null : currentLabel,
       body: _MainTabContent(currentIndex: _currentIndex),
       bottomNavigationBar: bottomNavigationBar,
     );

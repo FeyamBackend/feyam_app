@@ -6,7 +6,7 @@ class AdaptivePlatform {
   const AdaptivePlatform._();
 
   static bool isCupertino(BuildContext context) {
-    return !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    return !kIsWeb && Theme.of(context).platform == TargetPlatform.iOS;
   }
 
   static PageRoute<T> pageRoute<T>({

@@ -8,55 +8,535 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     if (AdaptivePlatform.isCupertino(context)) {
       return const _CupertinoHomeContent();
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          AdaptiveAppCard(
-            padding: const EdgeInsets.all(16),
-            borderRadius: BorderRadius.circular(16),
-            elevation: 14,
+    return const _MaterialHomeContent();
+  }
+}
+
+class _MaterialHomeContent extends StatelessWidget {
+  const _MaterialHomeContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = (constraints.maxWidth / 688).clamp(0.54, 1.0);
+
+        return Column(
+          children: <Widget>[
+            _MaterialHomeHeader(scale: scale),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  28 * scale,
+                  34 * scale,
+                  28 * scale,
+                  30 * scale,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    _MaterialImportOrderCard(scale: scale),
+                    SizedBox(height: 44 * scale),
+                    _MaterialStoresSection(scale: scale),
+                    SizedBox(height: 48 * scale),
+                    _MaterialRecentOrdersSection(scale: scale),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MaterialHomeHeader extends StatelessWidget {
+  const _MaterialHomeHeader({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFAFAFE),
+        border: Border(bottom: BorderSide(color: Color(0xFFD8DBE3))),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 148 * scale,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              28 * scale,
+              22 * scale,
+              28 * scale,
+              18 * scale,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Icon(
+                      Icons.menu,
+                      color: const Color(0xFF0059C7),
+                      size: 32 * scale,
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.search,
+                      color: const Color(0xFF0059C7),
+                      size: 36 * scale,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 18 * scale),
                 Text(
-                  l10n.homeImportOrderTitle,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                  'Feyam',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    color: const Color(0xFF111315),
+                    fontSize: 58 * scale,
+                    fontWeight: FontWeight.w800,
+                    height: 0.95,
                   ),
-                ),
-                const SizedBox(height: 14),
-                AdaptiveAppTextField(
-                  placeholder: l10n.homePasteProductLink,
-                  prefixIcon: const Icon(Icons.link),
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                  backgroundColor: const Color(0xFFE5E7EB),
-                  borderColor: Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                const SizedBox(height: 12),
-                AdaptiveAppButton(
-                  text: l10n.homeImportButton,
-                  height: 52,
-                  borderRadius: BorderRadius.circular(14),
-                  onPressed: () {},
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          const _PopularStoresSection(),
-          const SizedBox(height: 24),
-          const _RecentOrdersSection(),
+        ),
+      ),
+    );
+  }
+}
+
+class _MaterialImportOrderCard extends StatelessWidget {
+  const _MaterialImportOrderCard({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFE),
+        borderRadius: BorderRadius.circular(20 * scale),
+        border: Border.all(color: const Color(0xFFDADDE7), width: 1.5 * scale),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          28 * scale,
+          30 * scale,
+          28 * scale,
+          30 * scale,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              l10n.homeImportOrderTitle,
+              style: textTheme.headlineSmall?.copyWith(
+                color: const Color(0xFF111315),
+                fontSize: 29 * scale,
+                fontWeight: FontWeight.w800,
+                height: 1.05,
+              ),
+            ),
+            SizedBox(height: 20 * scale),
+            Container(
+              height: 80 * scale,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0E0E6),
+                borderRadius: BorderRadius.circular(12 * scale),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 24 * scale),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.link,
+                    color: const Color(0xFF62676E),
+                    size: 29 * scale,
+                  ),
+                  SizedBox(width: 16 * scale),
+                  Expanded(
+                    child: Text(
+                      l10n.homePasteProductLink,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleLarge?.copyWith(
+                        color: const Color(0xFF999CA5),
+                        fontSize: 29 * scale,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16 * scale),
+            SizedBox(
+              height: 80 * scale,
+              child: FilledButton(
+                onPressed: () {},
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF0A63C7),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18 * scale),
+                  ),
+                  textStyle: textTheme.headlineSmall?.copyWith(
+                    fontSize: 29 * scale,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                child: Text(l10n.homeImportButton),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MaterialStoresSection extends StatelessWidget {
+  const _MaterialStoresSection({required this.scale});
+
+  final double scale;
+
+  static const _stores = <_MaterialStore>[
+    _MaterialStore(name: 'Amazon', label: 'amazon', background: Colors.black),
+    _MaterialStore(name: 'eBay', label: 'eBay', background: Colors.black),
+    _MaterialStore(name: 'Zara', label: 'ZARA', background: Color(0xFF3E3E3E)),
+    _MaterialStore(name: 'Apple', label: 'Apple', background: Colors.white),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                l10n.homePopularStoresTitleMaterial,
+                style: textTheme.headlineSmall?.copyWith(
+                  color: const Color(0xFF111315),
+                  fontSize: 31 * scale,
+                  fontWeight: FontWeight.w800,
+                  height: 1.05,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 4 * scale),
+                minimumSize: Size(0, 40 * scale),
+              ),
+              child: Text(
+                l10n.homeSeeAll,
+                style: textTheme.titleLarge?.copyWith(
+                  color: const Color(0xFF0059C7),
+                  fontSize: 27 * scale,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 18 * scale),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            for (final store in _stores)
+              _MaterialStoreItem(scale: scale, store: store),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MaterialStoreItem extends StatelessWidget {
+  const _MaterialStoreItem({required this.scale, required this.store});
+
+  final double scale;
+  final _MaterialStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return SizedBox(
+      width: 112 * scale,
+      child: Column(
+        children: <Widget>[
+          Container(
+            width: 112 * scale,
+            height: 112 * scale,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3E5EA),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFD9DCE3)),
+            ),
+            child: Center(
+              child: Container(
+                width: 70 * scale,
+                height: 70 * scale,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: store.background,
+                  borderRadius: BorderRadius.circular(2 * scale),
+                ),
+                child: Text(
+                  store.label,
+                  textAlign: TextAlign.center,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: store.background == Colors.white
+                        ? colors.onSurface
+                        : Colors.white,
+                    fontSize: 11 * scale,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 10 * scale),
+          Text(
+            store.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleMedium?.copyWith(
+              color: const Color(0xFF2D3340),
+              fontSize: 22 * scale,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _MaterialStore {
+  const _MaterialStore({
+    required this.name,
+    required this.label,
+    required this.background,
+  });
+
+  final String name;
+  final String label;
+  final Color background;
+}
+
+class _MaterialRecentOrdersSection extends StatelessWidget {
+  const _MaterialRecentOrdersSection({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+    final orders = <_RecentOrder>[
+      _RecentOrder(
+        product: 'Nike Air Max 270',
+        store: 'Amazon',
+        date: 'Oct 24, 2023',
+        price: r'$150.00',
+        status: l10n.homeStatusInTransit,
+        statusColor: const Color(0xFF0B65C2),
+        statusBackground: const Color(0xFFDCEBFF),
+      ),
+      _RecentOrder(
+        product: 'Silver Watch',
+        store: 'eBay',
+        date: 'Oct 22, 2023',
+        price: r'$89.99',
+        status: l10n.homeStatusDelivered,
+        statusColor: const Color(0xFF2F9A55),
+        statusBackground: const Color(0xFFDDF8E7),
+      ),
+      _RecentOrder(
+        product: 'Beats Studio Pro',
+        store: 'Zara',
+        date: 'Oct 20, 2023',
+        price: r'$349.00',
+        status: l10n.homeStatusDelivered,
+        statusColor: const Color(0xFF2F9A55),
+        statusBackground: const Color(0xFFDDF8E7),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          l10n.homeRecentOrdersTitleMaterial,
+          style: textTheme.headlineSmall?.copyWith(
+            color: const Color(0xFF111315),
+            fontSize: 31 * scale,
+            fontWeight: FontWeight.w800,
+            height: 1.05,
+          ),
+        ),
+        SizedBox(height: 20 * scale),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18 * scale),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFE),
+              border: Border.all(
+                color: const Color(0xFFDADDE7),
+                width: 1.5 * scale,
+              ),
+              borderRadius: BorderRadius.circular(18 * scale),
+            ),
+            child: Column(
+              children: <Widget>[
+                for (var index = 0; index < orders.length; index++) ...[
+                  _MaterialRecentOrderItem(scale: scale, order: orders[index]),
+                  if (index < orders.length - 1)
+                    Divider(
+                      height: 1,
+                      thickness: 1 * scale,
+                      color: const Color(0xFFDADDE7),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MaterialRecentOrderItem extends StatelessWidget {
+  const _MaterialRecentOrderItem({required this.scale, required this.order});
+
+  final double scale;
+  final _RecentOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: () {},
+      child: SizedBox(
+        height: 171 * scale,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            28 * scale,
+            28 * scale,
+            28 * scale,
+            24 * scale,
+          ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            order.product,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.headlineSmall?.copyWith(
+                              color: const Color(0xFF111315),
+                              fontSize: 29 * scale,
+                              fontWeight: FontWeight.w800,
+                              height: 1.05,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10 * scale),
+                        _MaterialOrderStatusBadge(scale: scale, order: order),
+                      ],
+                    ),
+                    SizedBox(height: 8 * scale),
+                    Text(
+                      '${order.store} • ${order.date}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFF2D3340),
+                        fontSize: 23 * scale,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      order.price,
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: const Color(0xFF111315),
+                        fontSize: 28 * scale,
+                        fontWeight: FontWeight.w800,
+                        height: 1.05,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 20 * scale),
+              Icon(
+                Icons.chevron_right,
+                color: const Color(0xFF5F646C),
+                size: 34 * scale,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MaterialOrderStatusBadge extends StatelessWidget {
+  const _MaterialOrderStatusBadge({required this.scale, required this.order});
+
+  final double scale;
+  final _RecentOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 15 * scale,
+        vertical: 5 * scale,
+      ),
+      decoration: BoxDecoration(
+        color: order.statusBackground,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        order.status,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: order.statusColor,
+          fontSize: 19 * scale,
+          fontWeight: FontWeight.w500,
+          height: 1,
+        ),
       ),
     );
   }
@@ -404,300 +884,6 @@ class _CupertinoRecentOrder {
   final String product;
   final String origin;
   final String price;
-}
-
-class _PopularStoresSection extends StatelessWidget {
-  const _PopularStoresSection();
-
-  static const _stores = <_PopularStore>[
-    _PopularStore(name: 'Amazon', iconLabel: 'amazon', background: Colors.black),
-    _PopularStore(name: 'eBay', iconLabel: 'eBay', background: Colors.black),
-    _PopularStore(name: 'Zara', iconLabel: 'ZARA', background: Color(0xFF3E3E3E)),
-    _PopularStore(name: 'Apple', iconLabel: 'Apple', background: Colors.white),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                l10n.homePopularStoresTitleMaterial,
-                style: textTheme.titleLarge?.copyWith(
-                  color: colors.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {},
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Text(
-                  l10n.homeSeeAll,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Row(
-          children: <Widget>[
-            for (final store in _stores)
-              Expanded(child: _PopularStoreItem(store: store)),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _PopularStoreItem extends StatelessWidget {
-  const _PopularStoreItem({required this.store});
-
-  final _PopularStore store;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return SizedBox(
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 66,
-            height: 66,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3E5EA),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFD9DCE3)),
-            ),
-            child: Center(
-              child: Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: store.background,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                child: Text(
-                  store.iconLabel,
-                  textAlign: TextAlign.center,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: store.background == Colors.white
-                        ? colors.onSurface
-                        : Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            store.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PopularStore {
-  const _PopularStore({
-    required this.name,
-    required this.iconLabel,
-    required this.background,
-  });
-
-  final String name;
-  final String iconLabel;
-  final Color background;
-}
-
-class _RecentOrdersSection extends StatelessWidget {
-  const _RecentOrdersSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final orders = <_RecentOrder>[
-      _RecentOrder(
-        product: 'Nike Air Max 270',
-        store: 'Amazon',
-        date: 'Oct 24, 2023',
-        price: r'$150.00',
-        status: l10n.homeStatusInTransit,
-        statusColor: const Color(0xFF0B65C2),
-        statusBackground: const Color(0xFFDCEBFF),
-      ),
-      _RecentOrder(
-        product: 'Silver Watch',
-        store: 'eBay',
-        date: 'Oct 22, 2023',
-        price: r'$89.99',
-        status: l10n.homeStatusDelivered,
-        statusColor: const Color(0xFF2F9A55),
-        statusBackground: const Color(0xFFDDF8E7),
-      ),
-      _RecentOrder(
-        product: 'Beats Studio Pro',
-        store: 'Zara',
-        date: 'Oct 20, 2023',
-        price: r'$349.00',
-        status: l10n.homeStatusDelivered,
-        statusColor: const Color(0xFF2F9A55),
-        statusBackground: const Color(0xFFDDF8E7),
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Text(
-          l10n.homeRecentOrdersTitleMaterial,
-          style: textTheme.titleMedium?.copyWith(
-            color: colors.onSurface,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 10),
-        AdaptiveAppCard(
-          padding: EdgeInsets.zero,
-          borderRadius: BorderRadius.circular(14),
-          elevation: 8,
-          child: Column(
-            children: <Widget>[
-              for (var index = 0; index < orders.length; index++) ...<Widget>[
-                _RecentOrderItem(order: orders[index]),
-                if (index < orders.length - 1)
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: colors.outlineVariant.withValues(alpha: 0.6),
-                  ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _RecentOrderItem extends StatelessWidget {
-  const _RecentOrderItem({required this.order});
-
-  final _RecentOrder order;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {},
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          order.product,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.titleSmall?.copyWith(
-                            color: colors.onSurface,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _OrderStatusBadge(order: order),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${order.store} • ${order.date}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    order.price,
-                    style: textTheme.titleSmall?.copyWith(
-                      color: colors.onSurface,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(Icons.chevron_right, color: colors.onSurfaceVariant, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OrderStatusBadge extends StatelessWidget {
-  const _OrderStatusBadge({required this.order});
-
-  final _RecentOrder order;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: order.statusBackground,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        order.status,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: order.statusColor,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 }
 
 class _RecentOrder {

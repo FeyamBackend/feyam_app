@@ -31,5 +31,19 @@
     "homeCupertinoOrder2Product": "Minimalist Analog Watch",
     "homeCupertinoOrder2Origin": "Imported from eBay",
     "homeCupertinoOrder3Product": "Wireless Noise Cancelling Headset",
-    "homeCupertinoOrder3Origin": "Imported from BestBuy"
+    "homeCupertinoOrder3Origin": "Imported from BestBuy",
+    "profileName": "Anais Fourati",
+    "profileMembershipLevel": "Gold Member",
+    "profileAccountSection": "Account",
+    "profileMyAddresses": "My Addresses",
+    "profileMyOrders": "My Orders",
+    "profilePersonalDetailsSection": "Personal Details",
+    "profilePersonalInformation": "Personal information",
+    "profilePaymentMethods": "Payment methods",
+    "profileGeneralSection": "General",
+    "profileNotifications": "Notifications",
+    "profileHelpSupport": "Help & Support",
+    "profileLogOut": "Log out",
+    "profileMenuSemanticLabel": "Open menu",
+    "profileSettingsSemanticLabel": "Open settings"
 }
