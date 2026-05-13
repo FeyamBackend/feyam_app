@@ -538,8 +538,6 @@ class _CupertinoHomeContent extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(CupertinoIcons.line_horizontal_3, size: 22),
-              const SizedBox(width: 14),
               Text(
                 'Feyam',
                 style: theme.textTheme.textStyle.copyWith(
