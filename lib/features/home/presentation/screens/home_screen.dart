@@ -76,34 +76,18 @@ class _MaterialHomeHeader extends StatelessWidget {
             28 * scale,
             18 * scale,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Row(
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.menu,
-                    color: const Color(0xFF0059C7),
-                    size: 32 * scale,
-                  ),
-                  const Spacer(),
-                  Icon(
-                    Icons.search,
-                    color: const Color(0xFF0059C7),
-                    size: 36 * scale,
-                  ),
-                ],
-              ),
-              SizedBox(height: 18 * scale),
               Text(
                 'Feyam',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color: const Color(0xFF111315),
-                  fontSize: 58 * scale,
+                  fontSize: 38 * scale,
                   fontWeight: FontWeight.w800,
-                  height: 0.95,
+                  height: 1,
                 ),
               ),
+              const Spacer(),
             ],
           ),
         ),
@@ -278,12 +262,12 @@ class _MaterialStoreItem extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return SizedBox(
-      width: 112 * scale,
+      width: 88 * scale,
       child: Column(
         children: <Widget>[
           Container(
-            width: 112 * scale,
-            height: 112 * scale,
+            width: 88 * scale,
+            height: 88 * scale,
             decoration: BoxDecoration(
               color: const Color(0xFFE3E5EA),
               shape: BoxShape.circle,
@@ -291,8 +275,8 @@ class _MaterialStoreItem extends StatelessWidget {
             ),
             child: Center(
               child: Container(
-                width: 70 * scale,
-                height: 70 * scale,
+                width: 54 * scale,
+                height: 54 * scale,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: store.background,
@@ -319,7 +303,7 @@ class _MaterialStoreItem extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium?.copyWith(
               color: const Color(0xFF2D3340),
-              fontSize: 22 * scale,
+              fontSize: 18 * scale,
               fontWeight: FontWeight.w400,
             ),
           ),

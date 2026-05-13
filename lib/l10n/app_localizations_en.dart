@@ -189,4 +189,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cartMaterialFootnote =>
       'Tax calculated at checkout. Secure SSL encrypted payment processing.';
+
+  @override
+  String get ordersHistoryTitle => 'Order History';
+
+  @override
+  String get ordersFilterSemanticLabel => 'Filter orders';
+
+  @override
+  String get ordersStatusAwaitingApproval => 'AWAITING_APPROVAL';
+
+  @override
+  String get ordersStatusPendingVerification => 'PENDING_VERIFICATION';
+
+  @override
+  String get ordersStatusCompleted => 'COMPLETED';
+
+  @override
+  String get ordersOrder1Date => 'Oct 24, 2023 •';
+
+  @override
+  String get ordersOrder1Time => '10:45 AM';
+
+  @override
+  String get ordersOrder1Items => '3 Items';
+
+  @override
+  String get ordersOrder2Date => 'Oct 22, 2023 •';
+
+  @override
+  String get ordersOrder2Time => '02:15 PM';
+
+  @override
+  String get ordersOrder2Items => '1 Item';
+
+  @override
+  String get ordersOrder3Date => 'Oct 18, 2023 • 09:30 AM';
+
+  @override
+  String get ordersOrder3Items => '5 Items';
+
+  @override
+  String get ordersOrder4Date => 'Oct 10, 2023 • 11:20 AM';
+
+  @override
+  String get ordersOrder4Items => '2 Items';
 }

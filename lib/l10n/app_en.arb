@@ -64,5 +64,20 @@
     "cartTitle": "Your Cart",
     "cartEstimatedShipping": "Estimated Shipping",
     "cartCheckoutMaterialButton": "Continue to Checkout",
-    "cartMaterialFootnote": "Tax calculated at checkout. Secure SSL encrypted payment processing."
+    "cartMaterialFootnote": "Tax calculated at checkout. Secure SSL encrypted payment processing.",
+    "ordersHistoryTitle": "Order History",
+    "ordersFilterSemanticLabel": "Filter orders",
+    "ordersStatusAwaitingApproval": "AWAITING_APPROVAL",
+    "ordersStatusPendingVerification": "PENDING_VERIFICATION",
+    "ordersStatusCompleted": "COMPLETED",
+    "ordersOrder1Date": "Oct 24, 2023 •",
+    "ordersOrder1Time": "10:45 AM",
+    "ordersOrder1Items": "3 Items",
+    "ordersOrder2Date": "Oct 22, 2023 •",
+    "ordersOrder2Time": "02:15 PM",
+    "ordersOrder2Items": "1 Item",
+    "ordersOrder3Date": "Oct 18, 2023 • 09:30 AM",
+    "ordersOrder3Items": "5 Items",
+    "ordersOrder4Date": "Oct 10, 2023 • 11:20 AM",
+    "ordersOrder4Items": "2 Items"
 }

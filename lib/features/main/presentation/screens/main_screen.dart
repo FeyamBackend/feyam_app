@@ -37,7 +37,11 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     return AdaptiveAppScaffold(
-      title: _currentIndex == 0 || _currentIndex == 1 || _currentIndex == 3
+      title:
+          _currentIndex == 0 ||
+              _currentIndex == 1 ||
+              _currentIndex == 2 ||
+              _currentIndex == 3
           ? null
           : currentLabel,
       body: _MainTabContent(currentIndex: _currentIndex),

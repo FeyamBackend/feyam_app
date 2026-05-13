@@ -332,7 +332,7 @@ class _MaterialProfileRow extends StatelessWidget {
     return InkWell(
       onTap: () {},
       child: SizedBox(
-        height: 106 * scale,
+        height: 82 * scale,
         child: Row(
           children: <Widget>[
             Icon(data.icon, color: const Color(0xFF3A454A), size: 32 * scale),

@@ -457,6 +457,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tax calculated at checkout. Secure SSL encrypted payment processing.'**
   String get cartMaterialFootnote;
+
+  /// No description provided for @ordersHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order History'**
+  String get ordersHistoryTitle;
+
+  /// No description provided for @ordersFilterSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter orders'**
+  String get ordersFilterSemanticLabel;
+
+  /// No description provided for @ordersStatusAwaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'AWAITING_APPROVAL'**
+  String get ordersStatusAwaitingApproval;
+
+  /// No description provided for @ordersStatusPendingVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'PENDING_VERIFICATION'**
+  String get ordersStatusPendingVerification;
+
+  /// No description provided for @ordersStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPLETED'**
+  String get ordersStatusCompleted;
+
+  /// No description provided for @ordersOrder1Date.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 24, 2023 •'**
+  String get ordersOrder1Date;
+
+  /// No description provided for @ordersOrder1Time.
+  ///
+  /// In en, this message translates to:
+  /// **'10:45 AM'**
+  String get ordersOrder1Time;
+
+  /// No description provided for @ordersOrder1Items.
+  ///
+  /// In en, this message translates to:
+  /// **'3 Items'**
+  String get ordersOrder1Items;
+
+  /// No description provided for @ordersOrder2Date.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 22, 2023 •'**
+  String get ordersOrder2Date;
+
+  /// No description provided for @ordersOrder2Time.
+  ///
+  /// In en, this message translates to:
+  /// **'02:15 PM'**
+  String get ordersOrder2Time;
+
+  /// No description provided for @ordersOrder2Items.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Item'**
+  String get ordersOrder2Items;
+
+  /// No description provided for @ordersOrder3Date.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 18, 2023 • 09:30 AM'**
+  String get ordersOrder3Date;
+
+  /// No description provided for @ordersOrder3Items.
+  ///
+  /// In en, this message translates to:
+  /// **'5 Items'**
+  String get ordersOrder3Items;
+
+  /// No description provided for @ordersOrder4Date.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 10, 2023 • 11:20 AM'**
+  String get ordersOrder4Date;
+
+  /// No description provided for @ordersOrder4Items.
+  ///
+  /// In en, this message translates to:
+  /// **'2 Items'**
+  String get ordersOrder4Items;
 }
 
 class _AppLocalizationsDelegate
