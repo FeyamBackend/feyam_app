@@ -529,6 +529,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'2 Items'**
   String get ordersOrder4Items;
+
+  /// No description provided for @ordersSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search orders'**
+  String get ordersSearchPlaceholder;
+
+  /// No description provided for @ordersStatusEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'ESTIMATED'**
+  String get ordersStatusEstimated;
+
+  /// No description provided for @ordersStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRMED'**
+  String get ordersStatusConfirmed;
+
+  /// No description provided for @ordersStatusNeedsAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS_ADJUSTMENT'**
+  String get ordersStatusNeedsAdjustment;
+
+  /// No description provided for @ordersStatusAwaitingCustomerApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'AWAITING_CUSTOMER_APPROVAL'**
+  String get ordersStatusAwaitingCustomerApproval;
+
+  /// No description provided for @ordersCupertinoOrder1DateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 24, 2023 • 14:30'**
+  String get ordersCupertinoOrder1DateTime;
+
+  /// No description provided for @ordersCupertinoOrder1Items.
+  ///
+  /// In en, this message translates to:
+  /// **'3 Items'**
+  String get ordersCupertinoOrder1Items;
+
+  /// No description provided for @ordersCupertinoOrder2DateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 22, 2023 • 09:15'**
+  String get ordersCupertinoOrder2DateTime;
+
+  /// No description provided for @ordersCupertinoOrder2Items.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Item'**
+  String get ordersCupertinoOrder2Items;
+
+  /// No description provided for @ordersCupertinoOrder3DateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 20, 2023 • 18:45'**
+  String get ordersCupertinoOrder3DateTime;
+
+  /// No description provided for @ordersCupertinoOrder3Items.
+  ///
+  /// In en, this message translates to:
+  /// **'5 Items'**
+  String get ordersCupertinoOrder3Items;
+
+  /// No description provided for @ordersCupertinoOrder4DateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 19, 2023 • 11:05'**
+  String get ordersCupertinoOrder4DateTime;
+
+  /// No description provided for @ordersCupertinoOrder4Items.
+  ///
+  /// In en, this message translates to:
+  /// **'2 Items'**
+  String get ordersCupertinoOrder4Items;
+
+  /// No description provided for @ordersCupertinoOrder5DateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct 15, 2023 • 16:20'**
+  String get ordersCupertinoOrder5DateTime;
+
+  /// No description provided for @ordersCupertinoOrder5Items.
+  ///
+  /// In en, this message translates to:
+  /// **'4 Items'**
+  String get ordersCupertinoOrder5Items;
 }
 
 class _AppLocalizationsDelegate

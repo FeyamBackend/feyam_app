@@ -225,4 +225,49 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ordersOrder4Items => '2 Items';
+
+  @override
+  String get ordersSearchPlaceholder => 'Buscar pedidos';
+
+  @override
+  String get ordersStatusEstimated => 'ESTIMADO';
+
+  @override
+  String get ordersStatusConfirmed => 'CONFIRMADO';
+
+  @override
+  String get ordersStatusNeedsAdjustment => 'NECESITA_AJUSTE';
+
+  @override
+  String get ordersStatusAwaitingCustomerApproval => 'EN_ESPERA_APROBACION';
+
+  @override
+  String get ordersCupertinoOrder1DateTime => '24 oct, 2023 • 14:30';
+
+  @override
+  String get ordersCupertinoOrder1Items => '3 artículos';
+
+  @override
+  String get ordersCupertinoOrder2DateTime => '22 oct, 2023 • 09:15';
+
+  @override
+  String get ordersCupertinoOrder2Items => '1 artículo';
+
+  @override
+  String get ordersCupertinoOrder3DateTime => '20 oct, 2023 • 18:45';
+
+  @override
+  String get ordersCupertinoOrder3Items => '5 artículos';
+
+  @override
+  String get ordersCupertinoOrder4DateTime => '19 oct, 2023 • 11:05';
+
+  @override
+  String get ordersCupertinoOrder4Items => '2 artículos';
+
+  @override
+  String get ordersCupertinoOrder5DateTime => '15 oct, 2023 • 16:20';
+
+  @override
+  String get ordersCupertinoOrder5Items => '4 artículos';
 }

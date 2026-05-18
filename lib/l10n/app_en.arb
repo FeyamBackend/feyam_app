@@ -76,5 +76,20 @@
     "ordersOrder3Date": "Oct 18, 2023 • 09:30 AM",
     "ordersOrder3Items": "5 Items",
     "ordersOrder4Date": "Oct 10, 2023 • 11:20 AM",
-    "ordersOrder4Items": "2 Items"
+    "ordersOrder4Items": "2 Items",
+    "ordersSearchPlaceholder": "Search orders",
+    "ordersStatusEstimated": "ESTIMATED",
+    "ordersStatusConfirmed": "CONFIRMED",
+    "ordersStatusNeedsAdjustment": "NEEDS_ADJUSTMENT",
+    "ordersStatusAwaitingCustomerApproval": "AWAITING_CUSTOMER_APPROVAL",
+    "ordersCupertinoOrder1DateTime": "Oct 24, 2023 • 14:30",
+    "ordersCupertinoOrder1Items": "3 Items",
+    "ordersCupertinoOrder2DateTime": "Oct 22, 2023 • 09:15",
+    "ordersCupertinoOrder2Items": "1 Item",
+    "ordersCupertinoOrder3DateTime": "Oct 20, 2023 • 18:45",
+    "ordersCupertinoOrder3Items": "5 Items",
+    "ordersCupertinoOrder4DateTime": "Oct 19, 2023 • 11:05",
+    "ordersCupertinoOrder4Items": "2 Items",
+    "ordersCupertinoOrder5DateTime": "Oct 15, 2023 • 16:20",
+    "ordersCupertinoOrder5Items": "4 Items"
 }
