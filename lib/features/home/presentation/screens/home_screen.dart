@@ -69,16 +69,13 @@ class _MaterialHomeHeader extends StatelessWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            28 * scale,
-            22 * scale,
-            28 * scale,
-            18 * scale,
-          ),
-          child: Row(
-            children: <Widget>[
-              Text(
+        child: SizedBox(
+          height: 100 * scale,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 28 * scale),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
                 'Feyam',
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color: const Color(0xFF111315),
@@ -87,8 +84,7 @@ class _MaterialHomeHeader extends StatelessWidget {
                   height: 1,
                 ),
               ),
-              const Spacer(),
-            ],
+            ),
           ),
         ),
       ),

@@ -110,44 +110,30 @@ class _MaterialProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return ColoredBox(
-      color: const Color(0xFFFAFAFE),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFAFAFE),
+        border: Border(bottom: BorderSide(color: Color(0xFFD8DBE3))),
+      ),
       child: SafeArea(
         bottom: false,
         child: SizedBox(
           height: 100 * scale,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 28 * scale),
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  tooltip: l10n.profileMenuSemanticLabel,
-                  onPressed: () {},
-                  icon: Icon(Icons.menu, size: 31 * scale),
-                  color: const Color(0xFF324047),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.navProfile,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: const Color(0xFF111315),
+                  fontSize: 34 * scale,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
                 ),
-                Expanded(
-                  child: Text(
-                    'Feyam',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: colors.primary,
-                      fontSize: 34 * scale,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.profileSettingsSemanticLabel,
-                  onPressed: () {},
-                  icon: Icon(Icons.settings_outlined, size: 31 * scale),
-                  color: const Color(0xFF324047),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -484,46 +470,13 @@ class _CupertinoProfileHeader extends StatelessWidget {
     final theme = CupertinoTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Row(
-      children: <Widget>[
-        CupertinoButton(
-          minimumSize: Size.square(48 * scale),
-          padding: EdgeInsets.zero,
-          onPressed: () {},
-          child: Semantics(
-            label: l10n.profileMenuSemanticLabel,
-            child: Icon(
-              CupertinoIcons.line_horizontal_3,
-              color: const Color(0xFF001F33),
-              size: 31 * scale,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            l10n.navProfile,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.navTitleTextStyle.copyWith(
-              color: CupertinoColors.black,
-              fontSize: 28 * scale,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        CupertinoButton(
-          minimumSize: Size.square(48 * scale),
-          padding: EdgeInsets.zero,
-          onPressed: () {},
-          child: Semantics(
-            label: l10n.profileSettingsSemanticLabel,
-            child: Icon(
-              CupertinoIcons.gear_alt,
-              color: CupertinoColors.black,
-              size: 34 * scale,
-            ),
-          ),
-        ),
-      ],
+    return Text(
+      l10n.navProfile,
+      style: theme.textTheme.textStyle.copyWith(
+        color: const Color(0xFF002B45),
+        fontSize: 28 * scale,
+        fontWeight: FontWeight.w700,
+      ),
     );
   }
 }

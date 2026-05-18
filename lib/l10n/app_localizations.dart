@@ -350,35 +350,17 @@ abstract class AppLocalizations {
   /// **'Premium Chronograph'**
   String get cartItemChronographName;
 
-  /// No description provided for @cartItemChronographDetail.
-  ///
-  /// In en, this message translates to:
-  /// **'Midnight Blue Edition'**
-  String get cartItemChronographDetail;
-
   /// No description provided for @cartItemAeroName.
   ///
   /// In en, this message translates to:
   /// **'Aero Performance Pro'**
   String get cartItemAeroName;
 
-  /// No description provided for @cartItemAeroDetail.
-  ///
-  /// In en, this message translates to:
-  /// **'Crimson / White'**
-  String get cartItemAeroDetail;
-
   /// No description provided for @cartItemSonicName.
   ///
   /// In en, this message translates to:
   /// **'Sonic Bliss Wireless'**
   String get cartItemSonicName;
-
-  /// No description provided for @cartItemSonicDetail.
-  ///
-  /// In en, this message translates to:
-  /// **'Noise Cancelling Black'**
-  String get cartItemSonicDetail;
 
   /// No description provided for @cartSummaryTitle.
   ///

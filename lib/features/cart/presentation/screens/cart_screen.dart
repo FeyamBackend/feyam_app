@@ -21,20 +21,15 @@ class _MaterialCartContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     const items = <_MaterialCartItem>[
       _MaterialCartItem(
         name: 'Velocita Pro Runner',
-        description:
-            'High-performance athletic footwear designed for maximum energy return and breathability.',
         variant: 'Size: 42 • Red',
         price: r'$149.00',
         quantity: 1,
       ),
       _MaterialCartItem(
         name: 'Aura Minimalist Timepiece',
-        description:
-            'Surgical grade stainless steel with a scratch-resistant sapphire crystal display.',
         variant: 'Silver • 40mm',
         price: r'$210.00',
         quantity: 1,
@@ -61,8 +56,6 @@ class _MaterialCartContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      _MaterialCartTitle(scale: scale, title: l10n.cartTitle),
-                      SizedBox(height: 50 * scale),
                       _MaterialCartItemsCard(scale: scale, items: items),
                       SizedBox(height: 48 * scale),
                       _MaterialCartTotals(scale: scale),
@@ -100,59 +93,23 @@ class _MaterialCartHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: 102 * scale,
+          height: 100 * scale,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 29 * scale),
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  tooltip: l10n.profileMenuSemanticLabel,
-                  onPressed: () {},
-                  icon: Icon(Icons.menu, size: 33 * scale),
-                  color: const Color(0xFF0059C7),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.cartTitle,
+                style: textTheme.headlineMedium?.copyWith(
+                  color: const Color(0xFF111315),
+                  fontSize: 31 * scale,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
                 ),
-                Expanded(
-                  child: Text(
-                    'Feyam',
-                    textAlign: TextAlign.center,
-                    style: textTheme.headlineMedium?.copyWith(
-                      color: const Color(0xFF111315),
-                      fontSize: 31 * scale,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.cartSearchSemanticLabel,
-                  onPressed: () {},
-                  icon: Icon(Icons.search, size: 39 * scale),
-                  color: const Color(0xFF0059C7),
-                ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MaterialCartTitle extends StatelessWidget {
-  const _MaterialCartTitle({required this.scale, required this.title});
-
-  final double scale;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-        color: const Color(0xFF111315),
-        fontSize: 57 * scale,
-        fontWeight: FontWeight.w800,
-        height: 1,
       ),
     );
   }
@@ -246,16 +203,6 @@ class _MaterialCartItemRow extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          SizedBox(height: 12 * scale),
-          Text(
-            item.description,
-            style: textTheme.titleLarge?.copyWith(
-              color: const Color(0xFF2D3340),
-              fontSize: 25 * scale,
-              fontWeight: FontWeight.w400,
-              height: 1.18,
-            ),
           ),
           SizedBox(height: 30 * scale),
           Row(
@@ -474,14 +421,12 @@ class _MaterialCartFootnote extends StatelessWidget {
 class _MaterialCartItem {
   const _MaterialCartItem({
     required this.name,
-    required this.description,
     required this.variant,
     required this.price,
     required this.quantity,
   });
 
   final String name;
-  final String description;
   final String variant;
   final String price;
   final int quantity;
@@ -496,19 +441,16 @@ class _CupertinoCartContent extends StatelessWidget {
     final items = <_CartItem>[
       _CartItem(
         name: l10n.cartItemChronographName,
-        detail: l10n.cartItemChronographDetail,
         price: r'$299.00',
         quantity: 1,
       ),
       _CartItem(
         name: l10n.cartItemAeroName,
-        detail: l10n.cartItemAeroDetail,
         price: r'$120.00',
         quantity: 2,
       ),
       _CartItem(
         name: l10n.cartItemSonicName,
-        detail: l10n.cartItemSonicDetail,
         price: r'$450.00',
         quantity: 1,
       ),
@@ -532,8 +474,6 @@ class _CupertinoCartContent extends StatelessWidget {
               children: <Widget>[
                 _CupertinoCartHeader(scale: scale),
                 SizedBox(height: 52 * scale),
-                _CupertinoCartTitle(scale: scale, title: l10n.navCart),
-                SizedBox(height: 34 * scale),
                 for (final item in items) ...[
                   _CupertinoCartItemCard(scale: scale, item: item),
                   SizedBox(height: 22 * scale),
@@ -559,72 +499,18 @@ class _CupertinoCartHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = CupertinoTheme.of(context);
 
-    return Row(
-      children: <Widget>[
-        CupertinoButton(
-          minimumSize: Size.square(42 * scale),
-          padding: EdgeInsets.zero,
-          onPressed: () {},
-          child: Semantics(
-            label: l10n.profileMenuSemanticLabel,
-            child: Icon(
-              CupertinoIcons.line_horizontal_3,
-              color: const Color(0xFF002B45),
-              size: 27 * scale,
-            ),
-          ),
-        ),
-        SizedBox(width: 20 * scale),
-        Expanded(
-          child: Text(
-            'Feyam',
-            style: theme.textTheme.textStyle.copyWith(
-              color: const Color(0xFF002B45),
-              fontSize: 31 * scale,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-        ),
-        CupertinoButton(
-          minimumSize: Size.square(42 * scale),
-          padding: EdgeInsets.zero,
-          onPressed: () {},
-          child: Semantics(
-            label: l10n.cartSearchSemanticLabel,
-            child: Icon(
-              CupertinoIcons.search,
-              color: const Color(0xFF002B45),
-              size: 30 * scale,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CupertinoCartTitle extends StatelessWidget {
-  const _CupertinoCartTitle({required this.scale, required this.title});
-
-  final double scale;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
     return Text(
-      title,
+      l10n.navCart,
       style: theme.textTheme.textStyle.copyWith(
-        color: CupertinoColors.black,
-        fontSize: 36 * scale,
-        fontWeight: FontWeight.w400,
-        height: 1.05,
+        color: const Color(0xFF002B45),
+        fontSize: 31 * scale,
+        fontWeight: FontWeight.w700,
+        height: 1,
       ),
     );
   }
 }
+
 
 class _CupertinoCartItemCard extends StatelessWidget {
   const _CupertinoCartItemCard({required this.scale, required this.item});
@@ -683,17 +569,6 @@ class _CupertinoCartItemCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            SizedBox(height: 18 * scale),
-            Text(
-              item.detail,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.textStyle.copyWith(
-                color: const Color(0xFF2E343B),
-                fontSize: 19 * scale,
-                fontWeight: FontWeight.w400,
-              ),
             ),
             SizedBox(height: 30 * scale),
             Row(
@@ -943,13 +818,11 @@ class _CupertinoSummaryRow extends StatelessWidget {
 class _CartItem {
   const _CartItem({
     required this.name,
-    required this.detail,
     required this.price,
     required this.quantity,
   });
 
   final String name;
-  final String detail;
   final String price;
   final int quantity;
 }

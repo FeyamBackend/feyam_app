@@ -136,19 +136,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartItemChronographName => 'Premium Chronograph';
 
   @override
-  String get cartItemChronographDetail => 'Midnight Blue Edition';
-
-  @override
   String get cartItemAeroName => 'Aero Performance Pro';
 
   @override
-  String get cartItemAeroDetail => 'Crimson / White';
-
-  @override
   String get cartItemSonicName => 'Sonic Bliss Wireless';
-
-  @override
-  String get cartItemSonicDetail => 'Noise Cancelling Black';
 
   @override
   String get cartSummaryTitle => 'Summary';
