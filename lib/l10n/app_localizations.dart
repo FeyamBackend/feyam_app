@@ -146,6 +146,48 @@ abstract class AppLocalizations {
   /// **'Coming soon'**
   String get addToCartPlaceholder;
 
+  /// No description provided for @addToCartSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PRODUCT DETAILS'**
+  String get addToCartSectionLabel;
+
+  /// No description provided for @addToCartProductLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Link'**
+  String get addToCartProductLinkLabel;
+
+  /// No description provided for @addToCartPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price (USD)'**
+  String get addToCartPriceLabel;
+
+  /// No description provided for @addToCartQuantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get addToCartQuantityLabel;
+
+  /// No description provided for @addToCartVariantsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Variants (Color/Size)'**
+  String get addToCartVariantsLabel;
+
+  /// No description provided for @addToCartVariantsPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Silver, Large'**
+  String get addToCartVariantsPlaceholder;
+
+  /// No description provided for @addToCartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to cart'**
+  String get addToCartButton;
+
   /// No description provided for @homeImportOrderTitle.
   ///
   /// In en, this message translates to:

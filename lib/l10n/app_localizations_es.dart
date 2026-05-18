@@ -34,6 +34,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addToCartPlaceholder => 'Próximamente';
 
   @override
+  String get addToCartSectionLabel => 'DETALLES DEL PRODUCTO';
+
+  @override
+  String get addToCartProductLinkLabel => 'Link al Producto';
+
+  @override
+  String get addToCartPriceLabel => 'Precio (USD)';
+
+  @override
+  String get addToCartQuantityLabel => 'Cantidad';
+
+  @override
+  String get addToCartVariantsLabel => 'Variantes (Color/Talla)';
+
+  @override
+  String get addToCartVariantsPlaceholder => 'Ej. Plateado, Grande';
+
+  @override
+  String get addToCartButton => 'Agregar al carrito';
+
+  @override
   String get homeImportOrderTitle => 'Importar pedido';
 
   @override

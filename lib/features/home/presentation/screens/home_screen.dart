@@ -1,4 +1,5 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
+import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -162,7 +163,14 @@ class _MaterialImportOrderCard extends StatelessWidget {
             SizedBox(
               height: 80 * scale,
               child: FilledButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AddToCartScreen(),
+                    ),
+                  );
+                },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF0A63C7),
                   foregroundColor: Colors.white,
@@ -174,7 +182,7 @@ class _MaterialImportOrderCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                child: Text(l10n.homeImportButton),
+                child: Text(l10n.homeAddToCartButton),
               ),
             ),
           ],
