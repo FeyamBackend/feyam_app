@@ -1,5 +1,10 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
+import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
+import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
+import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:feyam/features/orders/presentation/screens/order_detail_screen.dart';
+import 'package:feyam/features/stores/presentation/screens/stores_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,34 +22,64 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+// ── Material ──────────────────────────────────────────────────────────────────
+
 class _MaterialHomeContent extends StatelessWidget {
   const _MaterialHomeContent();
+
+  static const _stores = <_StoreData>[
+    _StoreData(name: 'Amazon', icon: Icons.shopping_bag_rounded, color: Color(0xFFFF9900)),
+    _StoreData(name: 'eBay', icon: Icons.gavel_rounded, color: Color(0xFFE53238)),
+    _StoreData(name: 'Walmart', icon: Icons.storefront_rounded, color: Color(0xFF0071DC)),
+    _StoreData(name: 'Best Buy', icon: Icons.devices_rounded, color: Color(0xFF0A4ABF)),
+  ];
+
+  static const _seedOrders = <_OrderPreview>[
+    _OrderPreview(
+      title: 'Sony WH-1000XM5',
+      status: _OrderStatus.shipping,
+      price: r'$278.00',
+    ),
+    _OrderPreview(
+      title: 'Apple Watch SE 2nd Gen',
+      status: _OrderStatus.payment,
+      price: r'$249.00',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 688).clamp(0.54, 1.0);
+        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return Column(
           children: <Widget>[
-            _MaterialHomeHeader(scale: scale),
+            _MaterialTopBar(scale: scale),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
+                  16 * scale,
+                  16 * scale,
+                  16 * scale,
                   28 * scale,
-                  34 * scale,
-                  28 * scale,
-                  30 * scale,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    _MaterialImportOrderCard(scale: scale),
-                    SizedBox(height: 44 * scale),
-                    _MaterialStoresSection(scale: scale),
-                    SizedBox(height: 48 * scale),
-                    _MaterialRecentOrdersSection(scale: scale),
+                    _MaterialGreeting(scale: scale),
+                    SizedBox(height: 12 * scale),
+                    _MaterialPasteBar(scale: scale),
+                    SizedBox(height: 16 * scale),
+                    _MaterialRecentOrdersSection(
+                      scale: scale,
+                      orders: _seedOrders,
+                    ),
+                    SizedBox(height: 16 * scale),
+                    _MaterialStoresSection(
+                      scale: scale,
+                      stores: _stores,
+                    ),
                   ],
                 ),
               ),
@@ -56,35 +91,64 @@ class _MaterialHomeContent extends StatelessWidget {
   }
 }
 
-class _MaterialHomeHeader extends StatelessWidget {
-  const _MaterialHomeHeader({required this.scale});
+class _MaterialTopBar extends StatelessWidget {
+  const _MaterialTopBar({required this.scale});
 
   final double scale;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Color(0xFFFAFAFE),
-        border: Border(bottom: BorderSide(color: Color(0xFFD8DBE3))),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainer,
+        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
       ),
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: 100 * scale,
+          height: 64 * scale,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28 * scale),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Feyam',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  color: const Color(0xFF111315),
-                  fontSize: 38 * scale,
-                  fontWeight: FontWeight.w800,
-                  height: 1,
+            padding: EdgeInsets.only(left: 16 * scale, right: 8 * scale),
+            child: Row(
+              children: <Widget>[
+                Image.asset(
+                  'assets/branding/logo.png',
+                  height: 26 * scale,
                 ),
-              ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const CartScreen(),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.shopping_cart_outlined,
+                    color: colors.onSurface,
+                    size: 24 * scale,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.notifications_outlined,
+                    color: colors.onSurface,
+                    size: 24 * scale,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -93,96 +157,301 @@ class _MaterialHomeHeader extends StatelessWidget {
   }
 }
 
-class _MaterialImportOrderCard extends StatelessWidget {
-  const _MaterialImportOrderCard({required this.scale});
+class _MaterialGreeting extends StatelessWidget {
+  const _MaterialGreeting({required this.scale});
 
   final double scale;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFE),
-        borderRadius: BorderRadius.circular(20 * scale),
-        border: Border.all(color: const Color(0xFFDADDE7), width: 1.5 * scale),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          28 * scale,
-          30 * scale,
-          28 * scale,
-          30 * scale,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          l10n.homeGreetingPrefix,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontSize: 14 * scale,
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        Text(
+          l10n.profileName.split(' ').first,
+          style: textTheme.headlineSmall?.copyWith(
+            color: colors.onSurface,
+            fontSize: 24 * scale,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MaterialPasteBar extends StatelessWidget {
+  const _MaterialPasteBar({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(builder: (_) => const AddToCartScreen()),
+        );
+      },
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(14 * scale),
+          border: Border.all(color: colors.outline.withValues(alpha: 0.4)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16 * scale,
+            vertical: 14 * scale,
+          ),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.link_rounded, color: colors.onSurfaceVariant, size: 22 * scale),
+              SizedBox(width: 12 * scale),
+              Expanded(
+                child: Text(
+                  l10n.homePasteLinkHint,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 15 * scale,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios_rounded, color: colors.onSurfaceVariant, size: 14 * scale),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MaterialRecentOrdersSection extends StatelessWidget {
+  const _MaterialRecentOrdersSection({
+    required this.scale,
+    required this.orders,
+  });
+
+  final double scale;
+  final List<_OrderPreview> orders;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Row(
           children: <Widget>[
-            Text(
-              l10n.homeImportOrderTitle,
-              style: textTheme.headlineSmall?.copyWith(
-                color: const Color(0xFF111315),
-                fontSize: 29 * scale,
-                fontWeight: FontWeight.w800,
-                height: 1.05,
+            Expanded(
+              child: Text(
+                l10n.homeRecentOrdersTitle,
+                style: textTheme.titleMedium?.copyWith(
+                  color: colors.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16 * scale,
+                ),
               ),
             ),
-            SizedBox(height: 20 * scale),
-            Container(
-              height: 80 * scale,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E6),
-                borderRadius: BorderRadius.circular(12 * scale),
+            GestureDetector(
+              onTap: () {},
+              child: Text(
+                l10n.homeViewAll,
+                style: textTheme.labelLarge?.copyWith(
+                  color: colors.primary,
+                  fontSize: 14 * scale,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 24 * scale),
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.link,
-                    color: const Color(0xFF62676E),
-                    size: 29 * scale,
+            ),
+          ],
+        ),
+        SizedBox(height: 8 * scale),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
+            borderRadius: BorderRadius.circular(16 * scale),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20 * scale, 20 * scale, 20 * scale, 12 * scale),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            l10n.homeEstimatedPrice,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colors.onPrimaryContainer.withValues(alpha: 0.7),
+                              fontSize: 12 * scale,
+                            ),
+                          ),
+                          SizedBox(height: 2 * scale),
+                          Text(
+                            r'$527.00',
+                            style: textTheme.headlineMedium?.copyWith(
+                              color: colors.onPrimaryContainer,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 28 * scale,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      color: colors.onPrimaryContainer,
+                      size: 20 * scale,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12 * scale),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.onPrimaryContainer.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10 * scale),
                   ),
-                  SizedBox(width: 16 * scale),
-                  Expanded(
-                    child: Text(
-                      l10n.homePasteProductLink,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleLarge?.copyWith(
-                        color: const Color(0xFF999CA5),
-                        fontSize: 29 * scale,
-                        fontWeight: FontWeight.w400,
+                  child: Column(
+                    children: <Widget>[
+                      for (var i = 0; i < orders.length; i++) ...[
+                        _OrderPreviewRow(
+                          scale: scale,
+                          order: orders[i],
+                          colors: colors,
+                          textTheme: textTheme,
+                        ),
+                        if (i < orders.length - 1)
+                          Divider(
+                            height: 1,
+                            color: colors.onPrimaryContainer.withValues(alpha: 0.15),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderPreviewRow extends StatelessWidget {
+  const _OrderPreviewRow({
+    required this.scale,
+    required this.order,
+    required this.colors,
+    required this.textTheme,
+  });
+
+  final double scale;
+  final _OrderPreview order;
+  final ColorScheme colors;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    final (statusLabel, statusBg, statusFg) = switch (order.status) {
+      _OrderStatus.review => (l10n.ordersStatusEnRevision, colors.surfaceContainerHighest, colors.onSurfaceVariant),
+      _OrderStatus.payment => (l10n.ordersStatusPorPagar, colors.tertiaryContainer, colors.onTertiaryContainer),
+      _OrderStatus.shipping => (l10n.ordersStatusEnCamino, colors.primaryContainer, colors.onPrimaryContainer),
+      _OrderStatus.delivered => (l10n.ordersStatusEntregado, colors.secondaryContainer, colors.onSecondaryContainer),
+    };
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => OrderDetailScreen(
+              orderId: 'FY-24501',
+              title: order.title,
+              price: order.price,
+              status: order.status.name,
+              date: '15 may 2026',
+              delivery: '8–12 jun 2026',
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(10 * scale),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 10 * scale),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    order.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colors.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13 * scale,
+                    ),
+                  ),
+                  SizedBox(height: 4 * scale),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: statusBg,
+                      borderRadius: BorderRadius.circular(4 * scale),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8 * scale,
+                        vertical: 2 * scale,
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: statusFg,
+                          fontSize: 11 * scale,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 16 * scale),
-            SizedBox(
-              height: 80 * scale,
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AddToCartScreen(),
-                    ),
-                  );
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF0A63C7),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18 * scale),
-                  ),
-                  textStyle: textTheme.headlineSmall?.copyWith(
-                    fontSize: 29 * scale,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                child: Text(l10n.homeAddToCartButton),
+            SizedBox(width: 8 * scale),
+            Text(
+              order.price,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colors.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+                fontSize: 13 * scale,
               ),
             ),
           ],
@@ -193,649 +462,399 @@ class _MaterialImportOrderCard extends StatelessWidget {
 }
 
 class _MaterialStoresSection extends StatelessWidget {
-  const _MaterialStoresSection({required this.scale});
+  const _MaterialStoresSection({required this.scale, required this.stores});
 
   final double scale;
-
-  static const _stores = <_MaterialStore>[
-    _MaterialStore(name: 'Amazon', label: 'amazon', background: Colors.black),
-    _MaterialStore(name: 'eBay', label: 'eBay', background: Colors.black),
-    _MaterialStore(name: 'Zara', label: 'ZARA', background: Color(0xFF3E3E3E)),
-    _MaterialStore(name: 'Apple', label: 'Apple', background: Colors.white),
-  ];
+  final List<_StoreData> stores;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Row(
           children: <Widget>[
             Expanded(
               child: Text(
-                l10n.homePopularStoresTitleMaterial,
-                style: textTheme.headlineSmall?.copyWith(
-                  color: const Color(0xFF111315),
-                  fontSize: 31 * scale,
-                  fontWeight: FontWeight.w800,
-                  height: 1.05,
+                l10n.homeSupportedStores,
+                style: textTheme.titleMedium?.copyWith(
+                  color: colors.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16 * scale,
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 4 * scale),
-                minimumSize: Size(0, 40 * scale),
-              ),
-              child: Text(
-                l10n.homeSeeAll,
-                style: textTheme.titleLarge?.copyWith(
-                  color: const Color(0xFF0059C7),
-                  fontSize: 27 * scale,
-                  fontWeight: FontWeight.w400,
-                ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const StoresScreen(),
+                  ),
+                );
+              },
+              child: Row(
+                children: <Widget>[
+                  Text(
+                    l10n.homeViewAllStores,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colors.primary,
+                      fontSize: 13 * scale,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: colors.primary, size: 16 * scale),
+                ],
               ),
             ),
           ],
         ),
-        SizedBox(height: 18 * scale),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            for (final store in _stores)
-              _MaterialStoreItem(scale: scale, store: store),
-          ],
+        SizedBox(height: 8 * scale),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 10 * scale,
+          crossAxisSpacing: 10 * scale,
+          childAspectRatio: 2.8,
+          children: stores.map((s) => _StoreTile(scale: scale, store: s)).toList(),
         ),
       ],
     );
   }
 }
 
-class _MaterialStoreItem extends StatelessWidget {
-  const _MaterialStoreItem({required this.scale, required this.store});
+class _StoreTile extends StatelessWidget {
+  const _StoreTile({required this.scale, required this.store});
 
   final double scale;
-  final _MaterialStore store;
+  final _StoreData store;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return SizedBox(
-      width: 88 * scale,
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 88 * scale,
-            height: 88 * scale,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3E5EA),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFD9DCE3)),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12 * scale),
+        border: Border.all(color: colors.outlineVariant),
+        color: colors.surfaceContainerLow,
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 10 * scale),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 36 * scale,
+              height: 36 * scale,
+              decoration: BoxDecoration(
+                color: store.color,
+                borderRadius: BorderRadius.circular(8 * scale),
+              ),
+              child: Icon(store.icon, color: Colors.white, size: 20 * scale),
             ),
-            child: Center(
-              child: Container(
-                width: 54 * scale,
-                height: 54 * scale,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: store.background,
-                  borderRadius: BorderRadius.circular(2 * scale),
-                ),
-                child: Text(
-                  store.label,
-                  textAlign: TextAlign.center,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: store.background == Colors.white
-                        ? colors.onSurface
-                        : Colors.white,
-                    fontSize: 11 * scale,
-                    fontWeight: FontWeight.w700,
-                  ),
+            SizedBox(width: 10 * scale),
+            Expanded(
+              child: Text(
+                store.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelLarge?.copyWith(
+                  color: colors.onSurface,
+                  fontSize: 14 * scale,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 10 * scale),
-          Text(
-            store.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.titleMedium?.copyWith(
-              color: const Color(0xFF2D3340),
-              fontSize: 18 * scale,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _MaterialStore {
-  const _MaterialStore({
-    required this.name,
-    required this.label,
-    required this.background,
+enum _OrderStatus { review, payment, shipping, delivered }
+
+class _OrderPreview {
+  const _OrderPreview({
+    required this.title,
+    required this.status,
+    required this.price,
   });
 
+  final String title;
+  final _OrderStatus status;
+  final String price;
+}
+
+class _StoreData {
+  const _StoreData({required this.name, required this.icon, required this.color});
+
   final String name;
-  final String label;
-  final Color background;
+  final IconData icon;
+  final Color color;
 }
 
-class _MaterialRecentOrdersSection extends StatelessWidget {
-  const _MaterialRecentOrdersSection({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final textTheme = Theme.of(context).textTheme;
-    final orders = <_RecentOrder>[
-      _RecentOrder(
-        product: 'Nike Air Max 270',
-        store: 'Amazon',
-        date: 'Oct 24, 2023',
-        price: r'$150.00',
-        status: l10n.homeStatusInTransit,
-        statusColor: const Color(0xFF0B65C2),
-        statusBackground: const Color(0xFFDCEBFF),
-      ),
-      _RecentOrder(
-        product: 'Silver Watch',
-        store: 'eBay',
-        date: 'Oct 22, 2023',
-        price: r'$89.99',
-        status: l10n.homeStatusDelivered,
-        statusColor: const Color(0xFF2F9A55),
-        statusBackground: const Color(0xFFDDF8E7),
-      ),
-      _RecentOrder(
-        product: 'Beats Studio Pro',
-        store: 'Zara',
-        date: 'Oct 20, 2023',
-        price: r'$349.00',
-        status: l10n.homeStatusDelivered,
-        statusColor: const Color(0xFF2F9A55),
-        statusBackground: const Color(0xFFDDF8E7),
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Text(
-          l10n.homeRecentOrdersTitleMaterial,
-          style: textTheme.headlineSmall?.copyWith(
-            color: const Color(0xFF111315),
-            fontSize: 31 * scale,
-            fontWeight: FontWeight.w800,
-            height: 1.05,
-          ),
-        ),
-        SizedBox(height: 20 * scale),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(18 * scale),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAFAFE),
-              border: Border.all(
-                color: const Color(0xFFDADDE7),
-                width: 1.5 * scale,
-              ),
-              borderRadius: BorderRadius.circular(18 * scale),
-            ),
-            child: Column(
-              children: <Widget>[
-                for (var index = 0; index < orders.length; index++) ...[
-                  _MaterialRecentOrderItem(scale: scale, order: orders[index]),
-                  if (index < orders.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1 * scale,
-                      color: const Color(0xFFDADDE7),
-                    ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MaterialRecentOrderItem extends StatelessWidget {
-  const _MaterialRecentOrderItem({required this.scale, required this.order});
-
-  final double scale;
-  final _RecentOrder order;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return InkWell(
-      onTap: () {},
-      child: SizedBox(
-        height: 171 * scale,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            28 * scale,
-            28 * scale,
-            28 * scale,
-            24 * scale,
-          ),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            order.product,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.headlineSmall?.copyWith(
-                              color: const Color(0xFF111315),
-                              fontSize: 29 * scale,
-                              fontWeight: FontWeight.w800,
-                              height: 1.05,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10 * scale),
-                        _MaterialOrderStatusBadge(scale: scale, order: order),
-                      ],
-                    ),
-                    SizedBox(height: 8 * scale),
-                    Text(
-                      '${order.store} • ${order.date}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleMedium?.copyWith(
-                        color: const Color(0xFF2D3340),
-                        fontSize: 23 * scale,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      order.price,
-                      style: textTheme.headlineSmall?.copyWith(
-                        color: const Color(0xFF111315),
-                        fontSize: 28 * scale,
-                        fontWeight: FontWeight.w800,
-                        height: 1.05,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 20 * scale),
-              Icon(
-                Icons.chevron_right,
-                color: const Color(0xFF5F646C),
-                size: 34 * scale,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MaterialOrderStatusBadge extends StatelessWidget {
-  const _MaterialOrderStatusBadge({required this.scale, required this.order});
-
-  final double scale;
-  final _RecentOrder order;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 15 * scale,
-        vertical: 5 * scale,
-      ),
-      decoration: BoxDecoration(
-        color: order.statusBackground,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        order.status,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: order.statusColor,
-          fontSize: 19 * scale,
-          fontWeight: FontWeight.w500,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
+// ── Cupertino ─────────────────────────────────────────────────────────────────
 
 class _CupertinoHomeContent extends StatelessWidget {
   const _CupertinoHomeContent();
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Text(
-                'Feyam',
-                style: theme.textTheme.textStyle.copyWith(
-                  color: const Color(0xFF002B45),
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 42),
-          AdaptiveAppCard(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-            borderRadius: BorderRadius.circular(26),
-            elevation: 0,
-            backgroundColor: const Color(0xFFF3F2F7),
-            borderColor: Colors.transparent,
-            blur: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  l10n.homeImportProductTitle,
-                  style: theme.textTheme.textStyle.copyWith(
-                    color: CupertinoColors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                AdaptiveAppTextField(
-                  label: l10n.homePasteProductLink,
-                  placeholder: l10n.homePasteProductExample,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                  backgroundColor: const Color(0xFFE1E3E8),
-                  borderColor: const Color(0xFF6D737A),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                const SizedBox(height: 14),
-                AdaptiveAppButton(
-                  text: l10n.homeAddToCartButton,
-                  icon: const Icon(CupertinoIcons.arrow_down_to_line_alt),
-                  height: 54,
-                  backgroundColor: const Color(0xFF003E50),
-                  foregroundColor: CupertinoColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 26),
-          const _CupertinoPopularStoresSection(),
-          const SizedBox(height: 28),
-          const _CupertinoRecentOrdersSection(),
-        ],
-      ),
-    );
-  }
-}
-
-class _CupertinoSectionHeader extends StatelessWidget {
-  const _CupertinoSectionHeader({
-    required this.title,
-    required this.actionLabel,
-  });
-
-  final String title;
-  final String actionLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.textStyle.copyWith(
-              color: CupertinoColors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {},
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(
-              actionLabel,
-              style: theme.textTheme.actionTextStyle.copyWith(
-                color: const Color(0xFF002B45),
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CupertinoPopularStoresSection extends StatelessWidget {
-  const _CupertinoPopularStoresSection();
-
-  static const _stores = <_CupertinoStore>[
-    _CupertinoStore(
-      name: 'Amazon',
-      icon: CupertinoIcons.lightbulb_fill,
-      background: Color(0xFF131313),
-      accent: Color(0xFFFF8A00),
+  static const _seedOrders = <_CupertinoHomeOrder>[
+    _CupertinoHomeOrder(
+      id: '41',
+      title: 'Auriculares Sony WH-1000XM5',
+      price: r'$ 1.450.000',
+      status: FeyamOrderStatus.enCamino,
     ),
-    _CupertinoStore(
-      name: 'eBay',
-      icon: CupertinoIcons.rectangle_on_rectangle,
-      background: Color(0xFF1B211A),
-      accent: Color(0xFFFFE2A8),
+    _CupertinoHomeOrder(
+      id: '98',
+      title: 'Apple Watch Series 9',
+      price: r'$ 1.890.000',
+      status: FeyamOrderStatus.porPagar,
     ),
-    _CupertinoStore(
-      name: 'Zara',
-      icon: CupertinoIcons.person_fill,
-      background: Color(0xFF9C6A54),
-      accent: Color(0xFFFFE5D5),
-    ),
+  ];
+
+  static const _stores = <_CupertinoHomeStore>[
+    _CupertinoHomeStore(name: 'Amazon',     host: 'amazon.com',      icon: CupertinoIcons.bag_fill,       color: Color(0xFFFF9900)),
+    _CupertinoHomeStore(name: 'eBay',       host: 'ebay.com',        icon: CupertinoIcons.hammer_fill,    color: Color(0xFFE53238)),
+    _CupertinoHomeStore(name: 'Walmart',    host: 'walmart.com',     icon: CupertinoIcons.building_2_fill, color: Color(0xFF0071DC)),
+    _CupertinoHomeStore(name: 'Best Buy',   host: 'bestbuy.com',     icon: CupertinoIcons.desktopcomputer, color: Color(0xFF0A4ABF)),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        _CupertinoSectionHeader(
-          title: l10n.homePopularStoresTitle,
-          actionLabel: l10n.homeSeeAll,
-        ),
-        const SizedBox(height: 14),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            for (final store in _stores) _CupertinoStoreItem(store: store),
-          ],
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
+        return ColoredBox(
+          color: kFeyamBg,
+          child: Column(
+            children: <Widget>[
+              _CupertinoHomeLargeNavBar(scale: scale),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: 16 * scale),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      // Summary card
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 0),
+                        child: _CupertinoSummaryCard(
+                          scale: scale,
+                          orders: _seedOrders,
+                        ),
+                      ),
+                      SizedBox(height: 20 * scale),
+                      // Pedidos recientes
+                      FeyamListSection(
+                        header: 'Pedidos recientes',
+                        children: <Widget>[
+                          for (var i = 0; i < _seedOrders.length; i++)
+                            FeyamListTile(
+                              title: Text(_seedOrders[i].title),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 3),
+                                child: FeyamStatusBadge(status: _seedOrders[i].status),
+                              ),
+                              detail: Text(_seedOrders[i].price),
+                              isLast: i == _seedOrders.length - 1,
+                              onTap: () => Navigator.of(context).push(
+                                CupertinoPageRoute<void>(
+                                  builder: (_) => OrderDetailScreen(
+                                    orderId: _seedOrders[i].id,
+                                    title: _seedOrders[i].title,
+                                    price: _seedOrders[i].price,
+                                    status: _feyamStatusKey(_seedOrders[i].status),
+                                    date: '15 may 2026',
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      // Tiendas soportadas
+                      FeyamListSection(
+                        header: 'Tiendas soportadas',
+                        children: <Widget>[
+                          for (var i = 0; i < _stores.length; i++)
+                            FeyamListTile(
+                              title: Text(_stores[i].name),
+                              detail: Text(_stores[i].host),
+                              leading: FeyamIconTile(icon: _stores[i].icon, color: _stores[i].color),
+                              trailing: const Padding(
+                                padding: EdgeInsets.only(left: 6),
+                                child: Icon(CupertinoIcons.arrow_up_right_square, size: 18, color: kFeyamTint),
+                              ),
+                              chevron: false,
+                              isLast: false,
+                              onTap: () {},
+                            ),
+                          FeyamListTile(
+                            title: const Text('Ver todas las tiendas'),
+                            isLast: true,
+                            onTap: () => Navigator.of(context).push(
+                              CupertinoPageRoute<void>(builder: (_) => const StoresScreen()),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  static String _feyamStatusKey(FeyamOrderStatus s) {
+    switch (s) {
+      case FeyamOrderStatus.porPagar: return 'payment';
+      case FeyamOrderStatus.enCamino: return 'shipping';
+      case FeyamOrderStatus.entregado: return 'delivered';
+      default: return 'review';
+    }
   }
 }
 
-class _CupertinoStoreItem extends StatelessWidget {
-  const _CupertinoStoreItem({required this.store});
+class _CupertinoHomeLargeNavBar extends StatelessWidget {
+  const _CupertinoHomeLargeNavBar({required this.scale});
 
-  final _CupertinoStore store;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return SizedBox(
-      width: 88,
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: CupertinoColors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE0E4EA)),
-            ),
-            child: Center(
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: store.background,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: store.accent.withValues(alpha: 0.45),
-                      blurRadius: 16,
+    return Container(
+      color: kFeyamCard,
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            SizedBox(
+              height: 44 * scale,
+              child: Padding(
+                padding: EdgeInsets.only(right: 8 * scale),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FeyamCartButton(
+                    count: 0,
+                    onTap: () => Navigator.of(context).push(
+                      CupertinoPageRoute<void>(
+                        builder: (_) => const CartScreen(),
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-                child: Icon(store.icon, color: store.accent, size: 26),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            store.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.textStyle.copyWith(
-              color: CupertinoColors.black,
-              fontSize: 16,
+            ColoredBox(
+              color: kFeyamBg,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16 * scale, 2 * scale, 16 * scale, 0),
+                child: Text(
+                  'Hola, María',
+                  style: TextStyle(
+                    fontSize: 34 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: kFeyamLabel,
+                    letterSpacing: 0.37,
+                    height: 1.21,
+                    fontFamily: '.SF Pro Display',
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CupertinoRecentOrdersSection extends StatelessWidget {
-  const _CupertinoRecentOrdersSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final orders = <_CupertinoRecentOrder>[
-      _CupertinoRecentOrder(
-        product: l10n.homeCupertinoOrder1Product,
-        origin: l10n.homeCupertinoOrder1Origin,
-        price: r'$129.99',
-      ),
-      _CupertinoRecentOrder(
-        product: l10n.homeCupertinoOrder2Product,
-        origin: l10n.homeCupertinoOrder2Origin,
-        price: r'$85.50',
-      ),
-      _CupertinoRecentOrder(
-        product: l10n.homeCupertinoOrder3Product,
-        origin: l10n.homeCupertinoOrder3Origin,
-        price: r'$299.00',
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        _CupertinoSectionHeader(
-          title: l10n.homeRecentOrdersTitle,
-          actionLabel: l10n.homeSeeAll,
+            ColoredBox(
+              color: kFeyamBg,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 8 * scale),
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      builder: (_) => const AddToCartScreen(),
+                    ),
+                  ),
+                  child: Container(
+                    height: 36 * scale,
+                    decoration: BoxDecoration(
+                      color: kFeyamFillTer,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 10 * scale),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(CupertinoIcons.search, size: 16 * scale, color: kFeyamLabelTer),
+                        SizedBox(width: 7 * scale),
+                        Text(
+                          'Pegá el link del producto…',
+                          style: TextStyle(
+                            fontSize: 17 * scale,
+                            color: kFeyamLabelTer,
+                            letterSpacing: -0.41,
+                            fontFamily: '.SF Pro Text',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 14),
-        for (var index = 0; index < orders.length; index++) ...<Widget>[
-          _CupertinoRecentOrderCard(order: orders[index]),
-          if (index < orders.length - 1) const SizedBox(height: 14),
-        ],
-      ],
+      ),
     );
   }
 }
 
-class _CupertinoRecentOrderCard extends StatelessWidget {
-  const _CupertinoRecentOrderCard({required this.order});
+class _CupertinoSummaryCard extends StatelessWidget {
+  const _CupertinoSummaryCard({required this.scale, required this.orders});
 
-  final _CupertinoRecentOrder order;
+  final double scale;
+  final List<_CupertinoHomeOrder> orders;
 
   @override
   Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return AdaptiveAppCard(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      borderRadius: BorderRadius.circular(22),
-      elevation: 0,
-      backgroundColor: const Color(0xFFF7F6FB),
-      borderColor: const Color(0xFFD9DDE5),
-      blur: 0,
+    if (orders.isEmpty) return const SizedBox.shrink();
+    return Container(
+      decoration: BoxDecoration(
+        color: kFeyamTint,
+        borderRadius: BorderRadius.circular(16 * scale),
+      ),
+      padding: EdgeInsets.fromLTRB(20 * scale, 18 * scale, 20 * scale, 16 * scale),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            order.product,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.textStyle.copyWith(
-              color: CupertinoColors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.w400,
+            'Precio estimado a pagar',
+            style: TextStyle(fontSize: 13 * scale, color: const Color(0xBFFFFFFF), fontFamily: '.SF Pro Text'),
+          ),
+          SizedBox(height: 4 * scale),
+          Text(
+            r'$ 3.340.000',
+            style: TextStyle(
+              fontSize: 30 * scale,
+              fontWeight: FontWeight.w700,
+              color: CupertinoColors.white,
+              letterSpacing: -0.5,
+              height: 1,
+              fontFamily: '.SF Pro Display',
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 6 * scale),
           Text(
-            order.origin,
-            style: theme.textTheme.textStyle.copyWith(
-              color: const Color(0xFF2E343B),
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            order.price,
-            style: theme.textTheme.textStyle.copyWith(
-              color: const Color(0xFF002B45),
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
+            '${orders.length} pedido${orders.length > 1 ? 's activos' : ' activo'}',
+            style: TextStyle(fontSize: 13 * scale, color: const Color(0xCCFFFFFF), fontFamily: '.SF Pro Text'),
           ),
         ],
       ),
@@ -843,48 +862,30 @@ class _CupertinoRecentOrderCard extends StatelessWidget {
   }
 }
 
-class _CupertinoStore {
-  const _CupertinoStore({
+class _CupertinoHomeOrder {
+  const _CupertinoHomeOrder({
+    required this.id,
+    required this.title,
+    required this.price,
+    required this.status,
+  });
+
+  final String id;
+  final String title;
+  final String price;
+  final FeyamOrderStatus status;
+}
+
+class _CupertinoHomeStore {
+  const _CupertinoHomeStore({
     required this.name,
+    required this.host,
     required this.icon,
-    required this.background,
-    required this.accent,
+    required this.color,
   });
 
   final String name;
+  final String host;
   final IconData icon;
-  final Color background;
-  final Color accent;
-}
-
-class _CupertinoRecentOrder {
-  const _CupertinoRecentOrder({
-    required this.product,
-    required this.origin,
-    required this.price,
-  });
-
-  final String product;
-  final String origin;
-  final String price;
-}
-
-class _RecentOrder {
-  const _RecentOrder({
-    required this.product,
-    required this.store,
-    required this.date,
-    required this.price,
-    required this.status,
-    required this.statusColor,
-    required this.statusBackground,
-  });
-
-  final String product;
-  final String store;
-  final String date;
-  final String price;
-  final String status;
-  final Color statusColor;
-  final Color statusBackground;
+  final Color color;
 }

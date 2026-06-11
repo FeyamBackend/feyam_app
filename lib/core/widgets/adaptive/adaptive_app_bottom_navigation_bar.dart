@@ -128,27 +128,26 @@ class _MaterialAdaptiveBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final resolvedSelectedColor = selectedItemColor ?? colors.primary;
     final resolvedUnselectedColor =
         unselectedItemColor ?? colors.onSurfaceVariant;
 
     return NavigationBarTheme(
       data: NavigationBarThemeData(
-        indicatorColor: resolvedSelectedColor.withValues(alpha: 0.14),
+        indicatorColor: colors.secondaryContainer,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           return IconThemeData(
             color: states.contains(WidgetState.selected)
-                ? resolvedSelectedColor
+                ? colors.onSecondaryContainer
                 : resolvedUnselectedColor,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           return Theme.of(context).textTheme.labelMedium?.copyWith(
             color: states.contains(WidgetState.selected)
-                ? resolvedSelectedColor
+                ? colors.onSurface
                 : resolvedUnselectedColor,
             fontWeight: states.contains(WidgetState.selected)
-                ? FontWeight.w600
+                ? FontWeight.w700
                 : FontWeight.w500,
           );
         }),
@@ -156,7 +155,7 @@ class _MaterialAdaptiveBottomNavigationBar extends StatelessWidget {
       child: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: onDestinationSelected,
-        backgroundColor: backgroundColor ?? colors.surface,
+        backgroundColor: backgroundColor ?? colors.surfaceContainer,
         destinations: items
             .map(
               (item) => NavigationDestination(

@@ -25,6 +25,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navOrders => 'Orders';
 
   @override
+  String get navHelp => 'Help';
+
+  @override
   String get navProfile => 'Profile';
 
   @override
@@ -92,6 +95,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeStatusDelivered => 'Delivered';
+
+  @override
+  String get homeGreetingPrefix => 'Hi,';
+
+  @override
+  String get homePasteLinkHint => 'Paste the product link…';
+
+  @override
+  String get homeMisOrders => 'My orders';
+
+  @override
+  String get homeEstimatedPrice => 'Estimated price to pay';
+
+  @override
+  String get homeSupportedStores => 'Supported stores';
+
+  @override
+  String get homeStoresSubtitle => 'Amazon, eBay, Walmart and more';
 
   @override
   String get homeCupertinoOrder1Product => 'Premium Sneakers Red Edition';
@@ -203,10 +224,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tax calculated at checkout. Secure SSL encrypted payment processing.';
 
   @override
-  String get ordersHistoryTitle => 'Order History';
+  String get ordersHistoryTitle => 'Orders';
 
   @override
   String get ordersFilterSemanticLabel => 'Filter orders';
+
+  @override
+  String get ordersTabAll => 'All';
+
+  @override
+  String get ordersTabActive => 'Active';
+
+  @override
+  String get ordersTabDelivered => 'Delivered';
+
+  @override
+  String get ordersStatusEnRevision => 'Under review';
+
+  @override
+  String get ordersStatusPorPagar => 'To pay';
+
+  @override
+  String get ordersStatusEnCamino => 'On the way';
+
+  @override
+  String get ordersStatusEntregado => 'Delivered';
 
   @override
   String get ordersStatusAwaitingApproval => 'AWAITING_APPROVAL';
@@ -292,4 +334,253 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ordersCupertinoOrder5Items => '4 Items';
+
+  @override
+  String get helpSupportTitle => 'Need help?';
+
+  @override
+  String get helpSupportSubtitle => 'Message us — a real person will respond.';
+
+  @override
+  String get helpChat => 'Chat';
+
+  @override
+  String get helpFaqsTitle => 'Frequently asked questions';
+
+  @override
+  String get helpFaq1Question => 'How do I add a product?';
+
+  @override
+  String get helpFaq1Answer =>
+      'Paste the link from any store or use the \"Share\" button in your browser.';
+
+  @override
+  String get helpFaq2Question => 'When do I pay for my order?';
+
+  @override
+  String get helpFaq2Answer =>
+      'When it moves to \"To pay\" status, we\'ll notify you with the final price.';
+
+  @override
+  String get helpFaq3Question => 'How long does shipping take?';
+
+  @override
+  String get helpFaq3Answer =>
+      'Time depends on the store and customs; you can see it on each order.';
+
+  @override
+  String get helpFaq4Question => 'Which stores can I use?';
+
+  @override
+  String get helpFaq4Answer =>
+      'Amazon, eBay, Walmart, Best Buy and more. Check \"Supported stores\".';
+
+  @override
+  String get profileEmail => 'maria@feyam.com';
+
+  @override
+  String get homeViewAll => 'View all';
+
+  @override
+  String get homeViewAllStores => 'View all stores';
+
+  @override
+  String get notifTitle => 'Notifications';
+
+  @override
+  String get notifEmpty => 'No notifications';
+
+  @override
+  String get notifEmptyBody =>
+      'When there are updates on your orders, you\'ll see them here.';
+
+  @override
+  String get ordDetailId => 'Order number';
+
+  @override
+  String get ordDetailDate => 'Order date';
+
+  @override
+  String get ordDetailEstDelivery => 'Estimated delivery';
+
+  @override
+  String get ordDetailTracking => 'Tracking';
+
+  @override
+  String get ordDetailCurrentStatus => 'Current status of your order';
+
+  @override
+  String get storesTitle => 'Supported stores';
+
+  @override
+  String get storesHint =>
+      'Tap a store to open it in your browser. Copy the product link and paste it in Feyam.';
+
+  @override
+  String get checkoutTitle => 'Checkout';
+
+  @override
+  String get checkoutAddress => 'Shipping address';
+
+  @override
+  String get checkoutSummary => 'Order summary';
+
+  @override
+  String get checkoutPayMethod => 'Payment';
+
+  @override
+  String get checkoutPayInfo =>
+      'We\'ll contact you to coordinate payment once we review your order.';
+
+  @override
+  String get checkoutEstPrice => 'Estimated price';
+
+  @override
+  String get checkoutSubtotal => 'Product subtotal';
+
+  @override
+  String get checkoutService => 'Feyam service (12%)';
+
+  @override
+  String get checkoutShipping => 'International shipping';
+
+  @override
+  String get checkoutTotal => 'Estimated total';
+
+  @override
+  String get checkoutChange => 'Change';
+
+  @override
+  String get checkoutDelivery => 'Estimated delivery';
+
+  @override
+  String get checkoutDeliveryTime => '10–18 business days';
+
+  @override
+  String get checkoutDisclaimer =>
+      'Final price may vary based on customs duties and exchange rates.';
+
+  @override
+  String get checkoutConfirm => 'Confirm order';
+
+  @override
+  String get successTitle => 'Order confirmed!';
+
+  @override
+  String get successBody =>
+      'We\'re reviewing your order. We\'ll notify you when it\'s ready to pay.';
+
+  @override
+  String get successViewOrders => 'View my orders';
+
+  @override
+  String get addressesTitle => 'My addresses';
+
+  @override
+  String get addressAdd => 'Add address';
+
+  @override
+  String get addressEdit => 'Edit address';
+
+  @override
+  String get addressLabelField => 'Label (Home, Office…)';
+
+  @override
+  String get addressStreet => 'Address';
+
+  @override
+  String get addressCity => 'City';
+
+  @override
+  String get addressSave => 'Save';
+
+  @override
+  String get addressCancel => 'Cancel';
+
+  @override
+  String get addressDelete => 'Delete';
+
+  @override
+  String get addressRequired => 'Required';
+
+  @override
+  String get addressNoneTitle => 'No saved addresses';
+
+  @override
+  String get addressNoneBody => 'Add an address to speed up your orders.';
+
+  @override
+  String get addressDefault => 'Default';
+
+  @override
+  String get paymentTitle => 'Payment methods';
+
+  @override
+  String get paymentInfo =>
+      'We\'ll contact you to coordinate payment once we review your order.';
+
+  @override
+  String get paymentAdd => 'Add method';
+
+  @override
+  String get paymentEdit => 'Edit method';
+
+  @override
+  String get paymentLabelField => 'Name (Bancolombia, Nequi…)';
+
+  @override
+  String get paymentDetailField => 'Number or alias';
+
+  @override
+  String get paymentRequired => 'Required';
+
+  @override
+  String get paymentNoneTitle => 'No saved methods';
+
+  @override
+  String get paymentNoneBody =>
+      'Save a payment method to speed up your orders.';
+
+  @override
+  String get paymentDefault => 'Primary';
+
+  @override
+  String get paymentTypeNequi => 'Nequi';
+
+  @override
+  String get paymentTypeBank => 'Bank transfer';
+
+  @override
+  String get paymentTypeEfecty => 'Efecty';
+
+  @override
+  String get paymentTypeCard => 'Card';
+
+  @override
+  String get termsTitle => 'Terms & Conditions';
+
+  @override
+  String get termsUpdated =>
+      'Last updated: May 3, 2026 · Effective: May 20, 2026';
+
+  @override
+  String get termsIntro =>
+      'These Terms and Conditions govern access to and use of Feyam, an assisted purchasing and international logistics platform operated by FEYAM UNIVERSE LLC (Florida, USA). By using the Platform, you agree to be legally bound by these Terms.';
+
+  @override
+  String get termsAccept =>
+      'I have read and accept Feyam\'s Terms and Conditions';
+
+  @override
+  String get termsContinue => 'Accept and continue';
+
+  @override
+  String get dialogCancel => 'Cancel';
+
+  @override
+  String get logoutTitle => 'Sign out?';
+
+  @override
+  String get logoutBody =>
+      'You will be signed out of your Feyam account on this device.';
 }

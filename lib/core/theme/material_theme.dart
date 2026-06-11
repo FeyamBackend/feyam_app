@@ -69,6 +69,11 @@ ThemeData buildMaterialTheme() {
     onInverseSurface: ConciergeProPalette.inverseOnSurface,
     inversePrimary: ConciergeProPalette.inversePrimary,
     surfaceTint: ConciergeProPalette.surfaceTint,
+    surfaceContainerLowest: ConciergeProPalette.surfaceContainerLowest,
+    surfaceContainerLow: ConciergeProPalette.surfaceContainerLow,
+    surfaceContainer: ConciergeProPalette.surfaceContainer,
+    surfaceContainerHigh: ConciergeProPalette.surfaceContainerHigh,
+    surfaceContainerHighest: ConciergeProPalette.surfaceContainerHighest,
   );
 
   final baseTheme = ThemeData(
@@ -78,8 +83,8 @@ ThemeData buildMaterialTheme() {
   );
 
   final baseTextTheme = _isRunningWidgetTest()
-      ? baseTheme.textTheme.apply(fontFamily: 'Inter')
-      : GoogleFonts.interTextTheme(baseTheme.textTheme);
+      ? baseTheme.textTheme.apply(fontFamily: 'Lato')
+      : GoogleFonts.latoTextTheme(baseTheme.textTheme);
 
   final textTheme = baseTextTheme.copyWith(
     displayLarge: baseTextTheme.displayLarge?.copyWith(

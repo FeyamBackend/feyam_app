@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get navOrders;
 
+  /// No description provided for @navHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get navHelp;
+
   /// No description provided for @navProfile.
   ///
   /// In en, this message translates to:
@@ -265,6 +271,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delivered'**
   String get homeStatusDelivered;
+
+  /// No description provided for @homeGreetingPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi,'**
+  String get homeGreetingPrefix;
+
+  /// No description provided for @homePasteLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the product link…'**
+  String get homePasteLinkHint;
+
+  /// No description provided for @homeMisOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'My orders'**
+  String get homeMisOrders;
+
+  /// No description provided for @homeEstimatedPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated price to pay'**
+  String get homeEstimatedPrice;
+
+  /// No description provided for @homeSupportedStores.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported stores'**
+  String get homeSupportedStores;
+
+  /// No description provided for @homeStoresSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazon, eBay, Walmart and more'**
+  String get homeStoresSubtitle;
 
   /// No description provided for @homeCupertinoOrder1Product.
   ///
@@ -485,7 +527,7 @@ abstract class AppLocalizations {
   /// No description provided for @ordersHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Order History'**
+  /// **'Orders'**
   String get ordersHistoryTitle;
 
   /// No description provided for @ordersFilterSemanticLabel.
@@ -493,6 +535,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filter orders'**
   String get ordersFilterSemanticLabel;
+
+  /// No description provided for @ordersTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ordersTabAll;
+
+  /// No description provided for @ordersTabActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get ordersTabActive;
+
+  /// No description provided for @ordersTabDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get ordersTabDelivered;
+
+  /// No description provided for @ordersStatusEnRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get ordersStatusEnRevision;
+
+  /// No description provided for @ordersStatusPorPagar.
+  ///
+  /// In en, this message translates to:
+  /// **'To pay'**
+  String get ordersStatusPorPagar;
+
+  /// No description provided for @ordersStatusEnCamino.
+  ///
+  /// In en, this message translates to:
+  /// **'On the way'**
+  String get ordersStatusEnCamino;
+
+  /// No description provided for @ordersStatusEntregado.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get ordersStatusEntregado;
 
   /// No description provided for @ordersStatusAwaitingApproval.
   ///
@@ -661,6 +745,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'4 Items'**
   String get ordersCupertinoOrder5Items;
+
+  /// No description provided for @helpSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Need help?'**
+  String get helpSupportTitle;
+
+  /// No description provided for @helpSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Message us — a real person will respond.'**
+  String get helpSupportSubtitle;
+
+  /// No description provided for @helpChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get helpChat;
+
+  /// No description provided for @helpFaqsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequently asked questions'**
+  String get helpFaqsTitle;
+
+  /// No description provided for @helpFaq1Question.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I add a product?'**
+  String get helpFaq1Question;
+
+  /// No description provided for @helpFaq1Answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the link from any store or use the \"Share\" button in your browser.'**
+  String get helpFaq1Answer;
+
+  /// No description provided for @helpFaq2Question.
+  ///
+  /// In en, this message translates to:
+  /// **'When do I pay for my order?'**
+  String get helpFaq2Question;
+
+  /// No description provided for @helpFaq2Answer.
+  ///
+  /// In en, this message translates to:
+  /// **'When it moves to \"To pay\" status, we\'ll notify you with the final price.'**
+  String get helpFaq2Answer;
+
+  /// No description provided for @helpFaq3Question.
+  ///
+  /// In en, this message translates to:
+  /// **'How long does shipping take?'**
+  String get helpFaq3Question;
+
+  /// No description provided for @helpFaq3Answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Time depends on the store and customs; you can see it on each order.'**
+  String get helpFaq3Answer;
+
+  /// No description provided for @helpFaq4Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Which stores can I use?'**
+  String get helpFaq4Question;
+
+  /// No description provided for @helpFaq4Answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazon, eBay, Walmart, Best Buy and more. Check \"Supported stores\".'**
+  String get helpFaq4Answer;
+
+  /// No description provided for @profileEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'maria@feyam.com'**
+  String get profileEmail;
+
+  /// No description provided for @homeViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get homeViewAll;
+
+  /// No description provided for @homeViewAllStores.
+  ///
+  /// In en, this message translates to:
+  /// **'View all stores'**
+  String get homeViewAllStores;
+
+  /// No description provided for @notifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifTitle;
+
+  /// No description provided for @notifEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get notifEmpty;
+
+  /// No description provided for @notifEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When there are updates on your orders, you\'ll see them here.'**
+  String get notifEmptyBody;
+
+  /// No description provided for @ordDetailId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number'**
+  String get ordDetailId;
+
+  /// No description provided for @ordDetailDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Order date'**
+  String get ordDetailDate;
+
+  /// No description provided for @ordDetailEstDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated delivery'**
+  String get ordDetailEstDelivery;
+
+  /// No description provided for @ordDetailTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get ordDetailTracking;
+
+  /// No description provided for @ordDetailCurrentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Current status of your order'**
+  String get ordDetailCurrentStatus;
+
+  /// No description provided for @storesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported stores'**
+  String get storesTitle;
+
+  /// No description provided for @storesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a store to open it in your browser. Copy the product link and paste it in Feyam.'**
+  String get storesHint;
+
+  /// No description provided for @checkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get checkoutTitle;
+
+  /// No description provided for @checkoutAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping address'**
+  String get checkoutAddress;
+
+  /// No description provided for @checkoutSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Order summary'**
+  String get checkoutSummary;
+
+  /// No description provided for @checkoutPayMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get checkoutPayMethod;
+
+  /// No description provided for @checkoutPayInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll contact you to coordinate payment once we review your order.'**
+  String get checkoutPayInfo;
+
+  /// No description provided for @checkoutEstPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated price'**
+  String get checkoutEstPrice;
+
+  /// No description provided for @checkoutSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Product subtotal'**
+  String get checkoutSubtotal;
+
+  /// No description provided for @checkoutService.
+  ///
+  /// In en, this message translates to:
+  /// **'Feyam service (12%)'**
+  String get checkoutService;
+
+  /// No description provided for @checkoutShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'International shipping'**
+  String get checkoutShipping;
+
+  /// No description provided for @checkoutTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated total'**
+  String get checkoutTotal;
+
+  /// No description provided for @checkoutChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get checkoutChange;
+
+  /// No description provided for @checkoutDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated delivery'**
+  String get checkoutDelivery;
+
+  /// No description provided for @checkoutDeliveryTime.
+  ///
+  /// In en, this message translates to:
+  /// **'10–18 business days'**
+  String get checkoutDeliveryTime;
+
+  /// No description provided for @checkoutDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Final price may vary based on customs duties and exchange rates.'**
+  String get checkoutDisclaimer;
+
+  /// No description provided for @checkoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm order'**
+  String get checkoutConfirm;
+
+  /// No description provided for @successTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order confirmed!'**
+  String get successTitle;
+
+  /// No description provided for @successBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re reviewing your order. We\'ll notify you when it\'s ready to pay.'**
+  String get successBody;
+
+  /// No description provided for @successViewOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'View my orders'**
+  String get successViewOrders;
+
+  /// No description provided for @addressesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My addresses'**
+  String get addressesTitle;
+
+  /// No description provided for @addressAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add address'**
+  String get addressAdd;
+
+  /// No description provided for @addressEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit address'**
+  String get addressEdit;
+
+  /// No description provided for @addressLabelField.
+  ///
+  /// In en, this message translates to:
+  /// **'Label (Home, Office…)'**
+  String get addressLabelField;
+
+  /// No description provided for @addressStreet.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get addressStreet;
+
+  /// No description provided for @addressCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get addressCity;
+
+  /// No description provided for @addressSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get addressSave;
+
+  /// No description provided for @addressCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get addressCancel;
+
+  /// No description provided for @addressDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get addressDelete;
+
+  /// No description provided for @addressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get addressRequired;
+
+  /// No description provided for @addressNoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved addresses'**
+  String get addressNoneTitle;
+
+  /// No description provided for @addressNoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an address to speed up your orders.'**
+  String get addressNoneBody;
+
+  /// No description provided for @addressDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get addressDefault;
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment methods'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll contact you to coordinate payment once we review your order.'**
+  String get paymentInfo;
+
+  /// No description provided for @paymentAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add method'**
+  String get paymentAdd;
+
+  /// No description provided for @paymentEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit method'**
+  String get paymentEdit;
+
+  /// No description provided for @paymentLabelField.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Bancolombia, Nequi…)'**
+  String get paymentLabelField;
+
+  /// No description provided for @paymentDetailField.
+  ///
+  /// In en, this message translates to:
+  /// **'Number or alias'**
+  String get paymentDetailField;
+
+  /// No description provided for @paymentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get paymentRequired;
+
+  /// No description provided for @paymentNoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved methods'**
+  String get paymentNoneTitle;
+
+  /// No description provided for @paymentNoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a payment method to speed up your orders.'**
+  String get paymentNoneBody;
+
+  /// No description provided for @paymentDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get paymentDefault;
+
+  /// No description provided for @paymentTypeNequi.
+  ///
+  /// In en, this message translates to:
+  /// **'Nequi'**
+  String get paymentTypeNequi;
+
+  /// No description provided for @paymentTypeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank transfer'**
+  String get paymentTypeBank;
+
+  /// No description provided for @paymentTypeEfecty.
+  ///
+  /// In en, this message translates to:
+  /// **'Efecty'**
+  String get paymentTypeEfecty;
+
+  /// No description provided for @paymentTypeCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get paymentTypeCard;
+
+  /// No description provided for @termsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get termsTitle;
+
+  /// No description provided for @termsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated: May 3, 2026 · Effective: May 20, 2026'**
+  String get termsUpdated;
+
+  /// No description provided for @termsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'These Terms and Conditions govern access to and use of Feyam, an assisted purchasing and international logistics platform operated by FEYAM UNIVERSE LLC (Florida, USA). By using the Platform, you agree to be legally bound by these Terms.'**
+  String get termsIntro;
+
+  /// No description provided for @termsAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and accept Feyam\'s Terms and Conditions'**
+  String get termsAccept;
+
+  /// No description provided for @termsContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept and continue'**
+  String get termsContinue;
+
+  /// No description provided for @dialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dialogCancel;
+
+  /// No description provided for @logoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get logoutTitle;
+
+  /// No description provided for @logoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be signed out of your Feyam account on this device.'**
+  String get logoutBody;
 }
 
 class _AppLocalizationsDelegate

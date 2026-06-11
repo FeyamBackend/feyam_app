@@ -1,4 +1,6 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
+import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/cart/presentation/screens/checkout_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -373,7 +375,10 @@ class _MaterialCheckoutButton extends StatelessWidget {
     return SizedBox(
       height: 98 * scale,
       child: FilledButton(
-        onPressed: () {},
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(builder: (_) => const CheckoutScreen()),
+        ),
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF0A63C7),
           foregroundColor: Colors.white,
@@ -432,56 +437,177 @@ class _MaterialCartItem {
   final int quantity;
 }
 
-class _CupertinoCartContent extends StatelessWidget {
+class _CupertinoCartContent extends StatefulWidget {
   const _CupertinoCartContent();
+
+  @override
+  State<_CupertinoCartContent> createState() => _CupertinoCartContentState();
+}
+
+class _CupertinoCartContentState extends State<_CupertinoCartContent> {
+  final List<_CupertinoCartItem> _items = <_CupertinoCartItem>[
+    _CupertinoCartItem(
+      icon: CupertinoIcons.headphones,
+      title: 'Auriculares Sony WH-1000XM5',
+      variants: 'Color negro',
+      price: 278.00,
+      qty: 1,
+    ),
+    _CupertinoCartItem(
+      icon: CupertinoIcons.device_phone_portrait,
+      title: 'Apple Watch SE 2nd Gen',
+      price: 249.00,
+      qty: 1,
+    ),
+  ];
+
+  void _changeQty(int index, int delta) {
+    setState(() {
+      _items[index] = _items[index].copyWith(
+        qty: (_items[index].qty + delta).clamp(1, 99),
+      );
+    });
+  }
+
+  void _remove(int index) {
+    setState(() => _items.removeAt(index));
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final items = <_CartItem>[
-      _CartItem(
-        name: l10n.cartItemChronographName,
-        price: r'$299.00',
-        quantity: 1,
-      ),
-      _CartItem(
-        name: l10n.cartItemAeroName,
-        price: r'$120.00',
-        quantity: 2,
-      ),
-      _CartItem(
-        name: l10n.cartItemSonicName,
-        price: r'$450.00',
-        quantity: 1,
-      ),
-    ];
+
+    if (_items.isEmpty) {
+      return ColoredBox(
+        color: kFeyamBg,
+        child: Column(
+          children: <Widget>[
+            CupertinoNavigationBar(
+              leading: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(CupertinoIcons.chevron_back, size: 18),
+                    SizedBox(width: 2),
+                    Text('Inicio', style: TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+              middle: const Text('Carrito'),
+            ),
+            Expanded(
+              child: FeyamEmptyState(
+                icon: CupertinoIcons.cart_fill,
+                title: 'Tu carrito está vacío',
+                subtitle: 'Pegá el link de un producto para empezar a armar tu pedido.',
+                action: FeyamButton(
+                  label: 'Pegar un link',
+                  icon: CupertinoIcons.link,
+                  variant: FeyamButtonVariant.tinted,
+                  small: true,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final totalQty = _items.fold(0, (s, i) => s + i.qty);
+    final subtotal = _items.fold(0.0, (s, i) => s + i.price * i.qty);
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 532).clamp(0.58, 1.0);
+        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return ColoredBox(
-          color: const Color(0xFFFAF9FE),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              22 * scale,
-              28 * scale,
-              22 * scale,
-              46 * scale,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _CupertinoCartHeader(scale: scale),
-                SizedBox(height: 52 * scale),
-                for (final item in items) ...[
-                  _CupertinoCartItemCard(scale: scale, item: item),
-                  SizedBox(height: 22 * scale),
-                ],
-                SizedBox(height: 12 * scale),
-                _CupertinoCartSummary(scale: scale),
-              ],
-            ),
+          color: kFeyamBg,
+          child: Column(
+            children: <Widget>[
+              CupertinoNavigationBar(
+                leading: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(CupertinoIcons.chevron_back, size: 18),
+                      SizedBox(width: 2),
+                      Text('Inicio', style: TextStyle(fontSize: 17)),
+                    ],
+                  ),
+                ),
+                middle: Text('${l10n.navCart} ($totalQty)'),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: 8 * scale),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      SizedBox(height: 16 * scale),
+                      // Items
+                      FeyamListSection(
+                        header: '${_items.length} producto${_items.length > 1 ? 's' : ''}',
+                        children: <Widget>[
+                          for (var i = 0; i < _items.length; i++)
+                            _CupertinoCartRow(
+                              item: _items[i],
+                              isLast: i == _items.length - 1,
+                              onRemove: () => _remove(i),
+                              onDecrement: () => _changeQty(i, -1),
+                              onIncrement: () => _changeQty(i, 1),
+                            ),
+                        ],
+                      ),
+                      // Summary
+                      FeyamListSection(
+                        header: 'Resumen',
+                        children: <Widget>[
+                          FeyamListTile(
+                            title: Text('Subtotal ($totalQty items)'),
+                            detail: Text('\$ ${subtotal.toStringAsFixed(2)}'),
+                            chevron: false,
+                          ),
+                          FeyamListTile(
+                            title: const Text(
+                              'Total estimado',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            detail: Text(
+                              '\$ ${subtotal.toStringAsFixed(2)}',
+                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17, color: kFeyamLabel),
+                            ),
+                            chevron: false,
+                            isLast: true,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Footer
+              Container(
+                padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 28 * scale),
+                decoration: const BoxDecoration(
+                  color: kFeyamCard,
+                  border: Border(top: BorderSide(color: kFeyamSepLight, width: 0.5)),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FeyamButton(
+                    label: 'Proceder al checkout',
+                    onPressed: () => Navigator.of(context).push(
+                      CupertinoPageRoute<void>(builder: (_) => const CheckoutScreen()),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -489,340 +615,126 @@ class _CupertinoCartContent extends StatelessWidget {
   }
 }
 
-class _CupertinoCartHeader extends StatelessWidget {
-  const _CupertinoCartHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = CupertinoTheme.of(context);
-
-    return Text(
-      l10n.navCart,
-      style: theme.textTheme.textStyle.copyWith(
-        color: const Color(0xFF002B45),
-        fontSize: 31 * scale,
-        fontWeight: FontWeight.w700,
-        height: 1,
-      ),
-    );
-  }
-}
-
-
-class _CupertinoCartItemCard extends StatelessWidget {
-  const _CupertinoCartItemCard({required this.scale, required this.item});
-
-  final double scale;
-  final _CartItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = CupertinoTheme.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F8FD),
-        border: Border.all(color: const Color(0xFFDCDDE5), width: scale),
-        borderRadius: BorderRadius.circular(34 * scale),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          22 * scale,
-          24 * scale,
-          22 * scale,
-          22 * scale,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.textStyle.copyWith(
-                      color: CupertinoColors.black,
-                      fontSize: 23 * scale,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12 * scale),
-                CupertinoButton(
-                  minimumSize: Size.square(34 * scale),
-                  padding: EdgeInsets.zero,
-                  onPressed: () {},
-                  child: Semantics(
-                    label: l10n.cartRemoveItemSemanticLabel,
-                    child: Icon(
-                      CupertinoIcons.trash,
-                      color: const Color(0xFF263238),
-                      size: 25 * scale,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 30 * scale),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    item.price,
-                    style: theme.textTheme.textStyle.copyWith(
-                      color: const Color(0xFF002B45),
-                      fontSize: 22 * scale,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-                _CupertinoQuantityStepper(
-                  scale: scale,
-                  quantity: item.quantity,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CupertinoQuantityStepper extends StatelessWidget {
-  const _CupertinoQuantityStepper({
-    required this.scale,
-    required this.quantity,
+class _CupertinoCartRow extends StatelessWidget {
+  const _CupertinoCartRow({
+    required this.item,
+    required this.isLast,
+    required this.onRemove,
+    required this.onDecrement,
+    required this.onIncrement,
   });
 
-  final double scale;
-  final int quantity;
+  final _CupertinoCartItem item;
+  final bool isLast;
+  final VoidCallback onRemove;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 55 * scale,
-      width: 164 * scale,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2E2E8),
-        borderRadius: BorderRadius.circular(28 * scale),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      color: kFeyamCard,
+      child: Column(
         children: <Widget>[
-          _CupertinoQuantityButton(scale: scale, icon: CupertinoIcons.minus),
-          Text(
-            '$quantity',
-            style: CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-              color: CupertinoColors.black,
-              fontSize: 18 * scale,
-              fontWeight: FontWeight.w400,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: kFeyamBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(item.icon, size: 26, color: kFeyamLabelSec),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.title,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kFeyamLabel, letterSpacing: -0.24),
+                      ),
+                      if (item.variants != null) ...[
+                        const SizedBox(height: 3),
+                        Text(item.variants!, style: const TextStyle(fontSize: 12, color: kFeyamLabelSec)),
+                      ],
+                      const SizedBox(height: 6),
+                      Text(
+                        '\$ ${(item.price * item.qty).toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: kFeyamTint, letterSpacing: -0.41),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: onRemove,
+                      child: const Icon(CupertinoIcons.trash, size: 18, color: kFeyamRed),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: kFeyamFillTer,
+                        borderRadius: BorderRadius.circular(9999),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: onDecrement,
+                            child: Icon(CupertinoIcons.minus_circled, size: 22, color: item.qty <= 1 ? kFeyamLabelTer : kFeyamTint),
+                          ),
+                          const SizedBox(width: 6),
+                          Text('${item.qty}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: kFeyamLabel)),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: onIncrement,
+                            child: const Icon(CupertinoIcons.plus_circled, size: 22, color: kFeyamTint),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          _CupertinoQuantityButton(scale: scale, icon: CupertinoIcons.plus),
+          if (!isLast)
+            Container(height: 0.5, color: kFeyamSepLight, margin: const EdgeInsets.only(left: 16)),
         ],
       ),
     );
   }
 }
 
-class _CupertinoQuantityButton extends StatelessWidget {
-  const _CupertinoQuantityButton({required this.scale, required this.icon});
-
-  final double scale;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoButton(
-      minimumSize: Size.square(44 * scale),
-      padding: EdgeInsets.zero,
-      onPressed: () {},
-      child: Icon(icon, color: CupertinoColors.black, size: 18 * scale),
-    );
-  }
-}
-
-class _CupertinoCartSummary extends StatelessWidget {
-  const _CupertinoCartSummary({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = CupertinoTheme.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFEDECF2),
-        borderRadius: BorderRadius.circular(34 * scale),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          32 * scale,
-          34 * scale,
-          32 * scale,
-          34 * scale,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              l10n.cartSummaryTitle,
-              style: theme.textTheme.textStyle.copyWith(
-                color: CupertinoColors.black,
-                fontSize: 30 * scale,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            SizedBox(height: 32 * scale),
-            _CupertinoSummaryRow(
-              scale: scale,
-              label: l10n.cartSubtotal,
-              value: r'$869.00',
-            ),
-            SizedBox(height: 26 * scale),
-            _CupertinoSummaryRow(
-              scale: scale,
-              label: l10n.cartShipping,
-              value: r'$15.00',
-            ),
-            SizedBox(height: 26 * scale),
-            _CupertinoSummaryRow(
-              scale: scale,
-              label: l10n.cartTaxes,
-              value: r'$86.90',
-            ),
-            SizedBox(height: 36 * scale),
-            Divider(
-              height: 1,
-              thickness: scale,
-              color: const Color(0xFFC5C8D0),
-            ),
-            SizedBox(height: 36 * scale),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    l10n.cartTotal,
-                    style: theme.textTheme.textStyle.copyWith(
-                      color: CupertinoColors.black,
-                      fontSize: 30 * scale,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-                Text(
-                  r'$970.90',
-                  style: theme.textTheme.textStyle.copyWith(
-                    color: const Color(0xFF002B45),
-                    fontSize: 30 * scale,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 34 * scale),
-            SizedBox(
-              height: 70 * scale,
-              child: CupertinoButton(
-                color: const Color(0xFF004053),
-                borderRadius: BorderRadius.circular(34 * scale),
-                padding: EdgeInsets.zero,
-                onPressed: () {},
-                child: Text(
-                  l10n.cartCheckoutButton,
-                  style: theme.textTheme.textStyle.copyWith(
-                    color: CupertinoColors.white,
-                    fontSize: 18 * scale,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 34 * scale),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(
-                  CupertinoIcons.lock,
-                  color: const Color(0xFF6F747C),
-                  size: 16 * scale,
-                ),
-                SizedBox(width: 12 * scale),
-                Text(
-                  l10n.cartSecurePayment,
-                  style: theme.textTheme.textStyle.copyWith(
-                    color: const Color(0xFF6F747C),
-                    fontSize: 18 * scale,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CupertinoSummaryRow extends StatelessWidget {
-  const _CupertinoSummaryRow({
-    required this.scale,
-    required this.label,
-    required this.value,
-  });
-
-  final double scale;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.textStyle.copyWith(
-              color: const Color(0xFF2E343B),
-              fontSize: 22 * scale,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: theme.textTheme.textStyle.copyWith(
-            color: CupertinoColors.black,
-            fontSize: 22 * scale,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CartItem {
-  const _CartItem({
-    required this.name,
+class _CupertinoCartItem {
+  const _CupertinoCartItem({
+    required this.icon,
+    required this.title,
+    this.variants,
     required this.price,
-    required this.quantity,
+    required this.qty,
   });
 
-  final String name;
-  final String price;
-  final int quantity;
+  final IconData icon;
+  final String title;
+  final String? variants;
+  final double price;
+  final int qty;
+
+  _CupertinoCartItem copyWith({int? qty}) => _CupertinoCartItem(
+        icon: icon,
+        title: title,
+        variants: variants,
+        price: price,
+        qty: qty ?? this.qty,
+      );
 }

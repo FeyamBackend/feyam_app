@@ -1,4 +1,7 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
+import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/profile/presentation/screens/addresses_screen.dart';
+import 'package:feyam/features/profile/presentation/screens/payment_methods_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +28,7 @@ class _MaterialProfileContent extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 640).clamp(0.54, 1.0);
+        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return Column(
           children: <Widget>[
@@ -34,7 +37,7 @@ class _MaterialProfileContent extends StatelessWidget {
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   24 * scale,
-                  64 * scale,
+                  24 * scale,
                   24 * scale,
                   44 * scale,
                 ),
@@ -42,7 +45,7 @@ class _MaterialProfileContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     _MaterialProfileSummary(scale: scale),
-                    SizedBox(height: 38 * scale),
+                    SizedBox(height: 32 * scale),
                     _MaterialProfileSection(
                       scale: scale,
                       title: l10n.profileAccountSection,
@@ -50,48 +53,27 @@ class _MaterialProfileContent extends StatelessWidget {
                         _MaterialProfileRowData(
                           title: l10n.profileMyAddresses,
                           icon: Icons.location_on_outlined,
-                        ),
-                        _MaterialProfileRowData(
-                          title: l10n.profileMyOrders,
-                          icon: Icons.shopping_bag_outlined,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 30 * scale),
-                    _MaterialProfileSection(
-                      scale: scale,
-                      title: l10n.profilePersonalDetailsSection,
-                      rows: <_MaterialProfileRowData>[
-                        _MaterialProfileRowData(
-                          title: l10n.profilePersonalInformation,
-                          icon: Icons.person_outline,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AddressesScreen(),
+                            ),
+                          ),
                         ),
                         _MaterialProfileRowData(
                           title: l10n.profilePaymentMethods,
                           icon: Icons.credit_card_outlined,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const PaymentMethodsScreen(),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 30 * scale),
-                    _MaterialProfileSection(
-                      scale: scale,
-                      title: l10n.profileGeneralSection,
-                      rows: <_MaterialProfileRowData>[
-                        _MaterialProfileRowData(
-                          title: l10n.profileNotifications,
-                          icon: Icons.notifications_none,
-                        ),
-                        _MaterialProfileRowData(
-                          title: l10n.profileHelpSupport,
-                          icon: Icons.help_outline,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 62 * scale),
-                    _MaterialLogoutButton(
-                      label: l10n.profileLogOut,
-                      scale: scale,
-                    ),
+                    SizedBox(height: 24 * scale),
+                    _MaterialLogoutButton(label: l10n.profileLogOut, scale: scale),
                   ],
                 ),
               ),
@@ -111,27 +93,27 @@ class _MaterialProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Color(0xFFFAFAFE),
-        border: Border(bottom: BorderSide(color: Color(0xFFD8DBE3))),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainer,
+        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
       ),
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: 100 * scale,
+          height: 64 * scale,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 28 * scale),
+            padding: EdgeInsets.symmetric(horizontal: 20 * scale),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 l10n.navProfile,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: const Color(0xFF111315),
-                  fontSize: 34 * scale,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: colors.onSurface,
+                  fontSize: 22 * scale,
                   fontWeight: FontWeight.w700,
-                  height: 1,
                 ),
               ),
             ),
@@ -150,60 +132,78 @@ class _MaterialProfileSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: <Widget>[
         Container(
-          width: 142 * scale,
-          height: 142 * scale,
-          padding: EdgeInsets.all(6 * scale),
-          decoration: const BoxDecoration(
-            color: Color(0xFFE4E6EB),
+          width: 88 * scale,
+          height: 88 * scale,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
             shape: BoxShape.circle,
           ),
-          child: _MaterialProfileAvatar(scale: scale),
+          child: Center(
+            child: Text(
+              l10n.profileName.isNotEmpty
+                  ? l10n.profileName[0].toUpperCase()
+                  : '?',
+              style: textTheme.headlineLarge?.copyWith(
+                color: colors.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+                fontSize: 36 * scale,
+              ),
+            ),
+          ),
         ),
-        SizedBox(height: 28 * scale),
+        SizedBox(height: 16 * scale),
         Text(
           l10n.profileName,
           textAlign: TextAlign.center,
-          style: textTheme.displaySmall?.copyWith(
-            color: const Color(0xFF111315),
-            fontSize: 39 * scale,
-            fontWeight: FontWeight.w400,
-            height: 1.08,
+          style: textTheme.titleLarge?.copyWith(
+            color: colors.onSurface,
+            fontSize: 20 * scale,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        SizedBox(height: 14 * scale),
+        SizedBox(height: 4 * scale),
+        Text(
+          l10n.profileEmail,
+          textAlign: TextAlign.center,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontSize: 13 * scale,
+          ),
+        ),
+        SizedBox(height: 12 * scale),
         DecoratedBox(
           decoration: BoxDecoration(
-            color: const Color(0xFFCBEAF3),
-            borderRadius: BorderRadius.circular(10 * scale),
+            color: colors.tertiaryContainer,
+            borderRadius: BorderRadius.circular(8 * scale),
           ),
           child: Padding(
             padding: EdgeInsets.fromLTRB(
+              10 * scale,
+              5 * scale,
               12 * scale,
-              7 * scale,
-              14 * scale,
-              8 * scale,
+              5 * scale,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Icon(
-                  Icons.star_border,
-                  color: const Color(0xFF54646B),
-                  size: 22 * scale,
+                  Icons.star_rounded,
+                  color: colors.onTertiaryContainer,
+                  size: 16 * scale,
                 ),
-                SizedBox(width: 7 * scale),
+                SizedBox(width: 6 * scale),
                 Text(
                   l10n.profileMembershipLevel,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: const Color(0xFF54646B),
-                    fontSize: 22 * scale,
-                    fontWeight: FontWeight.w400,
-                    height: 1,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colors.onTertiaryContainer,
+                    fontSize: 13 * scale,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -211,39 +211,6 @@ class _MaterialProfileSummary extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MaterialProfileAvatar extends StatelessWidget {
-  const _MaterialProfileAvatar({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipOval(
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[
-              Color(0xFFE9CDB5),
-              Color(0xFF4C3F35),
-              Color(0xFF151719),
-            ],
-            stops: <double>[0, 0.46, 1],
-          ),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.person,
-            size: 82 * scale,
-            color: Colors.white.withValues(alpha: 0.9),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -262,42 +229,43 @@ class _MaterialProfileSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(left: 14 * scale, bottom: 16 * scale),
+          padding: EdgeInsets.only(left: 4 * scale, bottom: 10 * scale),
           child: Text(
-            title.toUpperCase(),
-            style: textTheme.titleMedium?.copyWith(
-              color: const Color(0xFF002B45),
-              fontSize: 23 * scale,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.6,
+            title,
+            style: textTheme.labelMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontSize: 12 * scale,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
             ),
           ),
         ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(34 * scale),
-          child: ColoredBox(
-            color: const Color(0xFFF2F1F7),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 38 * scale),
-              child: Column(
-                children: <Widget>[
-                  for (var index = 0; index < rows.length; index++) ...[
-                    _MaterialProfileRow(scale: scale, data: rows[index]),
-                    if (index < rows.length - 1)
-                      Divider(
-                        height: 1,
-                        thickness: 1 * scale,
-                        color: const Color(0xFFDADCE1),
-                      ),
-                  ],
-                ],
-              ),
-            ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16 * scale),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          child: Column(
+            children: <Widget>[
+              for (var index = 0; index < rows.length; index++) ...[
+                _MaterialProfileRow(scale: scale, data: rows[index]),
+                if (index < rows.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 16 * scale,
+                    endIndent: 16 * scale,
+                    color: colors.outlineVariant,
+                  ),
+              ],
+            ],
           ),
         ),
       ],
@@ -314,33 +282,40 @@ class _MaterialProfileRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
 
     return InkWell(
-      onTap: () {},
-      child: SizedBox(
-        height: 82 * scale,
+      borderRadius: BorderRadius.circular(16 * scale),
+      onTap: data.onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 16 * scale,
+          vertical: 14 * scale,
+        ),
         child: Row(
           children: <Widget>[
-            Icon(data.icon, color: const Color(0xFF3A454A), size: 32 * scale),
-            SizedBox(width: 28 * scale),
+            Icon(
+              data.icon,
+              color: colors.onSurfaceVariant,
+              size: 22 * scale,
+            ),
+            SizedBox(width: 16 * scale),
             Expanded(
               child: Text(
                 data.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: textTheme.titleLarge?.copyWith(
-                  color: const Color(0xFF16181A),
-                  fontSize: 27 * scale,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colors.onSurface,
+                  fontSize: 15 * scale,
                   fontWeight: FontWeight.w400,
-                  height: 1.1,
                 ),
               ),
             ),
-            SizedBox(width: 16 * scale),
             Icon(
-              Icons.chevron_right,
-              color: const Color(0xFF657077),
-              size: 36 * scale,
+              Icons.chevron_right_rounded,
+              color: colors.onSurfaceVariant,
+              size: 20 * scale,
             ),
           ],
         ),
@@ -358,23 +333,22 @@ class _MaterialLogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
 
-    return Center(
-      child: OutlinedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.logout, size: 24),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFD10000),
-          side: BorderSide(color: const Color(0xFFD10000), width: 1.3 * scale),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32 * scale),
-          ),
-          minimumSize: Size(246 * scale, 66 * scale),
-          textStyle: textTheme.titleLarge?.copyWith(
-            fontSize: 23 * scale,
-            fontWeight: FontWeight.w400,
-          ),
+    return OutlinedButton.icon(
+      onPressed: () {},
+      icon: Icon(Icons.logout_rounded, size: 18 * scale),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: colors.error,
+        side: BorderSide(color: colors.error, width: scale),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12 * scale),
+        ),
+        minimumSize: Size(double.infinity, 48 * scale),
+        textStyle: textTheme.labelLarge?.copyWith(
+          fontSize: 15 * scale,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -382,14 +356,58 @@ class _MaterialLogoutButton extends StatelessWidget {
 }
 
 class _MaterialProfileRowData {
-  const _MaterialProfileRowData({required this.title, required this.icon});
+  const _MaterialProfileRowData({
+    required this.title,
+    required this.icon,
+    this.onTap,
+  });
 
   final String title;
   final IconData icon;
+  final VoidCallback? onTap;
 }
 
-class _CupertinoProfileContent extends StatelessWidget {
+class _CupertinoProfileContent extends StatefulWidget {
   const _CupertinoProfileContent();
+
+  @override
+  State<_CupertinoProfileContent> createState() => _CupertinoProfileContentState();
+}
+
+class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
+  static const _addresses = <_CupertinoAddress>[
+    _CupertinoAddress(id: 1, label: 'Casa',    line: 'Cra. 45 #26-12, Apto 304',  city: 'Medellín, Antioquia'),
+    _CupertinoAddress(id: 2, label: 'Oficina', line: 'Calle 50 #12-34, Piso 8',   city: 'Bogotá, Cundinamarca'),
+  ];
+
+  void _showAddressSheet(BuildContext context, {_CupertinoAddress? initial}) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (_) => _AddressSheet(initial: initial),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('¿Cerrar sesión?'),
+        content: const Text('Vas a salir de tu cuenta de Feyam en este dispositivo.'),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -397,62 +415,118 @@ class _CupertinoProfileContent extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 660).clamp(0.54, 1.0);
+        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return ColoredBox(
-          color: const Color(0xFFF2F1F6),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              26 * scale,
-              28 * scale,
-              26 * scale,
-              28 * scale,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _CupertinoProfileHeader(scale: scale),
-                SizedBox(height: 84 * scale),
-                _CupertinoProfileSummary(scale: scale),
-                SizedBox(height: 58 * scale),
-                _CupertinoProfileSection(
-                  scale: scale,
-                  title: l10n.profileAccountSection,
-                  rows: <_CupertinoProfileRowData>[
-                    _CupertinoProfileRowData(
-                      title: l10n.profileMyAddresses,
-                      icon: CupertinoIcons.location,
-                    ),
-                    _CupertinoProfileRowData(
-                      title: l10n.profileMyOrders,
-                      icon: CupertinoIcons.bag,
-                    ),
-                  ],
+          color: kFeyamBg,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              // Large title
+              Container(
+                color: kFeyamBg,
+                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
+                  child: Text(
+                    l10n.navProfile,
+                    style: TextStyle(fontSize: 34 * scale, fontWeight: FontWeight.w700, color: kFeyamLabel, letterSpacing: 0.37, fontFamily: '.SF Pro Display'),
+                  ),
                 ),
-                SizedBox(height: 42 * scale),
-                _CupertinoProfileSection(
-                  scale: scale,
-                  title: l10n.profilePersonalDetailsSection,
-                  rows: <_CupertinoProfileRowData>[
-                    _CupertinoProfileRowData(
-                      title: l10n.profilePersonalInformation,
-                    ),
-                    _CupertinoProfileRowData(title: l10n.profilePaymentMethods),
-                  ],
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: 32 * scale),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      SizedBox(height: 16 * scale),
+                      // Account tile
+                      FeyamListSection(
+                        children: <Widget>[
+                          FeyamListTile(
+                            title: const Text('María'),
+                            subtitle: const Text('maria@feyam.com'),
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: const BoxDecoration(color: kFeyamTint, shape: BoxShape.circle),
+                              child: const Center(
+                                child: Text('M', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white)),
+                              ),
+                            ),
+                            chevron: false,
+                            isLast: true,
+                          ),
+                        ],
+                      ),
+                      // Addresses
+                      FeyamListSection(
+                        header: 'Mis direcciones',
+                        footer: _addresses.isEmpty ? 'Todavía no agregaste direcciones.' : null,
+                        children: <Widget>[
+                          for (var i = 0; i < _addresses.length; i++)
+                            FeyamListTile(
+                              title: Text(_addresses[i].label),
+                              subtitle: Text('${_addresses[i].line} · ${_addresses[i].city}'),
+                              leading: FeyamIconTile(
+                                icon: _addresses[i].label.toLowerCase().contains('casa') ? CupertinoIcons.house_fill : CupertinoIcons.bag_fill,
+                                color: _addresses[i].label.toLowerCase().contains('casa') ? kFeyamGreen : kFeyamTint,
+                              ),
+                              isLast: false,
+                              onTap: () => _showAddressSheet(context, initial: _addresses[i]),
+                            ),
+                          FeyamListTile(
+                            title: const Text('Agregar dirección'),
+                            leading: FeyamIconTile(icon: CupertinoIcons.plus_circle_fill, color: kFeyamGreen),
+                            isLast: true,
+                            onTap: () => _showAddressSheet(context),
+                          ),
+                        ],
+                      ),
+                      // Settings
+                      FeyamListSection(
+                        header: 'Configuración',
+                        children: <Widget>[
+                          FeyamListTile(
+                            title: const Text('Notificaciones'),
+                            leading: FeyamIconTile(icon: CupertinoIcons.bell_fill, color: kFeyamRed),
+                            onTap: () {},
+                          ),
+                          FeyamListTile(
+                            title: const Text('Seguridad y acceso'),
+                            leading: FeyamIconTile(icon: CupertinoIcons.lock_fill, color: kFeyamLabelSec),
+                            isLast: true,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                      // Logout
+                      FeyamListSection(
+                        children: <Widget>[
+                          FeyamListTile(
+                            title: const Text('Cerrar sesión'),
+                            leading: FeyamIconTile(icon: CupertinoIcons.square_arrow_right_fill, color: kFeyamRed),
+                            destructive: true,
+                            chevron: false,
+                            isLast: true,
+                            onTap: () => _showLogoutDialog(context),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'Feyam v2.0.0 (Cupertino)',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12, color: kFeyamLabelTer, fontFamily: '.SF Pro Text'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 42 * scale),
-                _CupertinoProfileSection(
-                  scale: scale,
-                  title: l10n.profileGeneralSection,
-                  rows: <_CupertinoProfileRowData>[
-                    _CupertinoProfileRowData(title: l10n.profileNotifications),
-                    _CupertinoProfileRowData(title: l10n.profileHelpSupport),
-                  ],
-                ),
-                SizedBox(height: 40 * scale),
-                _CupertinoLogoutButton(label: l10n.profileLogOut, scale: scale),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -460,183 +534,126 @@ class _CupertinoProfileContent extends StatelessWidget {
   }
 }
 
-class _CupertinoProfileHeader extends StatelessWidget {
-  const _CupertinoProfileHeader({required this.scale});
+class _CupertinoAddress {
+  const _CupertinoAddress({required this.id, required this.label, required this.line, required this.city});
+  final int id;
+  final String label;
+  final String line;
+  final String city;
+}
 
-  final double scale;
+// ── Address Sheet ─────────────────────────────────────────────────────────────
+
+class _AddressSheet extends StatefulWidget {
+  const _AddressSheet({this.initial});
+  final _CupertinoAddress? initial;
+
+  @override
+  State<_AddressSheet> createState() => _AddressSheetState();
+}
+
+class _AddressSheetState extends State<_AddressSheet> {
+  late final TextEditingController _labelCtrl;
+  late final TextEditingController _lineCtrl;
+  late final TextEditingController _cityCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelCtrl = TextEditingController(text: widget.initial?.label ?? '');
+    _lineCtrl  = TextEditingController(text: widget.initial?.line  ?? '');
+    _cityCtrl  = TextEditingController(text: widget.initial?.city  ?? '');
+  }
+
+  @override
+  void dispose() {
+    _labelCtrl.dispose();
+    _lineCtrl.dispose();
+    _cityCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    final isEdit = widget.initial != null;
 
-    return Text(
-      l10n.navProfile,
-      style: theme.textTheme.textStyle.copyWith(
-        color: const Color(0xFF002B45),
-        fontSize: 28 * scale,
-        fontWeight: FontWeight.w700,
+    return Container(
+      decoration: const BoxDecoration(
+        color: kFeyamCard,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-    );
-  }
-}
-
-class _CupertinoProfileSummary extends StatelessWidget {
-  const _CupertinoProfileSummary({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
-    return Column(
-      children: <Widget>[
-        Container(
-          width: 92 * scale,
-          height: 92 * scale,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFEFA),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE5E7EE)),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color(0x21000000),
-                blurRadius: 8,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Padding(
-              padding: EdgeInsets.all(15 * scale),
-              child: Image.asset(
-                'assets/branding/logo.png',
-                fit: BoxFit.contain,
-              ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          // Drag handle + title
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Container(
+              width: 36, height: 5,
+              decoration: BoxDecoration(color: kFeyamFillTer, borderRadius: BorderRadius.circular(3)),
             ),
           ),
-        ),
-        SizedBox(height: 34 * scale),
-        Text(
-          l10n.profileName,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.textStyle.copyWith(
-            color: const Color(0xFF171A20),
-            fontSize: 36 * scale,
-            fontWeight: FontWeight.w700,
-            height: 1.08,
-          ),
-        ),
-        SizedBox(height: 12 * scale),
-        Text(
-          l10n.profileMembershipLevel,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.textStyle.copyWith(
-            color: const Color(0xFF727982),
-            fontSize: 25 * scale,
-            fontWeight: FontWeight.w400,
-            height: 1.16,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CupertinoProfileSection extends StatelessWidget {
-  const _CupertinoProfileSection({
-    required this.scale,
-    required this.title,
-    required this.rows,
-  });
-
-  final double scale;
-  final String title;
-  final List<_CupertinoProfileRowData> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(left: 26 * scale, bottom: 16 * scale),
-          child: Text(
-            title.toUpperCase(),
-            style: theme.textTheme.textStyle.copyWith(
-              color: const Color(0xFF747B84),
-              fontSize: 25 * scale,
-              fontWeight: FontWeight.w700,
-              height: 1.1,
-            ),
-          ),
-        ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(18 * scale),
-          child: ColoredBox(
-            color: CupertinoColors.white,
-            child: Column(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Row(
               children: <Widget>[
-                for (var index = 0; index < rows.length; index++) ...[
-                  _CupertinoProfileRow(scale: scale, data: rows[index]),
-                  if (index < rows.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1 * scale,
-                      color: const Color(0xFFE9EBEF),
-                    ),
-                ],
+                const SizedBox(width: 60),
+                Expanded(
+                  child: Text(
+                    isEdit ? 'Editar dirección' : 'Agregar dirección',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: kFeyamLabel),
+                  ),
+                ),
+                SizedBox(
+                  width: 60,
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cerrar', style: TextStyle(fontSize: 17, color: kFeyamTint)),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CupertinoProfileRow extends StatelessWidget {
-  const _CupertinoProfileRow({required this.scale, required this.data});
-
-  final double scale;
-  final _CupertinoProfileRowData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return CupertinoButton(
-      minimumSize: Size(0, 96 * scale),
-      padding: EdgeInsets.fromLTRB(28 * scale, 0, 26 * scale, 0),
-      onPressed: () {},
-      child: Row(
-        children: <Widget>[
-          if (data.icon != null) ...[
-            Icon(data.icon, color: const Color(0xFF002B45), size: 31 * scale),
-            SizedBox(width: 26 * scale),
-          ],
-          Expanded(
-            child: Text(
-              data.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.textStyle.copyWith(
-                color: CupertinoColors.black,
-                fontSize: 28 * scale,
-                fontWeight: FontWeight.w400,
-                height: 1.1,
-              ),
+          Container(height: 0.5, color: kFeyamSepLight),
+          // Fields
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+            child: Column(
+              children: <Widget>[
+                _SheetField(label: 'Etiqueta', placeholder: 'Casa, Oficina…', controller: _labelCtrl),
+                const SizedBox(height: 16),
+                _SheetField(label: 'Dirección', placeholder: 'Calle, número, apto', controller: _lineCtrl),
+                const SizedBox(height: 16),
+                _SheetField(label: 'Ciudad', placeholder: 'Ciudad, provincia', controller: _cityCtrl),
+              ],
             ),
           ),
-          SizedBox(width: 16 * scale),
-          Icon(
-            CupertinoIcons.chevron_forward,
-            color: const Color(0xFF717A80),
-            size: 30 * scale,
+          // Actions
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
+            child: Column(
+              children: <Widget>[
+                SizedBox(
+                  width: double.infinity,
+                  child: FeyamButton(label: 'Guardar', onPressed: () => Navigator.of(context).pop()),
+                ),
+                if (isEdit) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FeyamButton(label: 'Eliminar dirección', variant: FeyamButtonVariant.destructivePlain, onPressed: () => Navigator.of(context).pop()),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: FeyamButton(label: 'Cancelar', variant: FeyamButtonVariant.plain, onPressed: () => Navigator.of(context).pop()),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -644,41 +661,33 @@ class _CupertinoProfileRow extends StatelessWidget {
   }
 }
 
-class _CupertinoLogoutButton extends StatelessWidget {
-  const _CupertinoLogoutButton({required this.label, required this.scale});
-
+class _SheetField extends StatelessWidget {
+  const _SheetField({required this.label, required this.placeholder, required this.controller});
   final String label;
-  final double scale;
+  final String placeholder;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
-    final theme = CupertinoTheme.of(context);
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18 * scale),
-      child: ColoredBox(
-        color: CupertinoColors.white,
-        child: CupertinoButton(
-          minimumSize: Size(0, 96 * scale),
-          padding: EdgeInsets.zero,
-          onPressed: () {},
-          child: Text(
-            label,
-            style: theme.textTheme.textStyle.copyWith(
-              color: CupertinoColors.systemRed,
-              fontSize: 26 * scale,
-              fontWeight: FontWeight.w400,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(label, style: const TextStyle(fontSize: 13, color: kFeyamLabelSec, fontFamily: '.SF Pro Text')),
+        const SizedBox(height: 4),
+        Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: kFeyamCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: kFeyamSepLight),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: CupertinoTextField.borderless(
+            controller: controller,
+            placeholder: placeholder,
           ),
         ),
-      ),
+      ],
     );
   }
-}
-
-class _CupertinoProfileRowData {
-  const _CupertinoProfileRowData({required this.title, this.icon});
-
-  final String title;
-  final IconData? icon;
 }

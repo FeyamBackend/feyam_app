@@ -1,5 +1,5 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
-import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
+import 'package:feyam/features/help/presentation/screens/help_screen.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
@@ -56,23 +56,23 @@ class _MainScreenState extends State<MainScreen> {
     if (useCupertino) {
       return <AdaptiveAppBottomNavigationItem>[
         AdaptiveAppBottomNavigationItem(
-          icon: Icon(CupertinoIcons.house),
-          activeIcon: Icon(CupertinoIcons.house_fill),
+          icon: const Icon(CupertinoIcons.house),
+          activeIcon: const Icon(CupertinoIcons.house_fill),
           label: l10n.navHome,
         ),
         AdaptiveAppBottomNavigationItem(
-          icon: Icon(CupertinoIcons.cart),
-          activeIcon: Icon(CupertinoIcons.cart_fill),
-          label: l10n.navCart,
-        ),
-        AdaptiveAppBottomNavigationItem(
-          icon: Icon(CupertinoIcons.square_list),
-          activeIcon: Icon(CupertinoIcons.square_list_fill),
+          icon: const Icon(CupertinoIcons.cube_box),
+          activeIcon: const Icon(CupertinoIcons.cube_box_fill),
           label: l10n.navOrders,
         ),
         AdaptiveAppBottomNavigationItem(
-          icon: Icon(CupertinoIcons.person),
-          activeIcon: Icon(CupertinoIcons.person_fill),
+          icon: const Icon(CupertinoIcons.question_circle),
+          activeIcon: const Icon(CupertinoIcons.question_circle_fill),
+          label: l10n.navHelp,
+        ),
+        AdaptiveAppBottomNavigationItem(
+          icon: const Icon(CupertinoIcons.person),
+          activeIcon: const Icon(CupertinoIcons.person_fill),
           label: l10n.navProfile,
         ),
       ];
@@ -85,14 +85,14 @@ class _MainScreenState extends State<MainScreen> {
         label: l10n.navHome,
       ),
       AdaptiveAppBottomNavigationItem(
-        icon: Icon(Icons.shopping_bag_outlined),
-        activeIcon: Icon(Icons.shopping_bag),
-        label: l10n.navCart,
+        icon: Icon(Icons.list_alt_outlined),
+        activeIcon: Icon(Icons.list_alt),
+        label: l10n.navOrders,
       ),
       AdaptiveAppBottomNavigationItem(
-        icon: Icon(Icons.list_alt_outlined),
-        activeIcon: Icon(Icons.list_outlined),
-        label: l10n.navOrders,
+        icon: Icon(Icons.help_outline_rounded),
+        activeIcon: Icon(Icons.help_rounded),
+        label: l10n.navHelp,
       ),
       AdaptiveAppBottomNavigationItem(
         icon: Icon(Icons.person_outline),
@@ -112,8 +112,8 @@ class _MainTabContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       const HomeScreen(),
-      const CartScreen(),
       const OrderScreen(),
+      const HelpScreen(),
       const ProfileScreen(),
     ];
 
