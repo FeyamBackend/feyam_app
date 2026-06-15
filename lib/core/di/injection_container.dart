@@ -6,9 +6,14 @@ import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:feyam/features/cart/data/datasources/cart_remote_datasource.dart';
+import 'package:feyam/features/cart/data/repositories/cart_repository_impl.dart';
+import 'package:feyam/features/cart/domain/usecases/add_to_cart.dart';
+import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 final GetIt sl = GetIt.instance;
 
@@ -66,5 +71,31 @@ void configureDependencies({AppConfig? appConfig}) {
       logoutUseCase: sl<LogoutUseCase>(),
       checkAuthSessionUseCase: sl<CheckAuthSessionUseCase>(),
     ),
+  );
+
+  /**
+   * Cart Module
+   */
+
+  sl.registerLazySingleton<http.Client>(() => http.Client());
+
+  sl.registerLazySingleton(
+    () => CartRemoteDataSource(
+      client: sl<http.Client>(),
+      secureStorage: sl<FlutterSecureStorage>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerFactory<CartRepositoryImpl>(
+    () => CartRepositoryImpl(remoteDataSource: sl<CartRemoteDataSource>()),
+  );
+
+  sl.registerFactory<AddToCartUseCase>(
+    () => AddToCartUseCase(sl<CartRepositoryImpl>()),
+  );
+
+  sl.registerFactory<AddToCartBloc>(
+    () => AddToCartBloc(addToCartUseCase: sl<AddToCartUseCase>()),
   );
 }

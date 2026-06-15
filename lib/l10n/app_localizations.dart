@@ -188,6 +188,42 @@ abstract class AppLocalizations {
   /// **'e.g. Silver, Large'**
   String get addToCartVariantsPlaceholder;
 
+  /// No description provided for @addToCartProductNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product name'**
+  String get addToCartProductNameLabel;
+
+  /// No description provided for @addToCartProductNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'As shown in the store'**
+  String get addToCartProductNamePlaceholder;
+
+  /// No description provided for @addToCartErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Check your connection and try again.'**
+  String get addToCartErrorNetwork;
+
+  /// No description provided for @addToCartErrorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired. Please sign in again.'**
+  String get addToCartErrorUnauthorized;
+
+  /// No description provided for @addToCartErrorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later.'**
+  String get addToCartErrorServer;
+
+  /// No description provided for @addToCartErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get addToCartErrorUnknown;
+
   /// No description provided for @addToCartButton.
   ///
   /// In en, this message translates to:

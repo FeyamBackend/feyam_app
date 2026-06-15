@@ -55,6 +55,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToCartVariantsPlaceholder => 'e.g. Silver, Large';
 
   @override
+  String get addToCartProductNameLabel => 'Product name';
+
+  @override
+  String get addToCartProductNamePlaceholder => 'As shown in the store';
+
+  @override
+  String get addToCartErrorNetwork =>
+      'No internet connection. Check your connection and try again.';
+
+  @override
+  String get addToCartErrorUnauthorized =>
+      'Session expired. Please sign in again.';
+
+  @override
+  String get addToCartErrorServer => 'Server error. Please try again later.';
+
+  @override
+  String get addToCartErrorUnknown => 'Something went wrong. Please try again.';
+
+  @override
   String get addToCartButton => 'Add to cart';
 
   @override
