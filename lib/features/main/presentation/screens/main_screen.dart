@@ -1,4 +1,6 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
+import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:feyam/features/auth/presentation/screens/login_screen.dart';
 import 'package:feyam/features/help/presentation/screens/help_screen.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
@@ -6,6 +8,7 @@ import 'package:feyam/features/profile/presentation/screens/profile_screen.dart'
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -36,16 +39,30 @@ class _MainScreenState extends State<MainScreen> {
       },
     );
 
-    return AdaptiveAppScaffold(
-      title:
-          _currentIndex == 0 ||
-              _currentIndex == 1 ||
-              _currentIndex == 2 ||
-              _currentIndex == 3
-          ? null
-          : currentLabel,
-      body: _MainTabContent(currentIndex: _currentIndex),
-      bottomNavigationBar: bottomNavigationBar,
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status &&
+          current.status == AuthStatus.initial,
+      listener: (context, state) {
+        Navigator.of(context).pushAndRemoveUntil(
+          AdaptivePlatform.pageRoute<void>(
+            context: context,
+            builder: (_) => const LoginScreen(),
+          ),
+          (_) => false,
+        );
+      },
+      child: AdaptiveAppScaffold(
+        title:
+            _currentIndex == 0 ||
+                _currentIndex == 1 ||
+                _currentIndex == 2 ||
+                _currentIndex == 3
+            ? null
+            : currentLabel,
+        body: _MainTabContent(currentIndex: _currentIndex),
+        bottomNavigationBar: bottomNavigationBar,
+      ),
     );
   }
 

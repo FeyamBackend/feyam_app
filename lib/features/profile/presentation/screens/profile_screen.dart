@@ -1,10 +1,12 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/profile/presentation/screens/addresses_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/payment_methods_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -336,7 +338,7 @@ class _MaterialLogoutButton extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return OutlinedButton.icon(
-      onPressed: () {},
+      onPressed: () => context.read<AuthBloc>().add(SignOutPressed()),
       icon: Icon(Icons.logout_rounded, size: 18 * scale),
       label: Text(label),
       style: OutlinedButton.styleFrom(
@@ -388,21 +390,27 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final bloc = context.read<AuthBloc>();
+
     showCupertinoDialog<void>(
       context: context,
       builder: (_) => CupertinoAlertDialog(
-        title: const Text('¿Cerrar sesión?'),
-        content: const Text('Vas a salir de tu cuenta de Feyam en este dispositivo.'),
+        title: Text(l10n.logoutTitle),
+        content: Text(l10n.logoutBody),
         actions: <CupertinoDialogAction>[
           CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text(l10n.dialogCancel),
           ),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-            child: const Text('Cerrar sesión'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              bloc.add(SignOutPressed());
+            },
+            child: Text(l10n.profileLogOut),
           ),
         ],
       ),
