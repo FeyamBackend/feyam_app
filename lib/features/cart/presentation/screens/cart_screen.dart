@@ -274,9 +274,8 @@ class _MaterialQuantityButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: 46 * scale,
-      child: InkWell(
+      child: GestureDetector(
         onTap: () {},
-        borderRadius: BorderRadius.circular(23 * scale),
         child: Icon(icon, size: 27 * scale, color: const Color(0xFF005FC8)),
       ),
     );
