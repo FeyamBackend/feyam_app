@@ -1,5 +1,6 @@
 enum CartFailureCode {
   unauthorized,
+  sessionExpired,
   networkError,
   serverError,
   unknown,

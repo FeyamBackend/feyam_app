@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:feyam/core/config/app_config.dart';
 import 'package:feyam/core/config/app_flavor.dart';
 import 'package:feyam/features/auth/data/datasources/keycloak_auth_datasource.dart';
 import 'package:feyam/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
@@ -14,6 +17,7 @@ import 'package:get_it/get_it.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -47,21 +51,21 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   // Repositories
-  sl.registerFactory<AuthRepositoryImpl>(
+  sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(keycloakDataSource: sl<KeycloakDataSource>()),
   );
 
   // Use cases
   sl.registerFactory<LoginUseCase>(
-    () => LoginUseCase(sl<AuthRepositoryImpl>()),
+    () => LoginUseCase(sl<AuthRepository>()),
   );
 
   sl.registerFactory<LogoutUseCase>(
-    () => LogoutUseCase(sl<AuthRepositoryImpl>()),
+    () => LogoutUseCase(sl<AuthRepository>()),
   );
 
   sl.registerFactory<CheckAuthSessionUseCase>(
-    () => CheckAuthSessionUseCase(sl<AuthRepositoryImpl>()),
+    () => CheckAuthSessionUseCase(sl<AuthRepository>()),
   );
 
   // Blocs
@@ -77,7 +81,14 @@ void configureDependencies({AppConfig? appConfig}) {
    * Cart Module
    */
 
-  sl.registerLazySingleton<http.Client>(() => http.Client());
+  sl.registerLazySingleton<http.Client>(() {
+    final flavor = sl<AppConfig>().flavor;
+    if (flavor == AppFlavor.prod.name) return http.Client();
+    // Dev/staging: bypass self-signed certificate validation
+    final inner = HttpClient()
+      ..badCertificateCallback = (cert, host, port) => true;
+    return IOClient(inner);
+  });
 
   sl.registerLazySingleton(
     () => CartRemoteDataSource(
@@ -88,7 +99,10 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   sl.registerFactory<CartRepositoryImpl>(
-    () => CartRepositoryImpl(remoteDataSource: sl<CartRemoteDataSource>()),
+    () => CartRepositoryImpl(
+      remoteDataSource: sl<CartRemoteDataSource>(),
+      authRepository: sl<AuthRepository>(),
+    ),
   );
 
   sl.registerFactory<AddToCartUseCase>(

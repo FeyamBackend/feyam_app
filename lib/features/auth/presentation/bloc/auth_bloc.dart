@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInPressed>(_onSignInPressed);
     on<SignOutPressed>(_onSignOutPressed);
     on<AuthSessionChecked>(_onAuthSessionChecked);
+    on<SessionExpired>(_onSessionExpired);
   }
 
   final LoginUseCase _loginUseCase;
@@ -68,15 +69,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     try {
       await _logoutUseCase();
-      emit(state.copyWith(status: AuthStatus.initial, clearErrorMessage: true));
     } catch (_) {
-      emit(
-        state.copyWith(
-          status: AuthStatus.failure,
-          errorMessage: _getErrorMessage(AuthFailureCode.unknown),
-        ),
-      );
+      // endSession puede fallar si el server ya invalidó la sesión; igual limpiamos
     }
+    emit(state.copyWith(status: AuthStatus.initial, clearErrorMessage: true));
+  }
+
+  Future<void> _onSessionExpired(
+    SessionExpired event,
+    Emitter<AuthState> emit,
+  ) async {
+    // Tokens ya limpiados por _clearSession() en KeycloakDataSource.refreshToken()
+    emit(state.copyWith(status: AuthStatus.initial, clearErrorMessage: true));
   }
 
   Future<void> _onAuthSessionChecked(

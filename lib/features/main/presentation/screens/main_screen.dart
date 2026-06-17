@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/auth/presentation/screens/login_screen.dart';
+import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/features/help/presentation/screens/help_screen.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
@@ -8,6 +11,7 @@ import 'package:feyam/features/profile/presentation/screens/profile_screen.dart'
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MainScreen extends StatefulWidget {
@@ -18,7 +22,43 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  static const _shareChannel = EventChannel('com.feyamuniversellc.feyam/share');
+
   var _currentIndex = 0;
+  late final StreamSubscription<dynamic> _sharingSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _sharingSubscription = _shareChannel
+        .receiveBroadcastStream()
+        .listen(_onSharedUrl);
+  }
+
+  void _onSharedUrl(dynamic url) {
+    if (url is String && url.isNotEmpty) {
+      _openAddToCart(url);
+    }
+  }
+
+  void _openAddToCart(String url) {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        AdaptivePlatform.pageRoute<void>(
+          context: context,
+          builder: (_) => AddToCartScreen(initialUrl: url),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _sharingSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

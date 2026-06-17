@@ -6,6 +6,11 @@ class UserCancelledAuthException implements Exception {
   const UserCancelledAuthException();
 }
 
+class TokenRefreshException implements Exception {
+  const TokenRefreshException([this.cause]);
+  final Object? cause;
+}
+
 class KeycloakDataSource {
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
@@ -116,6 +121,46 @@ class KeycloakDataSource {
   Future<bool> isAuthenticated() async {
     final accessToken = await _secureStorage.read(key: _accessTokenKey);
     return accessToken != null && accessToken.isNotEmpty;
+  }
+
+  Future<void> refreshToken() async {
+    final storedRefresh = await _secureStorage.read(key: _refreshTokenKey);
+    if (storedRefresh == null || storedRefresh.isEmpty) {
+      throw const TokenRefreshException('no refresh token stored');
+    }
+    try {
+      final result = await _appAuth.token(
+        TokenRequest(
+          _clientId,
+          _redirectUri,
+          refreshToken: storedRefresh,
+          grantType: GrantType.refreshToken,
+          issuer: '$_baseUrl/realms/$_realm',
+          serviceConfiguration: AuthorizationServiceConfiguration(
+            authorizationEndpoint:
+                '$_baseUrl/realms/$_realm/protocol/openid-connect/auth',
+            tokenEndpoint:
+                '$_baseUrl/realms/$_realm/protocol/openid-connect/token',
+          ),
+          scopes: ['openid', 'profile', 'email'],
+        ),
+      );
+      if (result.accessToken == null) {
+        throw const TokenRefreshException('refresh returned null access token');
+      }
+      await _secureStorage.write(key: _accessTokenKey, value: result.accessToken);
+      if (result.refreshToken != null) {
+        await _secureStorage.write(key: _refreshTokenKey, value: result.refreshToken);
+      }
+      if (result.idToken != null) {
+        await _secureStorage.write(key: _idTokenKey, value: result.idToken);
+      }
+    } on TokenRefreshException {
+      rethrow;
+    } catch (e) {
+      await _clearSession();
+      throw TokenRefreshException(e);
+    }
   }
 
   Future<void> _clearSession() async {

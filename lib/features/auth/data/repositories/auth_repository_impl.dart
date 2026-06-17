@@ -25,4 +25,13 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> isAuthenticated() {
     return keycloakDataSource.isAuthenticated();
   }
+
+  @override
+  Future<void> refreshAccessToken() async {
+    try {
+      await keycloakDataSource.refreshToken();
+    } on TokenRefreshException {
+      throw const AuthTokenExpiredException();
+    }
+  }
 }

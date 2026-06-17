@@ -1,6 +1,7 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_event.dart';
@@ -11,19 +12,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddToCartScreen extends StatelessWidget {
-  const AddToCartScreen({super.key});
+  const AddToCartScreen({super.key, this.initialUrl});
+
+  final String? initialUrl;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<AddToCartBloc>(),
-      child: const _AddToCartView(),
+      child: _AddToCartView(initialUrl: initialUrl),
     );
   }
 }
 
 class _AddToCartView extends StatefulWidget {
-  const _AddToCartView();
+  const _AddToCartView({this.initialUrl});
+
+  final String? initialUrl;
 
   @override
   State<_AddToCartView> createState() => _AddToCartViewState();
@@ -31,8 +36,8 @@ class _AddToCartView extends StatefulWidget {
 
 class _AddToCartViewState extends State<_AddToCartView> {
   final _productNameController = TextEditingController();
-  final _urlController = TextEditingController(
-    text: 'https://feyam.com/product/123',
+  late final _urlController = TextEditingController(
+    text: widget.initialUrl ?? '',
   );
   final _priceController = TextEditingController(text: '120.00');
   final _quantityController = TextEditingController(text: '1');
@@ -69,7 +74,12 @@ class _AddToCartViewState extends State<_AddToCartView> {
       return;
     }
     if (state.status == AddToCartStatus.failure) {
-      final message = _failureMessage(context, state.failure!);
+      final failure = state.failure!;
+      if (failure.code == CartFailureCode.sessionExpired) {
+        context.read<AuthBloc>().add(SessionExpired());
+        return; // MainScreen's BlocListener navega a LoginScreen
+      }
+      final message = _failureMessage(context, failure);
       if (AdaptivePlatform.isCupertino(context)) {
         showCupertinoDialog<void>(
           context: context,
@@ -96,6 +106,7 @@ class _AddToCartViewState extends State<_AddToCartView> {
     final l10n = AppLocalizations.of(context)!;
     return switch (failure.code) {
       CartFailureCode.unauthorized => l10n.addToCartErrorUnauthorized,
+      CartFailureCode.sessionExpired => l10n.addToCartErrorUnauthorized,
       CartFailureCode.networkError => l10n.addToCartErrorNetwork,
       CartFailureCode.serverError => l10n.addToCartErrorServer,
       CartFailureCode.unknown => l10n.addToCartErrorUnknown,
