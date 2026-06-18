@@ -1,9 +1,14 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_event.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_state.dart';
 import 'package:feyam/features/cart/presentation/screens/checkout_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -18,61 +23,100 @@ class CartScreen extends StatelessWidget {
   }
 }
 
-class _MaterialCartContent extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Material
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _MaterialCartContent extends StatefulWidget {
   const _MaterialCartContent();
 
   @override
+  State<_MaterialCartContent> createState() => _MaterialCartContentState();
+}
+
+class _MaterialCartContentState extends State<_MaterialCartContent> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartBloc>().add(const CartLoadRequested());
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const items = <_MaterialCartItem>[
-      _MaterialCartItem(
-        name: 'Velocita Pro Runner',
-        variant: 'Size: 42 • Red',
-        price: r'$149.00',
-        quantity: 1,
-      ),
-      _MaterialCartItem(
-        name: 'Aura Minimalist Timepiece',
-        variant: 'Silver • 40mm',
-        price: r'$210.00',
-        quantity: 1,
-      ),
-    ];
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, state) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final scale = (constraints.maxWidth / 706).clamp(0.54, 1.0);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 706).clamp(0.54, 1.0);
-
-        return ColoredBox(
-          color: const Color(0xFFFAF9FE),
-          child: Column(
-            children: <Widget>[
-              _MaterialCartHeader(scale: scale),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    29 * scale,
-                    78 * scale,
-                    29 * scale,
-                    40 * scale,
+            return ColoredBox(
+              color: const Color(0xFFFAF9FE),
+              child: Column(
+                children: <Widget>[
+                  _MaterialCartHeader(scale: scale),
+                  Expanded(
+                    child: _buildMaterialBody(context, state, scale),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      _MaterialCartItemsCard(scale: scale, items: items),
-                      SizedBox(height: 48 * scale),
-                      _MaterialCartTotals(scale: scale),
-                      SizedBox(height: 44 * scale),
-                      _MaterialCheckoutButton(scale: scale),
-                      SizedBox(height: 30 * scale),
-                      _MaterialCartFootnote(scale: scale),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildMaterialBody(BuildContext context, CartState state, double scale) {
+    if (state.status == CartStatus.loading || state.status == CartStatus.initial) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.status == CartStatus.empty || state.cart == null || state.cart!.items.isEmpty) {
+      return Center(
+        child: Text(
+          AppLocalizations.of(context)!.cartEmptyTitle,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: const Color(0xFF778090),
+            fontSize: 22 * scale,
+          ),
+        ),
+      );
+    }
+
+    if (state.status == CartStatus.failure) {
+      return Center(
+        child: Text(
+          AppLocalizations.of(context)!.cartErrorTitle,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: const Color(0xFF778090),
+          ),
+        ),
+      );
+    }
+
+    final cart = state.cart!;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        29 * scale,
+        78 * scale,
+        29 * scale,
+        40 * scale,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _MaterialCartItemsCard(scale: scale, items: cart.items),
+          SizedBox(height: 48 * scale),
+          _MaterialCartTotals(scale: scale, total: cart.total, currencyCode: cart.currencyCode),
+          SizedBox(height: 44 * scale),
+          _MaterialCheckoutButton(scale: scale),
+          SizedBox(height: 30 * scale),
+          _MaterialCartFootnote(scale: scale),
+        ],
+      ),
     );
   }
 }
@@ -97,18 +141,26 @@ class _MaterialCartHeader extends StatelessWidget {
         child: SizedBox(
           height: 100 * scale,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 29 * scale),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                l10n.cartTitle,
-                style: textTheme.headlineMedium?.copyWith(
+            padding: EdgeInsets.symmetric(horizontal: 4 * scale),
+            child: Row(
+              children: <Widget>[
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: Icon(Icons.arrow_back, size: 24 * scale),
                   color: const Color(0xFF111315),
-                  fontSize: 31 * scale,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
                 ),
-              ),
+                Expanded(
+                  child: Text(
+                    l10n.cartTitle,
+                    style: textTheme.headlineMedium?.copyWith(
+                      color: const Color(0xFF111315),
+                      fontSize: 31 * scale,
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -121,7 +173,7 @@ class _MaterialCartItemsCard extends StatelessWidget {
   const _MaterialCartItemsCard({required this.scale, required this.items});
 
   final double scale;
-  final List<_MaterialCartItem> items;
+  final List<CartItemEntity> items;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +195,13 @@ class _MaterialCartItemsCard extends StatelessWidget {
         child: Column(
           children: <Widget>[
             for (var index = 0; index < items.length; index++) ...[
-              _MaterialCartItemRow(scale: scale, item: items[index]),
+              _MaterialCartItemRow(
+                scale: scale,
+                item: items[index],
+                onRemove: () => context.read<CartBloc>().add(
+                      CartItemRemoveRequested(items[index].itemId),
+                    ),
+              ),
               if (index < items.length - 1)
                 Divider(
                   height: 1,
@@ -159,10 +217,21 @@ class _MaterialCartItemsCard extends StatelessWidget {
 }
 
 class _MaterialCartItemRow extends StatelessWidget {
-  const _MaterialCartItemRow({required this.scale, required this.item});
+  const _MaterialCartItemRow({
+    required this.scale,
+    required this.item,
+    required this.onRemove,
+  });
 
   final double scale;
-  final _MaterialCartItem item;
+  final CartItemEntity item;
+  final VoidCallback onRemove;
+
+  String get _variantLabel {
+    final attrs = item.variantAttributes;
+    if (attrs == null || attrs.isEmpty) return '';
+    return attrs.entries.map((e) => '${e.key}: ${e.value}').join(' • ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +252,7 @@ class _MaterialCartItemRow extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  item.name,
+                  item.productName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.headlineSmall?.copyWith(
@@ -196,12 +265,21 @@ class _MaterialCartItemRow extends StatelessWidget {
               ),
               SizedBox(width: 16 * scale),
               Text(
-                item.price,
+                '\$${item.totalPrice.toStringAsFixed(2)}',
                 style: textTheme.headlineSmall?.copyWith(
                   color: const Color(0xFF5D6067),
                   fontSize: 31 * scale,
                   fontWeight: FontWeight.w400,
                   height: 1.05,
+                ),
+              ),
+              SizedBox(width: 8 * scale),
+              GestureDetector(
+                onTap: onRemove,
+                child: Icon(
+                  Icons.delete_outline,
+                  size: 28 * scale,
+                  color: const Color(0xFFD32F2F),
                 ),
               ),
             ],
@@ -211,7 +289,7 @@ class _MaterialCartItemRow extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  item.variant,
+                  _variantLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleLarge?.copyWith(
@@ -221,7 +299,7 @@ class _MaterialCartItemRow extends StatelessWidget {
                   ),
                 ),
               ),
-              _MaterialQuantityStepper(scale: scale, quantity: item.quantity),
+              _MaterialQuantityStepper(scale: scale, item: item),
             ],
           ),
         ],
@@ -231,10 +309,10 @@ class _MaterialCartItemRow extends StatelessWidget {
 }
 
 class _MaterialQuantityStepper extends StatelessWidget {
-  const _MaterialQuantityStepper({required this.scale, required this.quantity});
+  const _MaterialQuantityStepper({required this.scale, required this.item});
 
   final double scale;
-  final int quantity;
+  final CartItemEntity item;
 
   @override
   Widget build(BuildContext context) {
@@ -248,16 +326,28 @@ class _MaterialQuantityStepper extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          _MaterialQuantityButton(scale: scale, icon: Icons.remove),
+          _MaterialQuantityButton(
+            scale: scale,
+            icon: Icons.remove,
+            onTap: () => context.read<CartBloc>().add(
+                  CartItemQuantityUpdateRequested(item.itemId, item.quantity - 1),
+                ),
+          ),
           Text(
-            '$quantity',
+            '${item.quantity}',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: CupertinoColors.black,
               fontSize: 29 * scale,
               fontWeight: FontWeight.w400,
             ),
           ),
-          _MaterialQuantityButton(scale: scale, icon: Icons.add),
+          _MaterialQuantityButton(
+            scale: scale,
+            icon: Icons.add,
+            onTap: () => context.read<CartBloc>().add(
+                  CartItemQuantityUpdateRequested(item.itemId, item.quantity + 1),
+                ),
+          ),
         ],
       ),
     );
@@ -265,17 +355,22 @@ class _MaterialQuantityStepper extends StatelessWidget {
 }
 
 class _MaterialQuantityButton extends StatelessWidget {
-  const _MaterialQuantityButton({required this.scale, required this.icon});
+  const _MaterialQuantityButton({
+    required this.scale,
+    required this.icon,
+    required this.onTap,
+  });
 
   final double scale;
   final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: 46 * scale,
       child: GestureDetector(
-        onTap: () {},
+        onTap: onTap,
         child: Icon(icon, size: 27 * scale, color: const Color(0xFF005FC8)),
       ),
     );
@@ -283,26 +378,27 @@ class _MaterialQuantityButton extends StatelessWidget {
 }
 
 class _MaterialCartTotals extends StatelessWidget {
-  const _MaterialCartTotals({required this.scale});
+  const _MaterialCartTotals({
+    required this.scale,
+    required this.total,
+    required this.currencyCode,
+  });
 
   final double scale;
+  final double total;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final totalStr = '\$${total.toStringAsFixed(2)}';
 
     return Column(
       children: <Widget>[
         _MaterialTotalRow(
           scale: scale,
           label: l10n.cartSubtotal,
-          value: r'$359.00',
-        ),
-        SizedBox(height: 26 * scale),
-        _MaterialTotalRow(
-          scale: scale,
-          label: l10n.cartEstimatedShipping,
-          value: r'$12.50',
+          value: totalStr,
         ),
         SizedBox(height: 22 * scale),
         Divider(height: 1, thickness: scale, color: const Color(0xFFDADDE7)),
@@ -310,7 +406,7 @@ class _MaterialCartTotals extends StatelessWidget {
         _MaterialTotalRow(
           scale: scale,
           label: l10n.cartTotal,
-          value: r'$371.50',
+          value: totalStr,
           isTotal: true,
         ),
       ],
@@ -422,19 +518,9 @@ class _MaterialCartFootnote extends StatelessWidget {
   }
 }
 
-class _MaterialCartItem {
-  const _MaterialCartItem({
-    required this.name,
-    required this.variant,
-    required this.price,
-    required this.quantity,
-  });
-
-  final String name;
-  final String variant;
-  final String price;
-  final int quantity;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Cupertino
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _CupertinoCartContent extends StatefulWidget {
   const _CupertinoCartContent();
@@ -444,79 +530,126 @@ class _CupertinoCartContent extends StatefulWidget {
 }
 
 class _CupertinoCartContentState extends State<_CupertinoCartContent> {
-  final List<_CupertinoCartItem> _items = <_CupertinoCartItem>[
-    _CupertinoCartItem(
-      icon: CupertinoIcons.headphones,
-      title: 'Auriculares Sony WH-1000XM5',
-      variants: 'Color negro',
-      price: 278.00,
-      qty: 1,
-    ),
-    _CupertinoCartItem(
-      icon: CupertinoIcons.device_phone_portrait,
-      title: 'Apple Watch SE 2nd Gen',
-      price: 249.00,
-      qty: 1,
-    ),
-  ];
-
-  void _changeQty(int index, int delta) {
-    setState(() {
-      _items[index] = _items[index].copyWith(
-        qty: (_items[index].qty + delta).clamp(1, 99),
-      );
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartBloc>().add(const CartLoadRequested());
     });
-  }
-
-  void _remove(int index) {
-    setState(() => _items.removeAt(index));
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, state) {
+        if (state.status == CartStatus.loading || state.status == CartStatus.initial) {
+          return const ColoredBox(
+            color: kFeyamBg,
+            child: Center(child: CupertinoActivityIndicator()),
+          );
+        }
+
+        if (state.status == CartStatus.empty ||
+            state.cart == null ||
+            state.cart!.items.isEmpty) {
+          return _buildEmptyState(context);
+        }
+
+        if (state.status == CartStatus.failure) {
+          return _buildErrorState(context);
+        }
+
+        return _buildLoadedState(context, state.cart!);
+      },
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
-    if (_items.isEmpty) {
-      return ColoredBox(
-        color: kFeyamBg,
-        child: Column(
-          children: <Widget>[
-            CupertinoNavigationBar(
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
+    return ColoredBox(
+      color: kFeyamBg,
+      child: Column(
+        children: <Widget>[
+          CupertinoNavigationBar(
+            leading: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => Navigator.of(context).pop(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Icon(CupertinoIcons.chevron_back, size: 18),
+                  const SizedBox(width: 2),
+                  Text(l10n.navHome, style: const TextStyle(fontSize: 17)),
+                ],
+              ),
+            ),
+            middle: Text(l10n.navCart),
+          ),
+          Expanded(
+            child: FeyamEmptyState(
+              icon: CupertinoIcons.cart_fill,
+              title: l10n.cartEmptyTitle,
+              subtitle: l10n.cartEmptySubtitle,
+              action: FeyamButton(
+                label: l10n.cartEmptyAction,
+                icon: CupertinoIcons.link,
+                variant: FeyamButtonVariant.tinted,
+                small: true,
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Icon(CupertinoIcons.chevron_back, size: 18),
-                    SizedBox(width: 2),
-                    Text('Inicio', style: TextStyle(fontSize: 17)),
-                  ],
-                ),
-              ),
-              middle: const Text('Carrito'),
-            ),
-            Expanded(
-              child: FeyamEmptyState(
-                icon: CupertinoIcons.cart_fill,
-                title: 'Tu carrito está vacío',
-                subtitle: 'Pegá el link de un producto para empezar a armar tu pedido.',
-                action: FeyamButton(
-                  label: 'Pegar un link',
-                  icon: CupertinoIcons.link,
-                  variant: FeyamButtonVariant.tinted,
-                  small: true,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
               ),
             ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
-    final totalQty = _items.fold(0, (s, i) => s + i.qty);
-    final subtotal = _items.fold(0.0, (s, i) => s + i.price * i.qty);
+  Widget _buildErrorState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ColoredBox(
+      color: kFeyamBg,
+      child: Column(
+        children: <Widget>[
+          CupertinoNavigationBar(
+            leading: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => Navigator.of(context).pop(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Icon(CupertinoIcons.chevron_back, size: 18),
+                  const SizedBox(width: 2),
+                  Text(l10n.navHome, style: const TextStyle(fontSize: 17)),
+                ],
+              ),
+            ),
+            middle: Text(l10n.navCart),
+          ),
+          Expanded(
+            child: FeyamEmptyState(
+              icon: CupertinoIcons.exclamationmark_circle,
+              title: l10n.cartErrorTitle,
+              subtitle: l10n.cartErrorSubtitle,
+              action: FeyamButton(
+                label: l10n.cartErrorRetry,
+                icon: CupertinoIcons.refresh,
+                variant: FeyamButtonVariant.tinted,
+                small: true,
+                onPressed: () =>
+                    context.read<CartBloc>().add(const CartLoadRequested()),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadedState(BuildContext context, cartEntity) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = cartEntity.items as List<CartItemEntity>;
+    final totalQty = items.fold(0, (s, i) => s + i.quantity);
+    final total = cartEntity.total as double;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -548,27 +681,37 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       SizedBox(height: 16 * scale),
-                      // Items
                       FeyamListSection(
-                        header: '${_items.length} producto${_items.length > 1 ? 's' : ''}',
+                        header: '${items.length} producto${items.length > 1 ? 's' : ''}',
                         children: <Widget>[
-                          for (var i = 0; i < _items.length; i++)
+                          for (var i = 0; i < items.length; i++)
                             _CupertinoCartRow(
-                              item: _items[i],
-                              isLast: i == _items.length - 1,
-                              onRemove: () => _remove(i),
-                              onDecrement: () => _changeQty(i, -1),
-                              onIncrement: () => _changeQty(i, 1),
+                              item: items[i],
+                              isLast: i == items.length - 1,
+                              onRemove: () => context.read<CartBloc>().add(
+                                    CartItemRemoveRequested(items[i].itemId),
+                                  ),
+                              onDecrement: () => context.read<CartBloc>().add(
+                                    CartItemQuantityUpdateRequested(
+                                      items[i].itemId,
+                                      items[i].quantity - 1,
+                                    ),
+                                  ),
+                              onIncrement: () => context.read<CartBloc>().add(
+                                    CartItemQuantityUpdateRequested(
+                                      items[i].itemId,
+                                      items[i].quantity + 1,
+                                    ),
+                                  ),
                             ),
                         ],
                       ),
-                      // Summary
                       FeyamListSection(
                         header: 'Resumen',
                         children: <Widget>[
                           FeyamListTile(
                             title: Text('Subtotal ($totalQty items)'),
-                            detail: Text('\$ ${subtotal.toStringAsFixed(2)}'),
+                            detail: Text('\$ ${total.toStringAsFixed(2)}'),
                             chevron: false,
                           ),
                           FeyamListTile(
@@ -577,8 +720,12 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                               style: TextStyle(fontWeight: FontWeight.w700),
                             ),
                             detail: Text(
-                              '\$ ${subtotal.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17, color: kFeyamLabel),
+                              '\$ ${total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                                color: kFeyamLabel,
+                              ),
                             ),
                             chevron: false,
                             isLast: true,
@@ -589,7 +736,6 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                   ),
                 ),
               ),
-              // Footer
               Container(
                 padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 28 * scale),
                 decoration: const BoxDecoration(
@@ -623,11 +769,17 @@ class _CupertinoCartRow extends StatelessWidget {
     required this.onIncrement,
   });
 
-  final _CupertinoCartItem item;
+  final CartItemEntity item;
   final bool isLast;
   final VoidCallback onRemove;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
+
+  String? get _variantLabel {
+    final attrs = item.variantAttributes;
+    if (attrs == null || attrs.isEmpty) return null;
+    return attrs.entries.map((e) => '${e.key}: ${e.value}').join(' • ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -647,7 +799,18 @@ class _CupertinoCartRow extends StatelessWidget {
                     color: kFeyamBg,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(item.icon, size: 26, color: kFeyamLabelSec),
+                  clipBehavior: Clip.antiAlias,
+                  child: item.productImageUrl != null
+                      ? Image.network(
+                          item.productImageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, _) => const Icon(
+                            CupertinoIcons.cart,
+                            size: 26,
+                            color: kFeyamLabelSec,
+                          ),
+                        )
+                      : const Icon(CupertinoIcons.cart, size: 26, color: kFeyamLabelSec),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -655,17 +818,30 @@ class _CupertinoCartRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        item.title,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: kFeyamLabel, letterSpacing: -0.24),
+                        item.productName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: kFeyamLabel,
+                          letterSpacing: -0.24,
+                        ),
                       ),
-                      if (item.variants != null) ...[
+                      if (_variantLabel != null) ...[
                         const SizedBox(height: 3),
-                        Text(item.variants!, style: const TextStyle(fontSize: 12, color: kFeyamLabelSec)),
+                        Text(
+                          _variantLabel!,
+                          style: const TextStyle(fontSize: 12, color: kFeyamLabelSec),
+                        ),
                       ],
                       const SizedBox(height: 6),
                       Text(
-                        '\$ ${(item.price * item.qty).toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: kFeyamTint, letterSpacing: -0.41),
+                        '\$ ${item.totalPrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: kFeyamTint,
+                          letterSpacing: -0.41,
+                        ),
                       ),
                     ],
                   ),
@@ -689,14 +865,29 @@ class _CupertinoCartRow extends StatelessWidget {
                         children: <Widget>[
                           GestureDetector(
                             onTap: onDecrement,
-                            child: Icon(CupertinoIcons.minus_circled, size: 22, color: item.qty <= 1 ? kFeyamLabelTer : kFeyamTint),
+                            child: Icon(
+                              CupertinoIcons.minus_circled,
+                              size: 22,
+                              color: item.quantity <= 1 ? kFeyamLabelTer : kFeyamTint,
+                            ),
                           ),
                           const SizedBox(width: 6),
-                          Text('${item.qty}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: kFeyamLabel)),
+                          Text(
+                            '${item.quantity}',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: kFeyamLabel,
+                            ),
+                          ),
                           const SizedBox(width: 6),
                           GestureDetector(
                             onTap: onIncrement,
-                            child: const Icon(CupertinoIcons.plus_circled, size: 22, color: kFeyamTint),
+                            child: const Icon(
+                              CupertinoIcons.plus_circled,
+                              size: 22,
+                              color: kFeyamTint,
+                            ),
                           ),
                         ],
                       ),
@@ -707,33 +898,13 @@ class _CupertinoCartRow extends StatelessWidget {
             ),
           ),
           if (!isLast)
-            Container(height: 0.5, color: kFeyamSepLight, margin: const EdgeInsets.only(left: 16)),
+            Container(
+              height: 0.5,
+              color: kFeyamSepLight,
+              margin: const EdgeInsets.only(left: 16),
+            ),
         ],
       ),
     );
   }
-}
-
-class _CupertinoCartItem {
-  const _CupertinoCartItem({
-    required this.icon,
-    required this.title,
-    this.variants,
-    required this.price,
-    required this.qty,
-  });
-
-  final IconData icon;
-  final String title;
-  final String? variants;
-  final double price;
-  final int qty;
-
-  _CupertinoCartItem copyWith({int? qty}) => _CupertinoCartItem(
-        icon: icon,
-        title: title,
-        variants: variants,
-        price: price,
-        qty: qty ?? this.qty,
-      );
 }

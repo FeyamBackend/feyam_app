@@ -12,7 +12,11 @@ import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/data/datasources/cart_remote_datasource.dart';
 import 'package:feyam/features/cart/data/repositories/cart_repository_impl.dart';
 import 'package:feyam/features/cart/domain/usecases/add_to_cart.dart';
+import 'package:feyam/features/cart/domain/usecases/get_cart.dart';
+import 'package:feyam/features/cart/domain/usecases/remove_cart_item.dart';
+import 'package:feyam/features/cart/domain/usecases/update_cart_item_quantity.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -111,5 +115,25 @@ void configureDependencies({AppConfig? appConfig}) {
 
   sl.registerFactory<AddToCartBloc>(
     () => AddToCartBloc(addToCartUseCase: sl<AddToCartUseCase>()),
+  );
+
+  sl.registerFactory<GetCartUseCase>(
+    () => GetCartUseCase(sl<CartRepositoryImpl>()),
+  );
+
+  sl.registerFactory<RemoveCartItemUseCase>(
+    () => RemoveCartItemUseCase(sl<CartRepositoryImpl>()),
+  );
+
+  sl.registerFactory<UpdateCartItemQuantityUseCase>(
+    () => UpdateCartItemQuantityUseCase(sl<CartRepositoryImpl>()),
+  );
+
+  sl.registerFactory<CartBloc>(
+    () => CartBloc(
+      getCartUseCase: sl<GetCartUseCase>(),
+      removeCartItemUseCase: sl<RemoveCartItemUseCase>(),
+      updateCartItemQuantityUseCase: sl<UpdateCartItemQuantityUseCase>(),
+    ),
   );
 }

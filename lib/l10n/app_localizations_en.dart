@@ -244,6 +244,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tax calculated at checkout. Secure SSL encrypted payment processing.';
 
   @override
+  String get cartEmptyTitle => 'Your cart is empty';
+
+  @override
+  String get cartEmptySubtitle =>
+      'Paste a product link to start building your order.';
+
+  @override
+  String get cartEmptyAction => 'Paste a link';
+
+  @override
+  String get cartErrorTitle => 'Error loading cart';
+
+  @override
+  String get cartErrorSubtitle => 'Check your connection and try again.';
+
+  @override
+  String get cartErrorRetry => 'Retry';
+
+  @override
   String get ordersHistoryTitle => 'Orders';
 
   @override

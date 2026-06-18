@@ -244,6 +244,25 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tax calculated at checkout. Secure SSL encrypted payment processing.';
 
   @override
+  String get cartEmptyTitle => 'Tu carrito está vacío';
+
+  @override
+  String get cartEmptySubtitle =>
+      'Pegá el link de un producto para empezar a armar tu pedido.';
+
+  @override
+  String get cartEmptyAction => 'Pegar un link';
+
+  @override
+  String get cartErrorTitle => 'Error al cargar el carrito';
+
+  @override
+  String get cartErrorSubtitle => 'Verificá tu conexión e intentá de nuevo.';
+
+  @override
+  String get cartErrorRetry => 'Reintentar';
+
+  @override
   String get ordersHistoryTitle => 'Pedidos';
 
   @override

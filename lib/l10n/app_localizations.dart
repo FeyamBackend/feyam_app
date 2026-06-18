@@ -560,6 +560,42 @@ abstract class AppLocalizations {
   /// **'Tax calculated at checkout. Secure SSL encrypted payment processing.'**
   String get cartMaterialFootnote;
 
+  /// No description provided for @cartEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cart is empty'**
+  String get cartEmptyTitle;
+
+  /// No description provided for @cartEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a product link to start building your order.'**
+  String get cartEmptySubtitle;
+
+  /// No description provided for @cartEmptyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link'**
+  String get cartEmptyAction;
+
+  /// No description provided for @cartErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading cart'**
+  String get cartErrorTitle;
+
+  /// No description provided for @cartErrorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get cartErrorSubtitle;
+
+  /// No description provided for @cartErrorRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get cartErrorRetry;
+
   /// No description provided for @ordersHistoryTitle.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,7 @@
+import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
@@ -8,6 +10,7 @@ import 'package:feyam/features/stores/presentation/screens/stores_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -123,7 +126,10 @@ class _MaterialTopBar extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => const CartScreen(),
+                        builder: (_) => BlocProvider(
+                          create: (_) => sl<CartBloc>(),
+                          child: const CartScreen(),
+                        ),
                       ),
                     );
                   },
@@ -750,7 +756,10 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                     count: 0,
                     onTap: () => Navigator.of(context).push(
                       CupertinoPageRoute<void>(
-                        builder: (_) => const CartScreen(),
+                        builder: (_) => BlocProvider(
+                          create: (_) => sl<CartBloc>(),
+                          child: const CartScreen(),
+                        ),
                       ),
                     ),
                   ),
