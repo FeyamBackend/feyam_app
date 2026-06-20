@@ -13,9 +13,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Tarifas estimadas (espejo de la configuración del backend). El cobro real
-// lo determina el servidor en el checkout; acá solo se muestran como estimado.
-const double _kServiceRate = 0.12;
 const double _kEstimatedShipping = 18.50;
 
 class CheckoutScreen extends StatelessWidget {
@@ -159,8 +156,7 @@ class _MaterialCheckoutContent extends StatelessWidget {
   final VoidCallback? onPay;
 
   double get _subtotal => cart.total;
-  double get _service => _subtotal * _kServiceRate;
-  double get _total => _subtotal + _service + _kEstimatedShipping;
+  double get _total => _subtotal + _kEstimatedShipping;
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +262,6 @@ class _MaterialCheckoutContent extends StatelessWidget {
                             child: Column(
                               children: <Widget>[
                                 _PriceRow(scale: scale, k: l10n.checkoutSubtotal, v: _fmt(_subtotal)),
-                                _PriceRow(scale: scale, k: l10n.checkoutService, v: _fmt(_service)),
                                 _PriceRow(scale: scale, k: l10n.checkoutShipping, v: _fmt(_kEstimatedShipping)),
                                 Divider(height: 1 + 16 * scale, color: colors.outlineVariant),
                                 _PriceRow(
@@ -562,8 +557,7 @@ class _CupertinoCheckoutContent extends StatelessWidget {
   final VoidCallback? onPay;
 
   double get _subtotal => cart.total;
-  double get _service => _subtotal * _kServiceRate;
-  double get _total => _subtotal + _service + _kEstimatedShipping;
+  double get _total => _subtotal + _kEstimatedShipping;
 
   @override
   Widget build(BuildContext context) {
@@ -620,11 +614,6 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                           FeyamListTile(
                             title: Text(l10n.checkoutSubtotal),
                             detail: Text(_formatCurrency(_subtotal)),
-                            chevron: false,
-                          ),
-                          FeyamListTile(
-                            title: Text(l10n.checkoutService),
-                            detail: Text(_formatCurrency(_service)),
                             chevron: false,
                           ),
                           FeyamListTile(

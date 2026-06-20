@@ -38,7 +38,7 @@ class _AddToCartViewState extends State<_AddToCartView> {
   late final _urlController = TextEditingController(
     text: widget.initialUrl ?? '',
   );
-  final _priceController = TextEditingController(text: '120.00');
+  final _priceController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
   final _variantsController = TextEditingController();
 
