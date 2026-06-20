@@ -1,7 +1,6 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
-import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_event.dart';
@@ -76,8 +75,9 @@ class _AddToCartViewState extends State<_AddToCartView> {
     if (state.status == AddToCartStatus.failure) {
       final failure = state.failure!;
       if (failure.code == CartFailureCode.sessionExpired) {
-        context.read<AuthBloc>().add(SessionExpired());
-        return; // MainScreen's BlocListener navega a LoginScreen
+        // El logout es global (AuthenticatedHttpClient → AuthBloc): no mostramos
+        // diálogo, MainScreen navega a LoginScreen.
+        return;
       }
       final message = _failureMessage(context, failure);
       if (AdaptivePlatform.isCupertino(context)) {

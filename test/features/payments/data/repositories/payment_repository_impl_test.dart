@@ -1,24 +1,18 @@
-import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
 import 'package:feyam/features/payments/data/models/checkout_session_model.dart';
 import 'package:feyam/features/payments/data/repositories/payment_repository_impl.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
   late _FakeDataSource dataSource;
-  late _FakeAuthRepository auth;
 
-  PaymentRepositoryImpl buildRepo() => PaymentRepositoryImpl(
-        remoteDataSource: dataSource,
-        authRepository: auth,
-      );
+  PaymentRepositoryImpl buildRepo() =>
+      PaymentRepositoryImpl(remoteDataSource: dataSource);
 
   setUp(() {
     dataSource = _FakeDataSource();
-    auth = _FakeAuthRepository();
   });
 
   test('maps server exceptions to PaymentFailure.serverError', () async {
@@ -29,26 +23,29 @@ void main() {
     expect(failure.code, PaymentFailureCode.serverError);
   });
 
-  test('refreshes the token and retries once on 401', () async {
-    dataSource.checkoutBehaviors = <_Behavior>[_Behavior.unauthorized, _Behavior.ok];
+  test('returns the checkout session on success', () async {
+    dataSource.checkoutBehaviors = <_Behavior>[_Behavior.ok];
 
     final session = await buildRepo().createCheckout();
 
     expect(session.paymentId, 'pay_1');
-    expect(auth.refreshCount, 1);
-    expect(dataSource.checkoutCalls, 2);
+    expect(dataSource.checkoutCalls, 1);
   });
 
-  test('maps an expired refresh token to PaymentFailure.sessionExpired',
-      () async {
-    dataSource.checkoutBehaviors = <_Behavior>[_Behavior.unauthorized];
-    auth.throwOnRefresh = true;
+  test(
+    'maps a 401 (sesión ya expirada; refresh/retry lo maneja el cliente HTTP) '
+    'to PaymentFailure.sessionExpired',
+    () async {
+      // Con AuthenticatedHttpClient, un 401 que llega al repo significa que el
+      // refresh ya falló de forma definitiva: no se reintenta acá.
+      dataSource.checkoutBehaviors = <_Behavior>[_Behavior.unauthorized];
 
-    final failure = await _captureFailure(() => buildRepo().createCheckout());
+      final failure = await _captureFailure(() => buildRepo().createCheckout());
 
-    expect(failure.code, PaymentFailureCode.sessionExpired);
-    expect(dataSource.checkoutCalls, 1); // no se reintenta sin token válido
-  });
+      expect(failure.code, PaymentFailureCode.sessionExpired);
+      expect(dataSource.checkoutCalls, 1);
+    },
+  );
 }
 
 Future<PaymentFailure> _captureFailure(Future<void> Function() action) async {
@@ -63,12 +60,7 @@ Future<PaymentFailure> _captureFailure(Future<void> Function() action) async {
 enum _Behavior { ok, unauthorized, server }
 
 class _FakeDataSource extends PaymentRemoteDataSource {
-  _FakeDataSource()
-      : super(
-          client: http.Client(),
-          secureStorage: const FlutterSecureStorage(),
-          apiBaseUrl: '',
-        );
+  _FakeDataSource() : super(client: http.Client(), apiBaseUrl: '');
 
   List<_Behavior> checkoutBehaviors = <_Behavior>[_Behavior.ok];
   int checkoutCalls = 0;
@@ -86,26 +78,6 @@ class _FakeDataSource extends PaymentRemoteDataSource {
         throw const PaymentServerException(500);
     }
   }
-}
-
-class _FakeAuthRepository implements AuthRepository {
-  int refreshCount = 0;
-  bool throwOnRefresh = false;
-
-  @override
-  Future<void> refreshAccessToken() async {
-    refreshCount++;
-    if (throwOnRefresh) throw const AuthTokenExpiredException();
-  }
-
-  @override
-  Future<void> login() async {}
-
-  @override
-  Future<bool> logout() async => true;
-
-  @override
-  Future<bool> isAuthenticated() async => false;
 }
 
 const _model = CheckoutSessionModel(

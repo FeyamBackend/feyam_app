@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:feyam/core/config/app_config.dart';
 import 'package:feyam/core/config/app_flavor.dart';
+import 'package:feyam/core/network/authenticated_http_client.dart';
+import 'package:feyam/core/network/session_expired_notifier.dart';
 import 'package:feyam/core/payments/stripe_payment_service.dart';
 import 'package:feyam/features/auth/data/datasources/keycloak_auth_datasource.dart';
 import 'package:feyam/features/auth/data/repositories/auth_repository_impl.dart';
@@ -51,6 +53,7 @@ void configureDependencies({AppConfig? appConfig}) {
   // External dependencies
   sl.registerSingleton<FlutterAppAuth>(FlutterAppAuth());
   sl.registerSingleton<FlutterSecureStorage>(FlutterSecureStorage());
+  sl.registerSingleton<SessionExpiredNotifier>(SessionExpiredNotifier());
 
   // Data sources
   sl.registerLazySingleton(
@@ -88,6 +91,7 @@ void configureDependencies({AppConfig? appConfig}) {
       loginUseCase: sl<LoginUseCase>(),
       logoutUseCase: sl<LogoutUseCase>(),
       checkAuthSessionUseCase: sl<CheckAuthSessionUseCase>(),
+      sessionExpiredStream: sl<SessionExpiredNotifier>().stream,
     ),
   );
 
@@ -96,18 +100,29 @@ void configureDependencies({AppConfig? appConfig}) {
    */
 
   sl.registerLazySingleton<http.Client>(() {
+    final http.Client innerClient;
     final flavor = sl<AppConfig>().flavor;
-    if (flavor == AppFlavor.prod.name) return http.Client();
-    // Dev/staging: bypass self-signed certificate validation
-    final inner = HttpClient()
-      ..badCertificateCallback = (cert, host, port) => true;
-    return IOClient(inner);
+    if (flavor == AppFlavor.prod.name) {
+      innerClient = http.Client();
+    } else {
+      // Dev/staging: bypass self-signed certificate validation
+      final inner = HttpClient()
+        ..badCertificateCallback = (cert, host, port) => true;
+      innerClient = IOClient(inner);
+    }
+    // Cliente central: inyecta el Bearer, refresca (single-flight) y reintenta
+    // ante 401, y desloguea globalmente si la sesión expira de verdad.
+    return AuthenticatedHttpClient(
+      inner: innerClient,
+      secureStorage: sl<FlutterSecureStorage>(),
+      authRepository: sl<AuthRepository>(),
+      sessionExpiredNotifier: sl<SessionExpiredNotifier>(),
+    );
   });
 
   sl.registerLazySingleton(
     () => CartRemoteDataSource(
       client: sl<http.Client>(),
-      secureStorage: sl<FlutterSecureStorage>(),
       apiBaseUrl: sl<AppConfig>().apiBaseUrl,
     ),
   );
@@ -115,7 +130,6 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerFactory<CartRepositoryImpl>(
     () => CartRepositoryImpl(
       remoteDataSource: sl<CartRemoteDataSource>(),
-      authRepository: sl<AuthRepository>(),
     ),
   );
 
@@ -154,7 +168,6 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerLazySingleton(
     () => PaymentRemoteDataSource(
       client: sl<http.Client>(),
-      secureStorage: sl<FlutterSecureStorage>(),
       apiBaseUrl: sl<AppConfig>().apiBaseUrl,
     ),
   );
@@ -164,7 +177,6 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerFactory<PaymentRepositoryImpl>(
     () => PaymentRepositoryImpl(
       remoteDataSource: sl<PaymentRemoteDataSource>(),
-      authRepository: sl<AuthRepository>(),
     ),
   );
 
@@ -191,7 +203,6 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerLazySingleton(
     () => OrdersRemoteDataSource(
       client: sl<http.Client>(),
-      secureStorage: sl<FlutterSecureStorage>(),
       apiBaseUrl: sl<AppConfig>().apiBaseUrl,
     ),
   );
@@ -199,7 +210,6 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerFactory<OrdersRepositoryImpl>(
     () => OrdersRepositoryImpl(
       remoteDataSource: sl<OrdersRemoteDataSource>(),
-      authRepository: sl<AuthRepository>(),
     ),
   );
 

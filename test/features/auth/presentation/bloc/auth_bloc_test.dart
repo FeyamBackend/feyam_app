@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:feyam/features/auth/domain/failures/auth_failure.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
@@ -41,6 +43,32 @@ void main() {
     );
     expect(states.last.errorMessage, isNull);
   });
+
+  test('logs out (status initial) when the session-expired stream fires',
+      () async {
+    final repository = _FakeAuthRepository();
+    final controller = StreamController<void>.broadcast();
+    final bloc = AuthBloc(
+      loginUseCase: LoginUseCase(repository),
+      logoutUseCase: LogoutUseCase(repository),
+      checkAuthSessionUseCase: CheckAuthSessionUseCase(repository),
+      sessionExpiredStream: controller.stream,
+    );
+
+    // Partimos de una sesión activa.
+    repository.authenticated = true;
+    bloc.add(AuthSessionChecked());
+    await bloc.stream.firstWhere((s) => s.status == AuthStatus.success);
+
+    controller.add(null);
+    final state =
+        await bloc.stream.firstWhere((s) => s.status == AuthStatus.initial);
+
+    expect(state.status, AuthStatus.initial);
+
+    await bloc.close();
+    await controller.close();
+  });
 }
 
 enum _AuthResult { success, failure }
@@ -48,6 +76,7 @@ enum _AuthResult { success, failure }
 class _FakeAuthRepository implements AuthRepository {
   var loginResult = _AuthResult.success;
   var loginAttempts = 0;
+  var authenticated = false;
 
   @override
   Future<void> login() async {
@@ -65,6 +94,9 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<bool> isAuthenticated() async {
-    return false;
+    return authenticated;
   }
+
+  @override
+  Future<void> refreshAccessToken() async {}
 }

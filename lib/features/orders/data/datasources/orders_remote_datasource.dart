@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:feyam/features/orders/data/models/recent_order_model.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class OrdersUnauthorizedException implements Exception {
@@ -17,28 +16,17 @@ class OrdersServerException implements Exception {
 class OrdersRemoteDataSource {
   OrdersRemoteDataSource({
     required http.Client client,
-    required FlutterSecureStorage secureStorage,
     required String apiBaseUrl,
   })  : _client = client,
-        _secureStorage = secureStorage,
         _apiBaseUrl = apiBaseUrl;
 
-  static const String _accessTokenKey = 'access_token';
-
   final http.Client _client;
-  final FlutterSecureStorage _secureStorage;
   final String _apiBaseUrl;
 
   Future<List<RecentOrderModel>> getRecentOrders({required int take}) async {
-    final token = await _secureStorage.read(key: _accessTokenKey);
     final uri = Uri.parse('$_apiBaseUrl/api/orders/recent?take=$take');
 
-    final response = await _client.get(
-      uri,
-      headers: {
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
+    final response = await _client.get(uri);
 
     if (response.statusCode == 401) throw const OrdersUnauthorizedException();
     if (response.statusCode != 200) throw OrdersServerException(response.statusCode);

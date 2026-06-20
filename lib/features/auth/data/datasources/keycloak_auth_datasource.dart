@@ -6,8 +6,12 @@ class UserCancelledAuthException implements Exception {
   const UserCancelledAuthException();
 }
 
+/// Falla al refrescar el token. [isTransient] distingue un error de red/timeout
+/// (la sesión sigue vigente, conviene reintentar) de un `invalid_grant`
+/// definitivo (el refresh token ya no sirve y hay que reloguear).
 class TokenRefreshException implements Exception {
-  const TokenRefreshException([this.cause]);
+  const TokenRefreshException({this.isTransient = false, this.cause});
+  final bool isTransient;
   final Object? cause;
 }
 
@@ -123,10 +127,24 @@ class KeycloakDataSource {
     return accessToken != null && accessToken.isNotEmpty;
   }
 
-  Future<void> refreshToken() async {
+  Future<void>? _refreshInFlight;
+
+  /// Refresca el access token. Single-flight: si ya hay un refresh en curso, los
+  /// llamantes concurrentes esperan el mismo future en vez de disparar otra
+  /// renovación (evita la race con la rotación de refresh tokens de Keycloak,
+  /// que invalidaría el refresh token usado por la segunda llamada).
+  Future<void> refreshToken() {
+    return _refreshInFlight ??= _doRefresh().whenComplete(() {
+      _refreshInFlight = null;
+    });
+  }
+
+  Future<void> _doRefresh() async {
     final storedRefresh = await _secureStorage.read(key: _refreshTokenKey);
     if (storedRefresh == null || storedRefresh.isEmpty) {
-      throw const TokenRefreshException('no refresh token stored');
+      // Sin refresh token no hay forma de recuperar la sesión: definitivo.
+      await _clearSession();
+      throw const TokenRefreshException(cause: 'no refresh token stored');
     }
     try {
       final result = await _appAuth.token(
@@ -146,7 +164,10 @@ class KeycloakDataSource {
         ),
       );
       if (result.accessToken == null) {
-        throw const TokenRefreshException('refresh returned null access token');
+        await _clearSession();
+        throw const TokenRefreshException(
+          cause: 'refresh returned null access token',
+        );
       }
       await _secureStorage.write(key: _accessTokenKey, value: result.accessToken);
       if (result.refreshToken != null) {
@@ -158,9 +179,34 @@ class KeycloakDataSource {
     } on TokenRefreshException {
       rethrow;
     } catch (e) {
+      if (_isTransientRefreshError(e)) {
+        // Error de red/timeout: la sesión sigue vigente, no la limpiamos.
+        throw TokenRefreshException(isTransient: true, cause: e);
+      }
+      // invalid_grant u otro error definitivo: el refresh token ya no sirve.
       await _clearSession();
-      throw TokenRefreshException(e);
+      throw TokenRefreshException(cause: e);
     }
+  }
+
+  /// Heurística para separar fallos de red (reintentables, no deslogear) de un
+  /// `invalid_grant` definitivo. flutter_appauth envuelve los errores OAuth en
+  /// [PlatformException]: un grant inválido trae `invalid_grant` en el mensaje;
+  /// el resto (sin conectividad, timeout, host inalcanzable) se trata como
+  /// transitorio.
+  bool _isTransientRefreshError(Object error) {
+    if (error is PlatformException) {
+      final details = '${error.message ?? ''} ${error.details ?? ''}'
+          .toLowerCase();
+      const definitiveMarkers = [
+        'invalid_grant',
+        'invalid_token',
+        'invalid grant',
+      ];
+      return !definitiveMarkers.any(details.contains);
+    }
+    // Errores de socket/IO u otros no-OAuth: transitorios.
+    return true;
   }
 
   Future<void> _clearSession() async {

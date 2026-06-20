@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:feyam/features/cart/data/datasources/cart_remote_datasource.dart';
 import 'package:feyam/features/cart/data/models/add_to_cart_request_model.dart';
 import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
@@ -10,17 +9,13 @@ import 'package:feyam/features/cart/domain/repositories/cart_repository.dart';
 import 'package:feyam/features/cart/domain/usecases/add_to_cart.dart';
 
 class CartRepositoryImpl implements CartRepository {
-  CartRepositoryImpl({
-    required CartRemoteDataSource remoteDataSource,
-    required AuthRepository authRepository,
-  })  : _remoteDataSource = remoteDataSource,
-        _authRepository = authRepository;
+  CartRepositoryImpl({required CartRemoteDataSource remoteDataSource})
+      : _remoteDataSource = remoteDataSource;
 
   final CartRemoteDataSource _remoteDataSource;
-  final AuthRepository _authRepository;
 
   @override
-  Future<CartSummaryEntity> addToCart(AddToCartParams params) async {
+  Future<CartSummaryEntity> addToCart(AddToCartParams params) {
     final model = AddToCartRequestModel(
       productName: params.productName,
       productUrl: params.productUrl,
@@ -32,108 +27,35 @@ class CartRepositoryImpl implements CartRepository {
       variantAttributes: params.variantAttributes,
     );
 
-    try {
-      return await _remoteDataSource.addItem(model);
-    } on CartUnauthorizedException {
-      try {
-        await _authRepository.refreshAccessToken();
-      } on AuthTokenExpiredException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      }
-      // Retry: CartRemoteDataSource re-lee el access_token de SecureStorage
-      try {
-        return await _remoteDataSource.addItem(model);
-      } on CartUnauthorizedException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      } on CartServerException {
-        throw const CartFailure(CartFailureCode.serverError);
-      } on SocketException {
-        throw const CartFailure(CartFailureCode.networkError);
-      }
-    } on CartServerException {
-      throw const CartFailure(CartFailureCode.serverError);
-    } on SocketException {
-      throw const CartFailure(CartFailureCode.networkError);
-    } catch (_) {
-      throw const CartFailure(CartFailureCode.unknown);
-    }
+    return _guard(() => _remoteDataSource.addItem(model));
   }
 
   @override
-  Future<CartEntity?> getCart() async {
-    try {
-      return await _remoteDataSource.getCart();
-    } on CartUnauthorizedException {
-      try {
-        await _authRepository.refreshAccessToken();
-      } on AuthTokenExpiredException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      }
-      try {
-        return await _remoteDataSource.getCart();
-      } on CartUnauthorizedException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      } on CartServerException {
-        throw const CartFailure(CartFailureCode.serverError);
-      } on SocketException {
-        throw const CartFailure(CartFailureCode.networkError);
-      }
-    } on CartServerException {
-      throw const CartFailure(CartFailureCode.serverError);
-    } on SocketException {
-      throw const CartFailure(CartFailureCode.networkError);
-    } catch (_) {
-      throw const CartFailure(CartFailureCode.unknown);
-    }
+  Future<CartEntity?> getCart() {
+    return _guard(() => _remoteDataSource.getCart());
   }
 
   @override
-  Future<CartEntity> removeCartItem(String itemId) async {
-    try {
-      return await _remoteDataSource.removeCartItem(itemId);
-    } on CartUnauthorizedException {
-      try {
-        await _authRepository.refreshAccessToken();
-      } on AuthTokenExpiredException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      }
-      try {
-        return await _remoteDataSource.removeCartItem(itemId);
-      } on CartUnauthorizedException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      } on CartServerException {
-        throw const CartFailure(CartFailureCode.serverError);
-      } on SocketException {
-        throw const CartFailure(CartFailureCode.networkError);
-      }
-    } on CartServerException {
-      throw const CartFailure(CartFailureCode.serverError);
-    } on SocketException {
-      throw const CartFailure(CartFailureCode.networkError);
-    } catch (_) {
-      throw const CartFailure(CartFailureCode.unknown);
-    }
+  Future<CartEntity> removeCartItem(String itemId) {
+    return _guard(() => _remoteDataSource.removeCartItem(itemId));
   }
 
   @override
-  Future<CartEntity> updateCartItemQuantity(String itemId, int newQuantity) async {
+  Future<CartEntity> updateCartItemQuantity(String itemId, int newQuantity) {
+    return _guard(
+      () => _remoteDataSource.updateCartItemQuantity(itemId, newQuantity),
+    );
+  }
+
+  /// Ejecuta [action] mapeando las excepciones del datasource a [CartFailure].
+  /// El refresh y el retry de 401 los maneja AuthenticatedHttpClient; un 401 que
+  /// llegue acá significa que la sesión expiró (el logout global lo dispara el
+  /// cliente vía SessionExpiredNotifier).
+  Future<T> _guard<T>(Future<T> Function() action) async {
     try {
-      return await _remoteDataSource.updateCartItemQuantity(itemId, newQuantity);
+      return await action();
     } on CartUnauthorizedException {
-      try {
-        await _authRepository.refreshAccessToken();
-      } on AuthTokenExpiredException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      }
-      try {
-        return await _remoteDataSource.updateCartItemQuantity(itemId, newQuantity);
-      } on CartUnauthorizedException {
-        throw const CartFailure(CartFailureCode.sessionExpired);
-      } on CartServerException {
-        throw const CartFailure(CartFailureCode.serverError);
-      } on SocketException {
-        throw const CartFailure(CartFailureCode.networkError);
-      }
+      throw const CartFailure(CartFailureCode.sessionExpired);
     } on CartServerException {
       throw const CartFailure(CartFailureCode.serverError);
     } on SocketException {

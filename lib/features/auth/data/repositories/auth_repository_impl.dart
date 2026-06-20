@@ -30,7 +30,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> refreshAccessToken() async {
     try {
       await keycloakDataSource.refreshToken();
-    } on TokenRefreshException {
+    } on TokenRefreshException catch (e) {
+      if (e.isTransient) {
+        throw const AuthTokenRefreshTransientException();
+      }
       throw const AuthTokenExpiredException();
     }
   }

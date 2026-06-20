@@ -61,7 +61,16 @@ class _CheckoutView extends StatelessWidget {
         // El usuario cerró el sheet a propósito: volvemos sin error intrusivo.
         break;
       case PaymentStatus.failure:
-        _showError(context, _failureMessage(l10n, state.failure));
+        {
+          final code = state.failure?.code;
+          if (code == PaymentFailureCode.sessionExpired ||
+              code == PaymentFailureCode.unauthorized) {
+            // El logout es global (AuthenticatedHttpClient → AuthBloc): no
+            // mostramos diálogo, MainScreen navega a LoginScreen.
+            break;
+          }
+          _showError(context, _failureMessage(l10n, state.failure));
+        }
       case PaymentStatus.initial:
       case PaymentStatus.processing:
       case PaymentStatus.verifying:

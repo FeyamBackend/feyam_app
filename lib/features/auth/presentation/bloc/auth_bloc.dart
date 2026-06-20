@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:feyam/features/auth/domain/failures/auth_failure.dart';
 import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
@@ -13,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckAuthSessionUseCase checkAuthSessionUseCase,
+    Stream<void>? sessionExpiredStream,
   }) : _loginUseCase = loginUseCase,
        _logoutUseCase = logoutUseCase,
        _checkAuthSessionUseCase = checkAuthSessionUseCase,
@@ -21,11 +24,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignOutPressed>(_onSignOutPressed);
     on<AuthSessionChecked>(_onAuthSessionChecked);
     on<SessionExpired>(_onSessionExpired);
+
+    // La expiración real de sesión (refresh token inválido) llega por este
+    // stream desde AuthenticatedHttpClient y desloguea de forma centralizada,
+    // sin importar la pantalla activa.
+    _sessionExpiredSubscription = sessionExpiredStream?.listen((_) {
+      add(SessionExpired());
+    });
   }
 
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
   final CheckAuthSessionUseCase _checkAuthSessionUseCase;
+  StreamSubscription<void>? _sessionExpiredSubscription;
+
+  @override
+  Future<void> close() {
+    _sessionExpiredSubscription?.cancel();
+    return super.close();
+  }
 
   Future<void> _onSignInPressed(
     SignInPressed event,
