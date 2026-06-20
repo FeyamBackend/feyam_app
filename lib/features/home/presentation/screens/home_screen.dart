@@ -1,6 +1,7 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
@@ -198,6 +199,8 @@ class _MaterialGreeting extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final displayName =
+        context.watch<AuthBloc>().state.user?.displayName ?? l10n.profileName;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +213,7 @@ class _MaterialGreeting extends StatelessWidget {
           ),
         ),
         Text(
-          l10n.profileName.split(' ').first,
+          displayName.split(' ').first,
           style: textTheme.headlineSmall?.copyWith(
             color: colors.onSurface,
             fontSize: 24 * scale,
@@ -931,6 +934,8 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final displayName =
+        context.watch<AuthBloc>().state.user?.displayName ?? l10n.profileName;
     return Container(
       color: kFeyamCard,
       child: SafeArea(
@@ -963,7 +968,7 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.fromLTRB(16 * scale, 2 * scale, 16 * scale, 0),
                 child: Text(
-                  '${l10n.homeGreetingPrefix} ${l10n.profileName.split(' ').first}',
+                  '${l10n.homeGreetingPrefix} ${displayName.split(' ').first}',
                   style: TextStyle(
                     fontSize: 34 * scale,
                     fontWeight: FontWeight.w700,

@@ -9,6 +9,7 @@ import 'package:feyam/features/auth/data/datasources/keycloak_auth_datasource.da
 import 'package:feyam/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
+import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
@@ -85,12 +86,17 @@ void configureDependencies({AppConfig? appConfig}) {
     () => CheckAuthSessionUseCase(sl<AuthRepository>()),
   );
 
+  sl.registerFactory<GetCurrentUserUseCase>(
+    () => GetCurrentUserUseCase(sl<AuthRepository>()),
+  );
+
   // Blocs
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
       loginUseCase: sl<LoginUseCase>(),
       logoutUseCase: sl<LogoutUseCase>(),
       checkAuthSessionUseCase: sl<CheckAuthSessionUseCase>(),
+      getCurrentUserUseCase: sl<GetCurrentUserUseCase>(),
       sessionExpiredStream: sl<SessionExpiredNotifier>().stream,
     ),
   );

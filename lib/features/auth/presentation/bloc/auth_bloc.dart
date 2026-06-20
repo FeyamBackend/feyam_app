@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:feyam/features/auth/domain/entities/auth_user_entity.dart';
 import 'package:feyam/features/auth/domain/failures/auth_failure.dart';
 import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
+import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,10 +17,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckAuthSessionUseCase checkAuthSessionUseCase,
+    required GetCurrentUserUseCase getCurrentUserUseCase,
     Stream<void>? sessionExpiredStream,
   }) : _loginUseCase = loginUseCase,
        _logoutUseCase = logoutUseCase,
        _checkAuthSessionUseCase = checkAuthSessionUseCase,
+       _getCurrentUserUseCase = getCurrentUserUseCase,
        super(const AuthState()) {
     on<SignInPressed>(_onSignInPressed);
     on<SignOutPressed>(_onSignOutPressed);
@@ -36,6 +40,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
   final CheckAuthSessionUseCase _checkAuthSessionUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
   StreamSubscription<void>? _sessionExpiredSubscription;
 
   @override
@@ -56,7 +61,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       await _loginUseCase();
-      emit(state.copyWith(status: AuthStatus.success, clearErrorMessage: true));
+      final user = await _getCurrentUserUseCase();
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          clearErrorMessage: true,
+          user: user,
+        ),
+      );
     } on AuthFailure catch (failure) {
       if (failure.code == AuthFailureCode.cancelled) {
         emit(
@@ -89,7 +101,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (_) {
       // endSession puede fallar si el server ya invalidó la sesión; igual limpiamos
     }
-    emit(state.copyWith(status: AuthStatus.initial, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        status: AuthStatus.initial,
+        clearErrorMessage: true,
+        clearUser: true,
+      ),
+    );
   }
 
   Future<void> _onSessionExpired(
@@ -97,7 +115,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     // Tokens ya limpiados por _clearSession() en KeycloakDataSource.refreshToken()
-    emit(state.copyWith(status: AuthStatus.initial, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        status: AuthStatus.initial,
+        clearErrorMessage: true,
+        clearUser: true,
+      ),
+    );
   }
 
   Future<void> _onAuthSessionChecked(
@@ -110,7 +134,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final isAuthenticated = await _checkAuthSessionUseCase();
     if (isAuthenticated) {
-      emit(state.copyWith(status: AuthStatus.success, clearErrorMessage: true));
+      final user = await _getCurrentUserUseCase();
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          clearErrorMessage: true,
+          user: user,
+        ),
+      );
     }
   }
 

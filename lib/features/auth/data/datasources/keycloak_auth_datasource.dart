@@ -1,3 +1,4 @@
+import 'package:feyam/core/utils/jwt_decoder.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -125,6 +126,21 @@ class KeycloakDataSource {
   Future<bool> isAuthenticated() async {
     final accessToken = await _secureStorage.read(key: _accessTokenKey);
     return accessToken != null && accessToken.isNotEmpty;
+  }
+
+  /// Claims del `id_token` (emitido con scopes `openid profile email`), que ya
+  /// trae `name`/`email` validados por Keycloak: evita pegarle a un endpoint
+  /// de perfil aparte solo para mostrar esos datos.
+  Future<Map<String, dynamic>?> getIdTokenClaims() async {
+    final idToken = await _secureStorage.read(key: _idTokenKey);
+    if (idToken == null || idToken.isEmpty) {
+      return null;
+    }
+    try {
+      return decodeJwtPayload(idToken);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void>? _refreshInFlight;

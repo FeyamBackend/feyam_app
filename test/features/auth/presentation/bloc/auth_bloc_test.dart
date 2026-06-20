@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:feyam/features/auth/domain/entities/auth_user_entity.dart';
 import 'package:feyam/features/auth/domain/failures/auth_failure.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
+import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
@@ -15,6 +17,7 @@ void main() {
       loginUseCase: LoginUseCase(repository),
       logoutUseCase: LogoutUseCase(repository),
       checkAuthSessionUseCase: CheckAuthSessionUseCase(repository),
+      getCurrentUserUseCase: GetCurrentUserUseCase(repository),
     );
 
     final states = <AuthState>[];
@@ -52,6 +55,7 @@ void main() {
       loginUseCase: LoginUseCase(repository),
       logoutUseCase: LogoutUseCase(repository),
       checkAuthSessionUseCase: CheckAuthSessionUseCase(repository),
+      getCurrentUserUseCase: GetCurrentUserUseCase(repository),
       sessionExpiredStream: controller.stream,
     );
 
@@ -99,4 +103,7 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> refreshAccessToken() async {}
+
+  @override
+  Future<AuthUserEntity?> getCurrentUser() async => null;
 }

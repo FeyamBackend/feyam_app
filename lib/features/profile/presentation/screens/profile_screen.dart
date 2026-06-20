@@ -136,6 +136,9 @@ class _MaterialProfileSummary extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final user = context.watch<AuthBloc>().state.user;
+    final displayName = user?.displayName ?? l10n.profileName;
+    final email = user?.email ?? l10n.profileEmail;
 
     return Column(
       children: <Widget>[
@@ -148,9 +151,7 @@ class _MaterialProfileSummary extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              l10n.profileName.isNotEmpty
-                  ? l10n.profileName[0].toUpperCase()
-                  : '?',
+              displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
               style: textTheme.headlineLarge?.copyWith(
                 color: colors.onPrimaryContainer,
                 fontWeight: FontWeight.w700,
@@ -161,7 +162,7 @@ class _MaterialProfileSummary extends StatelessWidget {
         ),
         SizedBox(height: 16 * scale),
         Text(
-          l10n.profileName,
+          displayName,
           textAlign: TextAlign.center,
           style: textTheme.titleLarge?.copyWith(
             color: colors.onSurface,
@@ -171,7 +172,7 @@ class _MaterialProfileSummary extends StatelessWidget {
         ),
         SizedBox(height: 4 * scale),
         Text(
-          l10n.profileEmail,
+          email,
           textAlign: TextAlign.center,
           style: textTheme.bodyMedium?.copyWith(
             color: colors.onSurfaceVariant,
@@ -420,6 +421,9 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final user = context.watch<AuthBloc>().state.user;
+    final displayName = user?.displayName ?? l10n.profileName;
+    final email = user?.email ?? l10n.profileEmail;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -453,14 +457,17 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                       FeyamListSection(
                         children: <Widget>[
                           FeyamListTile(
-                            title: const Text('María'),
-                            subtitle: const Text('maria@feyam.com'),
+                            title: Text(displayName),
+                            subtitle: Text(email),
                             leading: Container(
                               width: 40,
                               height: 40,
                               decoration: const BoxDecoration(color: kFeyamTint, shape: BoxShape.circle),
-                              child: const Center(
-                                child: Text('M', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white)),
+                              child: Center(
+                                child: Text(
+                                  displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
+                                ),
                               ),
                             ),
                             chevron: false,

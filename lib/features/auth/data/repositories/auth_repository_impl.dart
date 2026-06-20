@@ -1,4 +1,5 @@
 import 'package:feyam/features/auth/data/datasources/keycloak_auth_datasource.dart';
+import 'package:feyam/features/auth/domain/entities/auth_user_entity.dart';
 import 'package:feyam/features/auth/domain/failures/auth_failure.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 
@@ -36,5 +37,31 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       throw const AuthTokenExpiredException();
     }
+  }
+
+  @override
+  Future<AuthUserEntity?> getCurrentUser() async {
+    final claims = await keycloakDataSource.getIdTokenClaims();
+    if (claims == null) {
+      return null;
+    }
+
+    final uid = claims['sub'] as String?;
+    if (uid == null) {
+      return null;
+    }
+
+    final givenName = claims['given_name'] as String?;
+    final familyName = claims['family_name'] as String?;
+    final displayName =
+        (claims['name'] as String?) ??
+        [givenName, familyName].whereType<String>().join(' ').trim();
+
+    return AuthUserEntity(
+      uid: uid,
+      email: claims['email'] as String?,
+      displayName: displayName.isEmpty ? null : displayName,
+      photoUrl: claims['picture'] as String?,
+    );
   }
 }

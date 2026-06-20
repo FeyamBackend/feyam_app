@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:feyam/core/network/authenticated_http_client.dart';
 import 'package:feyam/core/network/session_expired_notifier.dart';
+import 'package:feyam/features/auth/domain/entities/auth_user_entity.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -189,4 +190,7 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<bool> isAuthenticated() async => false;
+
+  @override
+  Future<AuthUserEntity?> getCurrentUser() async => null;
 }

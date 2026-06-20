@@ -1,3 +1,5 @@
+import 'package:feyam/features/auth/domain/entities/auth_user_entity.dart';
+
 /// La sesión terminó de verdad: el refresh token es inválido o expiró
 /// (`invalid_grant`). El usuario debe volver a loguearse.
 class AuthTokenExpiredException implements Exception {
@@ -18,4 +20,6 @@ abstract class AuthRepository {
   Future<bool> isAuthenticated();
 
   Future<void> refreshAccessToken();
+
+  Future<AuthUserEntity?> getCurrentUser();
 }
