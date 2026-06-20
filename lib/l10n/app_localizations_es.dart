@@ -278,6 +278,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ordersTabDelivered => 'Entregados';
 
   @override
+  String get ordersLoadError => 'No pudimos cargar tus pedidos.';
+
+  @override
+  String get ordersRetry => 'Reintentar';
+
+  @override
+  String get ordersOrderLabel => 'Pedido';
+
+  @override
   String get ordersStatusEnRevision => 'En revisión';
 
   @override
@@ -418,6 +427,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profileEmail => 'maria@feyam.com';
 
   @override
+  String get homeNoOrdersYet => 'Todavía no tenés pedidos.';
+
+  @override
+  String get ordersEmptyTitle => 'Todavía no tenés pedidos';
+
+  @override
+  String get ordersEmptySubtitle =>
+      'Cuando hagas tu primera compra, aparecerá acá.';
+
+  @override
   String get homeViewAll => 'Ver todos';
 
   @override
@@ -501,6 +520,44 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get checkoutConfirm => 'Confirmar pedido';
+
+  @override
+  String get checkoutPayButton => 'Pagar ahora';
+
+  @override
+  String get checkoutProcessing => 'Procesando pago…';
+
+  @override
+  String get checkoutVerifying => 'Confirmando tu pago…';
+
+  @override
+  String get paymentSuccessTitle => '¡Pago exitoso!';
+
+  @override
+  String get paymentSuccessBody =>
+      'Recibimos tu pago. Un operador está verificando tu orden y te notificaremos apenas avance.';
+
+  @override
+  String get paymentPendingTitle => '¡Pago recibido!';
+
+  @override
+  String get paymentPendingBody =>
+      'Tu pago se realizó correctamente. La confirmación puede demorar unos minutos; te notificaremos en cuanto se acredite y un operador revise tu orden.';
+
+  @override
+  String get paymentErrorGeneric =>
+      'No pudimos procesar tu pago. Intentá de nuevo.';
+
+  @override
+  String get paymentErrorNetwork =>
+      'Sin conexión a internet. Verificá tu conexión e intentá de nuevo.';
+
+  @override
+  String get paymentErrorSession =>
+      'Sesión expirada. Iniciá sesión nuevamente.';
+
+  @override
+  String get paymentCancelled => 'Pago cancelado.';
 
   @override
   String get successTitle => '¡Pedido confirmado!';

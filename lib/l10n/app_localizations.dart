@@ -626,6 +626,24 @@ abstract class AppLocalizations {
   /// **'Delivered'**
   String get ordersTabDelivered;
 
+  /// No description provided for @ordersLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your orders.'**
+  String get ordersLoadError;
+
+  /// No description provided for @ordersRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get ordersRetry;
+
+  /// No description provided for @ordersOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get ordersOrderLabel;
+
   /// No description provided for @ordersStatusEnRevision.
   ///
   /// In en, this message translates to:
@@ -896,6 +914,24 @@ abstract class AppLocalizations {
   /// **'maria@feyam.com'**
   String get profileEmail;
 
+  /// No description provided for @homeNoOrdersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any orders yet.'**
+  String get homeNoOrdersYet;
+
+  /// No description provided for @ordersEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any orders yet'**
+  String get ordersEmptyTitle;
+
+  /// No description provided for @ordersEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When you make your first purchase, it\'ll show up here.'**
+  String get ordersEmptySubtitle;
+
   /// No description provided for @homeViewAll.
   ///
   /// In en, this message translates to:
@@ -1057,6 +1093,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm order'**
   String get checkoutConfirm;
+
+  /// No description provided for @checkoutPayButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get checkoutPayButton;
+
+  /// No description provided for @checkoutProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing payment…'**
+  String get checkoutProcessing;
+
+  /// No description provided for @checkoutVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your payment…'**
+  String get checkoutVerifying;
+
+  /// No description provided for @paymentSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful!'**
+  String get paymentSuccessTitle;
+
+  /// No description provided for @paymentSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We received your payment. An operator is verifying your order and we\'ll notify you as soon as it moves forward.'**
+  String get paymentSuccessBody;
+
+  /// No description provided for @paymentPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received!'**
+  String get paymentPendingTitle;
+
+  /// No description provided for @paymentPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment went through. Confirmation may take a few minutes; we\'ll notify you as soon as it clears and an operator reviews your order.'**
+  String get paymentPendingBody;
+
+  /// No description provided for @paymentErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t process your payment. Please try again.'**
+  String get paymentErrorGeneric;
+
+  /// No description provided for @paymentErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Check your connection and try again.'**
+  String get paymentErrorNetwork;
+
+  /// No description provided for @paymentErrorSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired. Please sign in again.'**
+  String get paymentErrorSession;
+
+  /// No description provided for @paymentCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled.'**
+  String get paymentCancelled;
 
   /// No description provided for @successTitle.
   ///

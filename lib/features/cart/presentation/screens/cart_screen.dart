@@ -470,10 +470,14 @@ class _MaterialCheckoutButton extends StatelessWidget {
     return SizedBox(
       height: 98 * scale,
       child: FilledButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute<void>(builder: (_) => const CheckoutScreen()),
-        ),
+        onPressed: () {
+          final cart = context.read<CartBloc>().state.cart;
+          if (cart == null) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (_) => CheckoutScreen(cart: cart)),
+          );
+        },
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF0A63C7),
           foregroundColor: Colors.white,
@@ -746,9 +750,15 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                   width: double.infinity,
                   child: FeyamButton(
                     label: 'Proceder al checkout',
-                    onPressed: () => Navigator.of(context).push(
-                      CupertinoPageRoute<void>(builder: (_) => const CheckoutScreen()),
-                    ),
+                    onPressed: () {
+                      final cart = context.read<CartBloc>().state.cart;
+                      if (cart == null) return;
+                      Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => CheckoutScreen(cart: cart),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),

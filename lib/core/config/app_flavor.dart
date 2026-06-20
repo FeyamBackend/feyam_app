@@ -1,8 +1,10 @@
-enum AppFlavor { dev, stg, prod }
+enum AppFlavor { local, dev, stg, prod }
 
 extension AppFlavorX on AppFlavor {
   String get name {
     switch (this) {
+      case AppFlavor.local:
+        return 'local';
       case AppFlavor.dev:
         return 'dev';
       case AppFlavor.stg:

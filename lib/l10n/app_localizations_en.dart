@@ -278,6 +278,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersTabDelivered => 'Delivered';
 
   @override
+  String get ordersLoadError => 'We couldn\'t load your orders.';
+
+  @override
+  String get ordersRetry => 'Retry';
+
+  @override
+  String get ordersOrderLabel => 'Order';
+
+  @override
   String get ordersStatusEnRevision => 'Under review';
 
   @override
@@ -418,6 +427,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEmail => 'maria@feyam.com';
 
   @override
+  String get homeNoOrdersYet => 'You don\'t have any orders yet.';
+
+  @override
+  String get ordersEmptyTitle => 'You don\'t have any orders yet';
+
+  @override
+  String get ordersEmptySubtitle =>
+      'When you make your first purchase, it\'ll show up here.';
+
+  @override
   String get homeViewAll => 'View all';
 
   @override
@@ -501,6 +520,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkoutConfirm => 'Confirm order';
+
+  @override
+  String get checkoutPayButton => 'Pay now';
+
+  @override
+  String get checkoutProcessing => 'Processing payment…';
+
+  @override
+  String get checkoutVerifying => 'Confirming your payment…';
+
+  @override
+  String get paymentSuccessTitle => 'Payment successful!';
+
+  @override
+  String get paymentSuccessBody =>
+      'We received your payment. An operator is verifying your order and we\'ll notify you as soon as it moves forward.';
+
+  @override
+  String get paymentPendingTitle => 'Payment received!';
+
+  @override
+  String get paymentPendingBody =>
+      'Your payment went through. Confirmation may take a few minutes; we\'ll notify you as soon as it clears and an operator reviews your order.';
+
+  @override
+  String get paymentErrorGeneric =>
+      'We couldn\'t process your payment. Please try again.';
+
+  @override
+  String get paymentErrorNetwork =>
+      'No internet connection. Check your connection and try again.';
+
+  @override
+  String get paymentErrorSession => 'Session expired. Please sign in again.';
+
+  @override
+  String get paymentCancelled => 'Payment cancelled.';
 
   @override
   String get successTitle => 'Order confirmed!';

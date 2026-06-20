@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:feyam/core/config/app_config.dart';
 import 'package:feyam/core/config/app_flavor.dart';
+import 'package:feyam/core/payments/stripe_payment_service.dart';
 import 'package:feyam/features/auth/data/datasources/keycloak_auth_datasource.dart';
 import 'package:feyam/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
@@ -17,6 +18,15 @@ import 'package:feyam/features/cart/domain/usecases/remove_cart_item.dart';
 import 'package:feyam/features/cart/domain/usecases/update_cart_item_quantity.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
+import 'package:feyam/features/payments/data/repositories/payment_repository_impl.dart';
+import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
+import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
+import 'package:feyam/features/orders/data/datasources/orders_remote_datasource.dart';
+import 'package:feyam/features/orders/data/repositories/orders_repository_impl.dart';
+import 'package:feyam/features/orders/domain/usecases/get_recent_orders.dart';
+import 'package:feyam/features/orders/presentation/bloc/recent_orders_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -135,5 +145,69 @@ void configureDependencies({AppConfig? appConfig}) {
       removeCartItemUseCase: sl<RemoveCartItemUseCase>(),
       updateCartItemQuantityUseCase: sl<UpdateCartItemQuantityUseCase>(),
     ),
+  );
+
+  /**
+   * Payments Module
+   */
+
+  sl.registerLazySingleton(
+    () => PaymentRemoteDataSource(
+      client: sl<http.Client>(),
+      secureStorage: sl<FlutterSecureStorage>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerLazySingleton(() => StripePaymentService());
+
+  sl.registerFactory<PaymentRepositoryImpl>(
+    () => PaymentRepositoryImpl(
+      remoteDataSource: sl<PaymentRemoteDataSource>(),
+      authRepository: sl<AuthRepository>(),
+    ),
+  );
+
+  sl.registerFactory<CreateCheckoutUseCase>(
+    () => CreateCheckoutUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
+  sl.registerFactory<GetPaymentStatusUseCase>(
+    () => GetPaymentStatusUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
+  sl.registerFactory<PaymentBloc>(
+    () => PaymentBloc(
+      createCheckoutUseCase: sl<CreateCheckoutUseCase>(),
+      getPaymentStatusUseCase: sl<GetPaymentStatusUseCase>(),
+      stripeService: sl<StripePaymentService>(),
+    ),
+  );
+
+  /**
+   * Orders Module
+   */
+
+  sl.registerLazySingleton(
+    () => OrdersRemoteDataSource(
+      client: sl<http.Client>(),
+      secureStorage: sl<FlutterSecureStorage>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerFactory<OrdersRepositoryImpl>(
+    () => OrdersRepositoryImpl(
+      remoteDataSource: sl<OrdersRemoteDataSource>(),
+      authRepository: sl<AuthRepository>(),
+    ),
+  );
+
+  sl.registerFactory<GetRecentOrdersUseCase>(
+    () => GetRecentOrdersUseCase(sl<OrdersRepositoryImpl>()),
+  );
+
+  sl.registerFactory<RecentOrdersBloc>(
+    () => RecentOrdersBloc(getRecentOrdersUseCase: sl<GetRecentOrdersUseCase>()),
   );
 }

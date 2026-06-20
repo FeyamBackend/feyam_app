@@ -1,0 +1,7 @@
+{
+    "API_BASE_URL": "https://10.0.2.2:7281",
+    "KEYCLOAK_BASE_URL": "https://idp-test.feyamuniverse.com",
+    "KEYCLOAK_REALM": "feyam_dev",
+    "KEYCLOAK_CLIENT_ID": "feyam_app",
+    "KEYCLOAK_REDIRECT_URI": "com.feyamuniversellc.feyam:/oauth2redirect"
+}

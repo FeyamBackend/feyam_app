@@ -1,5 +1,5 @@
 {
-    "API_BASE_URL": "https://10.0.2.2:7281",
+    "API_BASE_URL": "https://backfeyam-dev.feyamuniverse.com",
     "KEYCLOAK_BASE_URL": "https://idp-test.feyamuniverse.com",
     "KEYCLOAK_REALM": "feyam_dev",
     "KEYCLOAK_CLIENT_ID": "feyam_app",

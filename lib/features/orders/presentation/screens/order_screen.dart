@@ -333,7 +333,7 @@ class _Md3OrderCard extends StatelessWidget {
                     ),
                     SizedBox(height: 2 * scale),
                     Text(
-                      '${l10n.ordersHistoryTitle.split(' ').first} #FY-${order.id} · ${order.price}',
+                      '${l10n.ordersOrderLabel} #FY-${order.id} · ${order.price}',
                       style: textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                         fontSize: 12 * scale,
@@ -456,10 +456,10 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                     Padding(
                       padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 12 * scale),
                       child: FeyamSegmented<int>(
-                        options: const [
-                          (value: 0, label: 'Todos'),
-                          (value: 1, label: 'Activos'),
-                          (value: 2, label: 'Entregados'),
+                        options: [
+                          (value: 0, label: l10n.ordersTabAll),
+                          (value: 1, label: l10n.ordersTabActive),
+                          (value: 2, label: l10n.ordersTabDelivered),
                         ],
                         value: _filterIndex,
                         onChanged: (v) => setState(() => _filterIndex = v),
@@ -472,8 +472,8 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                 child: filtered.isEmpty
                     ? FeyamEmptyState(
                         icon: CupertinoIcons.cube_box_fill,
-                        title: 'Todavía no tenés pedidos',
-                        subtitle: 'Cuando hagas tu primera compra, aparecerá acá.',
+                        title: l10n.ordersEmptyTitle,
+                        subtitle: l10n.ordersEmptySubtitle,
                       )
                     : SingleChildScrollView(
                         padding: EdgeInsets.only(bottom: 16 * scale),
@@ -493,7 +493,7 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                                       children: <Widget>[
                                         Expanded(
                                           child: Text(
-                                            'Pedido #${filtered[i].id} · ${filtered[i].price}',
+                                            '${l10n.ordersOrderLabel} #${filtered[i].id} · ${filtered[i].price}',
                                             style: const TextStyle(fontSize: 13, color: kFeyamLabelSec),
                                           ),
                                         ),

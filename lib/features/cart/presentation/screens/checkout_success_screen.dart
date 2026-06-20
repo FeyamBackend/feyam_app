@@ -5,12 +5,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CheckoutSuccessScreen extends StatelessWidget {
-  const CheckoutSuccessScreen({super.key});
+  const CheckoutSuccessScreen({this.pending = false, super.key});
+
+  /// Cuando es `true`, el cobro se realizó pero el backend aún no confirmó el
+  /// pago (se confirmará por webhook): se muestra un mensaje de "pendiente".
+  final bool pending;
 
   @override
   Widget build(BuildContext context) {
     if (AdaptivePlatform.isCupertino(context)) {
-      return const _CupertinoSuccessContent();
+      return _CupertinoSuccessContent(pending: pending);
     }
 
     final l10n = AppLocalizations.of(context)!;
@@ -51,7 +55,7 @@ class CheckoutSuccessScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 24 * scale),
                     Text(
-                      l10n.successTitle,
+                      pending ? l10n.paymentPendingTitle : l10n.paymentSuccessTitle,
                       textAlign: TextAlign.center,
                       style: textTheme.headlineSmall?.copyWith(
                         color: colors.onSurface,
@@ -61,7 +65,7 @@ class CheckoutSuccessScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 12 * scale),
                     Text(
-                      l10n.successBody,
+                      pending ? l10n.paymentPendingBody : l10n.paymentSuccessBody,
                       textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
                         color: colors.onSurfaceVariant,
@@ -103,7 +107,9 @@ class CheckoutSuccessScreen extends StatelessWidget {
 // ── Cupertino Success ─────────────────────────────────────────────────────────
 
 class _CupertinoSuccessContent extends StatelessWidget {
-  const _CupertinoSuccessContent();
+  const _CupertinoSuccessContent({required this.pending});
+
+  final bool pending;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +140,7 @@ class _CupertinoSuccessContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  l10n.successTitle,
+                  pending ? l10n.paymentPendingTitle : l10n.paymentSuccessTitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 28,
@@ -146,7 +152,7 @@ class _CupertinoSuccessContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  l10n.successBody,
+                  pending ? l10n.paymentPendingBody : l10n.paymentSuccessBody,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 15,

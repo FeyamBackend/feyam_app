@@ -1,59 +1,160 @@
+import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
+import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:feyam/features/cart/presentation/screens/checkout_success_screen.dart';
+import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+// Tarifas estimadas (espejo de la configuración del backend). El cobro real
+// lo determina el servidor en el checkout; acá solo se muestran como estimado.
+const double _kServiceRate = 0.12;
+const double _kEstimatedShipping = 18.50;
+
+class CheckoutScreen extends StatelessWidget {
+  const CheckoutScreen({required this.cart, super.key});
+
+  final CartEntity cart;
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<PaymentBloc>(
+      create: (_) => sl<PaymentBloc>(),
+      child: _CheckoutView(cart: cart),
+    );
+  }
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
-  bool _loading = false;
+class _CheckoutView extends StatelessWidget {
+  const _CheckoutView({required this.cart});
 
-  static const _address = _AddressData(
-    label: 'Casa',
-    line: 'Cra. 43A #1-50, Apto 1204',
-    city: 'Medellín, Antioquia',
-  );
+  final CartEntity cart;
 
-  static const _items = <_CartItem>[
-    _CartItem(title: 'Sony WH-1000XM5', notes: 'Color negro', qty: 1, price: 278.00),
-    _CartItem(title: 'Apple Watch SE 2nd Gen', notes: null, qty: 1, price: 249.00),
-  ];
+  void _onState(BuildContext context, PaymentState state) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (state.status) {
+      case PaymentStatus.success:
+        Navigator.pushReplacement(
+          context,
+          AdaptivePlatform.pageRoute<void>(
+            context: context,
+            builder: (_) => const CheckoutSuccessScreen(),
+          ),
+        );
+      case PaymentStatus.pendingConfirmation:
+        // El cobro se realizó; el backend lo confirmará por webhook.
+        Navigator.pushReplacement(
+          context,
+          AdaptivePlatform.pageRoute<void>(
+            context: context,
+            builder: (_) => const CheckoutSuccessScreen(pending: true),
+          ),
+        );
+      case PaymentStatus.cancelled:
+        // El usuario cerró el sheet a propósito: volvemos sin error intrusivo.
+        break;
+      case PaymentStatus.failure:
+        _showError(context, _failureMessage(l10n, state.failure));
+      case PaymentStatus.initial:
+      case PaymentStatus.processing:
+      case PaymentStatus.verifying:
+        break;
+    }
+  }
 
-  static const _serviceRate = 0.12;
-  static const _shippingCost = 18.50;
+  String _failureMessage(AppLocalizations l10n, PaymentFailure? failure) {
+    switch (failure?.code) {
+      case PaymentFailureCode.networkError:
+        return l10n.paymentErrorNetwork;
+      case PaymentFailureCode.sessionExpired:
+      case PaymentFailureCode.unauthorized:
+        return l10n.paymentErrorSession;
+      case PaymentFailureCode.cancelled:
+        return l10n.paymentCancelled;
+      case PaymentFailureCode.serverError:
+      case PaymentFailureCode.unknown:
+      case null:
+        return l10n.paymentErrorGeneric;
+    }
+  }
 
-  double get _subtotal => _items.fold(0, (s, it) => s + it.price * it.qty);
-  double get _service => _subtotal * _serviceRate;
-  double get _total => _subtotal + _service + _shippingCost;
-
-  void _confirm() {
-    setState(() => _loading = true);
-    Future<void>.delayed(const Duration(milliseconds: 1400), () {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      Navigator.pushReplacement(
-        context,
-        AdaptivePlatform.pageRoute<void>(context: context, builder: (_) => const CheckoutSuccessScreen()),
-      );
-    });
+  void _showError(BuildContext context, String message) {
+    showAdaptiveDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog.adaptive(
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (AdaptivePlatform.isCupertino(context)) {
-      return _CupertinoCheckoutContent(
-        loading: _loading,
-        onConfirm: _confirm,
-      );
-    }
+    return BlocConsumer<PaymentBloc, PaymentState>(
+      listenWhen: (prev, curr) => prev.status != curr.status,
+      listener: _onState,
+      builder: (context, state) {
+        final busy = state.status == PaymentStatus.processing ||
+            state.status == PaymentStatus.verifying;
+        final onPay = busy
+            ? null
+            : () => context
+                .read<PaymentBloc>()
+                .add(const PaymentCheckoutRequested());
 
+        if (AdaptivePlatform.isCupertino(context)) {
+          return _CupertinoCheckoutContent(
+            cart: cart,
+            busy: busy,
+            verifying: state.status == PaymentStatus.verifying,
+            onPay: onPay,
+          );
+        }
+
+        return _MaterialCheckoutContent(
+          cart: cart,
+          busy: busy,
+          verifying: state.status == PaymentStatus.verifying,
+          onPay: onPay,
+        );
+      },
+    );
+  }
+}
+
+// ── Material ──────────────────────────────────────────────────────────────────
+
+class _MaterialCheckoutContent extends StatelessWidget {
+  const _MaterialCheckoutContent({
+    required this.cart,
+    required this.busy,
+    required this.verifying,
+    required this.onPay,
+  });
+
+  final CartEntity cart;
+  final bool busy;
+  final bool verifying;
+  final VoidCallback? onPay;
+
+  double get _subtotal => cart.total;
+  double get _service => _subtotal * _kServiceRate;
+  double get _total => _subtotal + _service + _kEstimatedShipping;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -96,15 +197,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: <Widget>[
                       _CoSection(
                         scale: scale,
-                        label: l10n.checkoutAddress,
-                        child: _AddressCard(scale: scale, address: _address),
-                      ),
-                      SizedBox(height: 20 * scale),
-                      _CoSection(
-                        scale: scale,
                         label: l10n.checkoutSummary,
                         child: Column(
-                          children: _items
+                          children: cart.items
                               .map((it) => Padding(
                                     padding: EdgeInsets.only(bottom: 8 * scale),
                                     child: _ItemRow(scale: scale, item: it),
@@ -127,14 +222,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Icon(
-                                  Icons.payments_rounded,
+                                  Icons.credit_card_rounded,
                                   size: 20 * scale,
                                   color: colors.onTertiaryContainer,
                                 ),
                                 SizedBox(width: 12 * scale),
                                 Expanded(
                                   child: Text(
-                                    l10n.checkoutPayInfo,
+                                    l10n.cartSecurePayment,
                                     style: textTheme.bodyMedium?.copyWith(
                                       color: colors.onTertiaryContainer,
                                       fontSize: 13 * scale,
@@ -163,7 +258,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: <Widget>[
                                 _PriceRow(scale: scale, k: l10n.checkoutSubtotal, v: _fmt(_subtotal)),
                                 _PriceRow(scale: scale, k: l10n.checkoutService, v: _fmt(_service)),
-                                _PriceRow(scale: scale, k: l10n.checkoutShipping, v: _fmt(_shippingCost)),
+                                _PriceRow(scale: scale, k: l10n.checkoutShipping, v: _fmt(_kEstimatedShipping)),
                                 Divider(height: 1 + 16 * scale, color: colors.outlineVariant),
                                 _PriceRow(
                                   scale: scale,
@@ -237,8 +332,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       SizedBox(
                         height: 52 * scale,
                         child: FilledButton.icon(
-                          onPressed: _loading ? null : _confirm,
-                          icon: _loading
+                          onPressed: onPay,
+                          icon: busy
                               ? SizedBox(
                                   width: 18 * scale,
                                   height: 18 * scale,
@@ -247,10 +342,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     color: colors.onPrimary,
                                   ),
                                 )
-                              : Icon(Icons.check_rounded, size: 20 * scale),
-                          label: _loading
-                              ? const SizedBox.shrink()
-                              : Text(l10n.checkoutConfirm),
+                              : const Icon(Icons.lock_rounded),
+                          label: Text(
+                            busy
+                                ? (verifying
+                                    ? l10n.checkoutVerifying
+                                    : l10n.checkoutProcessing)
+                                : l10n.checkoutPayButton,
+                          ),
                           style: FilledButton.styleFrom(
                             textStyle: textTheme.labelLarge?.copyWith(
                               fontSize: 16 * scale,
@@ -273,8 +372,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  String _fmt(double v) =>
-      '\$ ${v.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';
+  String _fmt(double v) => _formatCurrency(v);
 }
 
 class _CoSection extends StatelessWidget {
@@ -310,125 +408,11 @@ class _CoSection extends StatelessWidget {
   }
 }
 
-class _AddressCard extends StatelessWidget {
-  const _AddressCard({required this.scale, required this.address});
-
-  final double scale;
-  final _AddressData address;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12 * scale),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(14 * scale, 14 * scale, 14 * scale, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                  width: 40 * scale,
-                  height: 40 * scale,
-                  decoration: BoxDecoration(
-                    color: colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(10 * scale),
-                  ),
-                  child: Icon(
-                    Icons.location_on_rounded,
-                    size: 20 * scale,
-                    color: colors.onPrimaryContainer,
-                  ),
-                ),
-                SizedBox(width: 12 * scale),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        address.label,
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: colors.onSurface,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14 * scale,
-                        ),
-                      ),
-                      SizedBox(height: 2 * scale),
-                      Text(
-                        '${address.line}\n${address.city}',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          fontSize: 13 * scale,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  l10n.checkoutChange,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: colors.primary,
-                    fontSize: 12 * scale,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(14 * scale, 10 * scale, 14 * scale, 14 * scale),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.surfaceContainer,
-                borderRadius: BorderRadius.circular(6 * scale),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 7 * scale),
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.schedule_rounded, size: 14 * scale, color: colors.onSurfaceVariant),
-                    SizedBox(width: 6 * scale),
-                    Text(
-                      '${l10n.checkoutDelivery}: ',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        fontSize: 12 * scale,
-                      ),
-                    ),
-                    Text(
-                      l10n.checkoutDeliveryTime,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colors.onSurface,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12 * scale,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ItemRow extends StatelessWidget {
   const _ItemRow({required this.scale, required this.item});
 
   final double scale;
-  final _CartItem item;
+  final CartItemEntity item;
 
   @override
   Widget build(BuildContext context) {
@@ -462,7 +446,7 @@ class _ItemRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    item.title,
+                    item.productName,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colors.onSurface,
                       fontWeight: FontWeight.w500,
@@ -470,7 +454,7 @@ class _ItemRow extends StatelessWidget {
                       height: 1.35,
                     ),
                   ),
-                  if (item.notes != null) ...[
+                  if (item.notes != null && item.notes!.isNotEmpty) ...[
                     SizedBox(height: 2 * scale),
                     Text(
                       item.notes!,
@@ -482,7 +466,7 @@ class _ItemRow extends StatelessWidget {
                   ],
                   SizedBox(height: 4 * scale),
                   Text(
-                    '${l10n.addToCartQuantityLabel}: ${item.qty}',
+                    '${l10n.addToCartQuantityLabel}: ${item.quantity}',
                     style: textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
                       fontSize: 12 * scale,
@@ -492,7 +476,7 @@ class _ItemRow extends StatelessWidget {
               ),
             ),
             Text(
-              '\$ ${(item.price * item.qty).toStringAsFixed(2)}',
+              _formatCurrency(item.totalPrice),
               style: textTheme.bodyLarge?.copyWith(
                 color: colors.onSurface,
                 fontWeight: FontWeight.w600,
@@ -553,53 +537,29 @@ class _PriceRow extends StatelessWidget {
   }
 }
 
-class _AddressData {
-  const _AddressData({required this.label, required this.line, required this.city});
-
-  final String label;
-  final String line;
-  final String city;
-}
-
-class _CartItem {
-  const _CartItem({
-    required this.title,
-    required this.notes,
-    required this.qty,
-    required this.price,
-  });
-
-  final String title;
-  final String? notes;
-  final int qty;
-  final double price;
-}
-
-// ── Cupertino Checkout ────────────────────────────────────────────────────────
+// ── Cupertino ─────────────────────────────────────────────────────────────────
 
 class _CupertinoCheckoutContent extends StatelessWidget {
   const _CupertinoCheckoutContent({
-    required this.loading,
-    required this.onConfirm,
+    required this.cart,
+    required this.busy,
+    required this.verifying,
+    required this.onPay,
   });
 
-  final bool loading;
-  final VoidCallback onConfirm;
+  final CartEntity cart;
+  final bool busy;
+  final bool verifying;
+  final VoidCallback? onPay;
 
-  static const _items = <_CartItem>[
-    _CartItem(title: 'Sony WH-1000XM5', notes: 'Color negro', qty: 1, price: 278.00),
-    _CartItem(title: 'Apple Watch SE 2nd Gen', notes: null, qty: 1, price: 249.00),
-  ];
-
-  static const _serviceRate = 0.12;
-  static const _shippingCOP = 38000.0;
-
-  double get _subtotal => _items.fold(0, (s, it) => s + it.price * it.qty);
-  double get _service => _subtotal * _serviceRate;
-  double get _total => _subtotal + _service + _shippingCOP / 4100;
+  double get _subtotal => cart.total;
+  double get _service => _subtotal * _kServiceRate;
+  double get _total => _subtotal + _service + _kEstimatedShipping;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
@@ -612,16 +572,16 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                 leading: CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Icon(CupertinoIcons.chevron_back, size: 18),
-                      SizedBox(width: 2),
-                      Text('Carrito', style: TextStyle(fontSize: 17)),
+                      const Icon(CupertinoIcons.chevron_back, size: 18),
+                      const SizedBox(width: 2),
+                      Text(l10n.navCart, style: const TextStyle(fontSize: 17)),
                     ],
                   ),
                 ),
-                middle: const Text('Checkout'),
+                middle: Text(l10n.checkoutTitle),
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -630,80 +590,73 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       SizedBox(height: 16 * scale),
-                      // Dirección
                       FeyamListSection(
-                        header: 'Dirección de envío',
+                        header: l10n.checkoutSummary,
                         children: <Widget>[
-                          FeyamListTile(
-                            title: const Text('Casa'),
-                            subtitle: const Text('Cra. 43A #1-50, Apto 1204 · Medellín, Antioquia'),
-                            leading: FeyamIconTile(icon: CupertinoIcons.location_fill, color: kFeyamTint),
-                            trailing: const Padding(
-                              padding: EdgeInsets.only(left: 6),
-                              child: Icon(CupertinoIcons.pencil, size: 16, color: kFeyamTint),
-                            ),
-                            chevron: false,
-                            isLast: true,
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
-                      // Resumen pedido
-                      FeyamListSection(
-                        header: 'Resumen del pedido',
-                        children: <Widget>[
-                          for (var i = 0; i < _items.length; i++)
+                          for (var i = 0; i < cart.items.length; i++)
                             FeyamListTile(
-                              title: Text(_items[i].title),
-                              subtitle: Text('Cantidad: ${_items[i].qty}'),
-                              detail: Text('\$ ${(_items[i].price * _items[i].qty).toStringAsFixed(2)}'),
+                              title: Text(cart.items[i].productName),
+                              subtitle: Text(
+                                '${l10n.addToCartQuantityLabel}: ${cart.items[i].quantity}',
+                              ),
+                              detail: Text(_formatCurrency(cart.items[i].totalPrice)),
                               chevron: false,
-                              isLast: i == _items.length - 1,
+                              isLast: i == cart.items.length - 1,
                             ),
                         ],
                       ),
-                      // Precio estimado
                       FeyamListSection(
-                        header: 'Precio estimado',
+                        header: l10n.checkoutEstPrice,
                         children: <Widget>[
                           FeyamListTile(
-                            title: const Text('Subtotal productos'),
-                            detail: Text('\$ ${_subtotal.toStringAsFixed(2)}'),
+                            title: Text(l10n.checkoutSubtotal),
+                            detail: Text(_formatCurrency(_subtotal)),
                             chevron: false,
                           ),
                           FeyamListTile(
-                            title: const Text('Servicio Feyam (12%)'),
-                            detail: Text('\$ ${_service.toStringAsFixed(2)}'),
+                            title: Text(l10n.checkoutService),
+                            detail: Text(_formatCurrency(_service)),
                             chevron: false,
                           ),
                           FeyamListTile(
-                            title: const Text('Envío internacional'),
-                            detail: const Text('\$ 9.27'),
+                            title: Text(l10n.checkoutShipping),
+                            detail: Text(_formatCurrency(_kEstimatedShipping)),
                             chevron: false,
                           ),
                           FeyamListTile(
-                            title: const Text('Total estimado', style: TextStyle(fontWeight: FontWeight.w700)),
+                            title: Text(
+                              l10n.checkoutTotal,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
                             detail: Text(
-                              '\$ ${_total.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: kFeyamTint),
+                              _formatCurrency(_total),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                                color: kFeyamTint,
+                              ),
                             ),
                             chevron: false,
                             isLast: true,
                           ),
                         ],
                       ),
-                      // Disclaimer
                       Padding(
                         padding: EdgeInsets.fromLTRB(32 * scale, 4, 32 * scale, 16),
-                        child: const Row(
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Icon(CupertinoIcons.info_circle, size: 14, color: kFeyamLabelTer),
-                            SizedBox(width: 8),
+                            const Icon(CupertinoIcons.info_circle, size: 14, color: kFeyamLabelTer),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'El precio final puede variar según impuestos de aduana y tasa de cambio.',
-                                style: TextStyle(fontSize: 12, color: kFeyamLabelTer, height: 1.4, fontFamily: '.SF Pro Text'),
+                                l10n.checkoutDisclaimer,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: kFeyamLabelTer,
+                                  height: 1.4,
+                                  fontFamily: '.SF Pro Text',
+                                ),
                               ),
                             ),
                           ],
@@ -713,21 +666,29 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                   ),
                 ),
               ),
-              // Footer
               Container(
                 padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 28 * scale),
                 decoration: const BoxDecoration(
                   color: kFeyamCard,
                   border: Border(top: BorderSide(color: kFeyamSepLight, width: 0.5)),
                 ),
-                child: loading
-                    ? const Center(child: CupertinoActivityIndicator())
+                child: busy
+                    ? Column(
+                        children: <Widget>[
+                          const CupertinoActivityIndicator(),
+                          SizedBox(height: 8 * scale),
+                          Text(
+                            verifying ? l10n.checkoutVerifying : l10n.checkoutProcessing,
+                            style: const TextStyle(fontSize: 13, color: kFeyamLabelSec),
+                          ),
+                        ],
+                      )
                     : SizedBox(
                         width: double.infinity,
                         child: FeyamButton(
-                          label: 'Confirmar pedido',
-                          icon: CupertinoIcons.checkmark,
-                          onPressed: onConfirm,
+                          label: l10n.checkoutPayButton,
+                          icon: CupertinoIcons.lock_fill,
+                          onPressed: onPay ?? () {},
                         ),
                       ),
               ),
@@ -738,3 +699,6 @@ class _CupertinoCheckoutContent extends StatelessWidget {
     );
   }
 }
+
+String _formatCurrency(double v) =>
+    '\$ ${v.toStringAsFixed(2).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',')}';

@@ -1,11 +1,12 @@
 package com.feyamuniversellc.feyam
 
 import android.content.Intent
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 
-class MainActivity : FlutterActivity() {
+// flutter_stripe requiere que la Activity extienda FlutterFragmentActivity.
+class MainActivity : FlutterFragmentActivity() {
     private val shareChannelName = "com.feyamuniversellc.feyam/share"
     private var pendingUrl: String? = null
     private var eventSink: EventChannel.EventSink? = null
