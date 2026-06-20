@@ -1,22 +1,78 @@
+import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/orders/domain/entities/order_display_status.dart';
+import 'package:feyam/features/orders/domain/entities/recent_order_entity.dart';
+import 'package:feyam/features/orders/presentation/bloc/recent_orders_bloc.dart';
+import 'package:feyam/features/orders/presentation/bloc/recent_orders_event.dart';
+import 'package:feyam/features/orders/presentation/bloc/recent_orders_state.dart';
 import 'package:feyam/features/orders/presentation/screens/order_detail_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// Number of orders requested for the full history screen.
+const int _ordersTake = 20;
 
 class OrderScreen extends StatelessWidget {
   const OrderScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (AdaptivePlatform.isCupertino(context)) {
-      return const _CupertinoOrdersContent();
-    }
-
-    return const _MaterialOrdersContent();
+    return BlocProvider<RecentOrdersBloc>(
+      create: (_) =>
+          sl<RecentOrdersBloc>()..add(const RecentOrdersLoadRequested(take: _ordersTake)),
+      child: AdaptivePlatform.isCupertino(context)
+          ? const _CupertinoOrdersContent()
+          : const _MaterialOrdersContent(),
+    );
   }
 }
+
+// ── Shared mappers ─────────────────────────────────────────────────────────────
+
+String _formatPrice(double amount) => '\$${amount.toStringAsFixed(2)}';
+
+String _formatDate(DateTime d) {
+  const months = [
+    'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+    'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+  ];
+  return '${d.day} ${months[d.month - 1]} ${d.year}';
+}
+
+_OrderStatus _toMaterialStatus(OrderDisplayStatus s) => switch (s) {
+      OrderDisplayStatus.review => _OrderStatus.enRevision,
+      OrderDisplayStatus.payment => _OrderStatus.porPagar,
+      OrderDisplayStatus.shipping => _OrderStatus.enCamino,
+      OrderDisplayStatus.delivered => _OrderStatus.entregado,
+    };
+
+FeyamOrderStatus _toFeyamStatus(OrderDisplayStatus s) => switch (s) {
+      OrderDisplayStatus.review => FeyamOrderStatus.enRevision,
+      OrderDisplayStatus.payment => FeyamOrderStatus.porPagar,
+      OrderDisplayStatus.shipping => FeyamOrderStatus.enCamino,
+      OrderDisplayStatus.delivered => FeyamOrderStatus.entregado,
+    };
+
+_Md3Order _toMaterialOrder(RecentOrderEntity o) => _Md3Order(
+      id: o.orderId,
+      title: o.title,
+      price: _formatPrice(o.chargedAmount),
+      date: _formatDate(o.createdDate),
+      icon: Icons.inventory_2_rounded,
+      status: _toMaterialStatus(o.displayStatus),
+    );
+
+_CupertinoOrder _toCupertinoOrder(RecentOrderEntity o) => _CupertinoOrder(
+      id: o.orderId,
+      title: o.title,
+      price: _formatPrice(o.chargedAmount),
+      date: _formatDate(o.createdDate),
+      status: _toFeyamStatus(o.displayStatus),
+      icon: CupertinoIcons.cube_box_fill,
+    );
 
 class _MaterialOrdersContent extends StatefulWidget {
   const _MaterialOrdersContent();
@@ -33,106 +89,176 @@ class _MaterialOrdersContentState extends State<_MaterialOrdersContent> {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
-    final allOrders = <_Md3Order>[
-      _Md3Order(
-        id: '24501',
-        title: 'Sony WH-1000XM5',
-        price: r'$278.00',
-        date: '15 may 2026',
-        delivery: '8–12 jun 2026',
-        icon: Icons.headphones_rounded,
-        status: _OrderStatus.enCamino,
-      ),
-      _Md3Order(
-        id: '24489',
-        title: 'Apple Watch SE 2nd Gen',
-        price: r'$249.00',
-        date: '12 may 2026',
-        delivery: '10–15 jun 2026',
-        icon: Icons.watch_rounded,
-        status: _OrderStatus.porPagar,
-      ),
-      _Md3Order(
-        id: '24412',
-        title: 'Kindle Paperwhite 16GB',
-        price: r'$139.99',
-        date: '8 may 2026',
-        icon: Icons.menu_book_rounded,
-        status: _OrderStatus.enRevision,
-      ),
-      _Md3Order(
-        id: '24350',
-        title: 'Nike Air Max 90',
-        price: r'$130.00',
-        date: '22 abr 2026',
-        icon: Icons.directions_run_rounded,
-        status: _OrderStatus.entregado,
-      ),
-      _Md3Order(
-        id: '24298',
-        title: 'JBL Charge 5',
-        price: r'$179.95',
-        date: '10 abr 2026',
-        icon: Icons.speaker_rounded,
-        status: _OrderStatus.entregado,
-      ),
-    ];
+    return BlocBuilder<RecentOrdersBloc, RecentOrdersState>(
+      builder: (context, state) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
-    final filtered = switch (_tabIndex) {
-      1 => allOrders
-          .where((o) => o.status != _OrderStatus.entregado)
-          .toList(),
-      2 => allOrders
-          .where((o) => o.status == _OrderStatus.entregado)
-          .toList(),
-      _ => allOrders,
-    };
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
-
-        return ColoredBox(
-          color: colors.surface,
-          child: Column(
-            children: <Widget>[
-              _Md3OrdersHeader(scale: scale),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  20 * scale,
-                  16 * scale,
-                  20 * scale,
-                  0,
-                ),
-                child: _Md3TabBar(
-                  scale: scale,
-                  selectedIndex: _tabIndex,
-                  labels: [
-                    l10n.ordersTabAll,
-                    l10n.ordersTabActive,
-                    l10n.ordersTabDelivered,
-                  ],
-                  onChanged: (i) => setState(() => _tabIndex = i),
-                ),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  padding: EdgeInsets.fromLTRB(
-                    20 * scale,
-                    16 * scale,
-                    20 * scale,
-                    32 * scale,
+            return ColoredBox(
+              color: colors.surface,
+              child: Column(
+                children: <Widget>[
+                  _Md3OrdersHeader(scale: scale),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      20 * scale,
+                      16 * scale,
+                      20 * scale,
+                      0,
+                    ),
+                    child: _Md3TabBar(
+                      scale: scale,
+                      selectedIndex: _tabIndex,
+                      labels: [
+                        l10n.ordersTabAll,
+                        l10n.ordersTabActive,
+                        l10n.ordersTabDelivered,
+                      ],
+                      onChanged: (i) => setState(() => _tabIndex = i),
+                    ),
                   ),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) => SizedBox(height: 12 * scale),
-                  itemBuilder: (context, index) =>
-                      _Md3OrderCard(scale: scale, order: filtered[index]),
-                ),
+                  Expanded(child: _buildBody(context, state, scale)),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildBody(BuildContext context, RecentOrdersState state, double scale) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    switch (state.status) {
+      case RecentOrdersStatus.initial:
+      case RecentOrdersStatus.loading:
+        return Center(
+          child: SizedBox(
+            width: 28 * scale,
+            height: 28 * scale,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: colors.primary,
+            ),
+          ),
+        );
+      case RecentOrdersStatus.failure:
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.all(24 * scale),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  l10n.ordersLoadError,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 14 * scale,
+                  ),
+                ),
+                SizedBox(height: 12 * scale),
+                FilledButton.tonal(
+                  onPressed: () => context
+                      .read<RecentOrdersBloc>()
+                      .add(const RecentOrdersLoadRequested(take: _ordersTake)),
+                  child: Text(l10n.ordersRetry),
+                ),
+              ],
+            ),
+          ),
+        );
+      case RecentOrdersStatus.empty:
+        return _Md3EmptyState(
+          scale: scale,
+          title: l10n.ordersEmptyTitle,
+          subtitle: l10n.ordersEmptySubtitle,
+        );
+      case RecentOrdersStatus.loaded:
+        final orders = state.orders.map(_toMaterialOrder).toList();
+        final filtered = switch (_tabIndex) {
+          1 => orders.where((o) => o.status != _OrderStatus.entregado).toList(),
+          2 => orders.where((o) => o.status == _OrderStatus.entregado).toList(),
+          _ => orders,
+        };
+
+        if (filtered.isEmpty) {
+          return _Md3EmptyState(
+            scale: scale,
+            title: l10n.ordersEmptyTitle,
+            subtitle: l10n.ordersEmptySubtitle,
+          );
+        }
+
+        return ListView.separated(
+          padding: EdgeInsets.fromLTRB(
+            20 * scale,
+            16 * scale,
+            20 * scale,
+            32 * scale,
+          ),
+          itemCount: filtered.length,
+          separatorBuilder: (_, _) => SizedBox(height: 12 * scale),
+          itemBuilder: (context, index) =>
+              _Md3OrderCard(scale: scale, order: filtered[index]),
+        );
+    }
+  }
+}
+
+class _Md3EmptyState extends StatelessWidget {
+  const _Md3EmptyState({
+    required this.scale,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final double scale;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32 * scale),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 56 * scale,
+              color: colors.onSurfaceVariant,
+            ),
+            SizedBox(height: 16 * scale),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: textTheme.titleMedium?.copyWith(
+                color: colors.onSurface,
+                fontWeight: FontWeight.w600,
+                fontSize: 16 * scale,
+              ),
+            ),
+            SizedBox(height: 6 * scale),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+                fontSize: 13 * scale,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -299,7 +425,6 @@ class _Md3OrderCard extends StatelessWidget {
               price: order.price,
               status: statusKey,
               date: order.date,
-              delivery: order.delivery,
             ),
           ),
         ),
@@ -382,14 +507,12 @@ class _Md3Order {
     required this.date,
     required this.icon,
     required this.status,
-    this.delivery,
   });
 
   final String id;
   final String title;
   final String price;
   final String date;
-  final String? delivery;
   final IconData icon;
   final _OrderStatus status;
 }
@@ -402,151 +525,191 @@ class _CupertinoOrdersContent extends StatefulWidget {
 }
 
 class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
-  static const _allOrders = <_CupertinoOrder>[
-    _CupertinoOrder(id: '41',  title: 'Auriculares Sony WH-1000XM5', price: r'$ 1.450.000', status: FeyamOrderStatus.enCamino,   icon: CupertinoIcons.headphones),
-    _CupertinoOrder(id: '98',  title: 'Apple Watch Series 9',        price: r'$ 1.890.000', status: FeyamOrderStatus.porPagar,   icon: CupertinoIcons.time),
-    _CupertinoOrder(id: '55',  title: 'Kindle Paperwhite',           price: r'$ 640.000',   status: FeyamOrderStatus.enRevision, icon: CupertinoIcons.book_fill),
-    _CupertinoOrder(id: '20',  title: 'Cámara Instax Mini 12',       price: r'$ 380.000',   status: FeyamOrderStatus.entregado,  icon: CupertinoIcons.camera_fill),
-  ];
-
   int _filterIndex = 0; // 0=todos, 1=activos, 2=entregados
 
-  List<_CupertinoOrder> get _filtered {
+  List<_CupertinoOrder> _filtered(List<_CupertinoOrder> orders) {
     switch (_filterIndex) {
-      case 1: return _allOrders.where((o) => o.status != FeyamOrderStatus.entregado).toList();
-      case 2: return _allOrders.where((o) => o.status == FeyamOrderStatus.entregado).toList();
-      default: return _allOrders;
+      case 1: return orders.where((o) => o.status != FeyamOrderStatus.entregado).toList();
+      case 2: return orders.where((o) => o.status == FeyamOrderStatus.entregado).toList();
+      default: return orders;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final filtered = _filtered;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
+    return BlocBuilder<RecentOrdersBloc, RecentOrdersState>(
+      builder: (context, state) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
-        return ColoredBox(
-          color: kFeyamBg,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // Large title bar
-              Container(
-                color: kFeyamBg,
-                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
-                      child: Text(
-                        l10n.navOrders,
-                        style: TextStyle(
-                          fontSize: 34 * scale,
-                          fontWeight: FontWeight.w700,
-                          color: kFeyamLabel,
-                          letterSpacing: 0.37,
-                          fontFamily: '.SF Pro Display',
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 12 * scale),
-                      child: FeyamSegmented<int>(
-                        options: [
-                          (value: 0, label: l10n.ordersTabAll),
-                          (value: 1, label: l10n.ordersTabActive),
-                          (value: 2, label: l10n.ordersTabDelivered),
-                        ],
-                        value: _filterIndex,
-                        onChanged: (v) => setState(() => _filterIndex = v),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: filtered.isEmpty
-                    ? FeyamEmptyState(
-                        icon: CupertinoIcons.cube_box_fill,
-                        title: l10n.ordersEmptyTitle,
-                        subtitle: l10n.ordersEmptySubtitle,
-                      )
-                    : SingleChildScrollView(
-                        padding: EdgeInsets.only(bottom: 16 * scale),
-                        child: Column(
-                          children: <Widget>[
-                            SizedBox(height: 16 * scale),
-                            FeyamListSection(
-                              children: <Widget>[
-                                for (var i = 0; i < filtered.length; i++)
-                                  FeyamListTile(
-                                    title: Text(
-                                      filtered[i].title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    subtitle: Row(
-                                      children: <Widget>[
-                                        Expanded(
-                                          child: Text(
-                                            '${l10n.ordersOrderLabel} #${filtered[i].id} · ${filtered[i].price}',
-                                            style: const TextStyle(fontSize: 13, color: kFeyamLabelSec),
-                                          ),
-                                        ),
-                                        FeyamStatusBadge(status: filtered[i].status),
-                                      ],
-                                    ),
-                                    leading: Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(color: kFeyamBg, borderRadius: BorderRadius.circular(10)),
-                                      child: Icon(filtered[i].icon, size: 22, color: kFeyamLabelSec),
-                                    ),
-                                    isLast: i == filtered.length - 1,
-                                    onTap: () => Navigator.of(context).push(
-                                      CupertinoPageRoute<void>(
-                                        builder: (_) => OrderDetailScreen(
-                                          orderId: filtered[i].id,
-                                          title: filtered[i].title,
-                                          price: filtered[i].price,
-                                          status: _statusKey(filtered[i].status),
-                                          date: '15 may 2026',
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
+            return ColoredBox(
+              color: kFeyamBg,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  // Large title bar
+                  Container(
+                    color: kFeyamBg,
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
+                          child: Text(
+                            l10n.navOrders,
+                            style: TextStyle(
+                              fontSize: 34 * scale,
+                              fontWeight: FontWeight.w700,
+                              color: kFeyamLabel,
+                              letterSpacing: 0.37,
+                              fontFamily: '.SF Pro Display',
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 12 * scale),
+                          child: FeyamSegmented<int>(
+                            options: [
+                              (value: 0, label: l10n.ordersTabAll),
+                              (value: 1, label: l10n.ordersTabActive),
+                              (value: 2, label: l10n.ordersTabDelivered),
+                            ],
+                            value: _filterIndex,
+                            onChanged: (v) => setState(() => _filterIndex = v),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(child: _buildBody(context, state, scale)),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  static String _statusKey(FeyamOrderStatus s) {
-    switch (s) {
-      case FeyamOrderStatus.porPagar:   return 'payment';
-      case FeyamOrderStatus.enCamino:   return 'shipping';
-      case FeyamOrderStatus.entregado:  return 'delivered';
-      default:                          return 'review';
+  Widget _buildBody(BuildContext context, RecentOrdersState state, double scale) {
+    final l10n = AppLocalizations.of(context)!;
+
+    switch (state.status) {
+      case RecentOrdersStatus.initial:
+      case RecentOrdersStatus.loading:
+        return const Center(child: CupertinoActivityIndicator());
+      case RecentOrdersStatus.failure:
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.all(24 * scale),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  l10n.ordersLoadError,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 15, color: kFeyamLabelSec),
+                ),
+                SizedBox(height: 12 * scale),
+                CupertinoButton(
+                  onPressed: () => context
+                      .read<RecentOrdersBloc>()
+                      .add(const RecentOrdersLoadRequested(take: _ordersTake)),
+                  child: Text(l10n.ordersRetry),
+                ),
+              ],
+            ),
+          ),
+        );
+      case RecentOrdersStatus.empty:
+        return FeyamEmptyState(
+          icon: CupertinoIcons.cube_box_fill,
+          title: l10n.ordersEmptyTitle,
+          subtitle: l10n.ordersEmptySubtitle,
+        );
+      case RecentOrdersStatus.loaded:
+        final filtered = _filtered(state.orders.map(_toCupertinoOrder).toList());
+
+        if (filtered.isEmpty) {
+          return FeyamEmptyState(
+            icon: CupertinoIcons.cube_box_fill,
+            title: l10n.ordersEmptyTitle,
+            subtitle: l10n.ordersEmptySubtitle,
+          );
+        }
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: 16 * scale),
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: 16 * scale),
+              FeyamListSection(
+                children: <Widget>[
+                  for (var i = 0; i < filtered.length; i++)
+                    FeyamListTile(
+                      title: Text(
+                        filtered[i].title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              '${l10n.ordersOrderLabel} #${filtered[i].id} · ${filtered[i].price}',
+                              style: const TextStyle(fontSize: 13, color: kFeyamLabelSec),
+                            ),
+                          ),
+                          FeyamStatusBadge(status: filtered[i].status),
+                        ],
+                      ),
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(color: kFeyamBg, borderRadius: BorderRadius.circular(10)),
+                        child: Icon(filtered[i].icon, size: 22, color: kFeyamLabelSec),
+                      ),
+                      isLast: i == filtered.length - 1,
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (_) => OrderDetailScreen(
+                            orderId: filtered[i].id,
+                            title: filtered[i].title,
+                            price: filtered[i].price,
+                            status: orderDisplayStatusKey(
+                              _displayStatusFromFeyam(filtered[i].status),
+                            ),
+                            date: filtered[i].date,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
     }
   }
 }
+
+OrderDisplayStatus _displayStatusFromFeyam(FeyamOrderStatus s) => switch (s) {
+      FeyamOrderStatus.enRevision => OrderDisplayStatus.review,
+      FeyamOrderStatus.porPagar => OrderDisplayStatus.payment,
+      FeyamOrderStatus.enCamino => OrderDisplayStatus.shipping,
+      FeyamOrderStatus.entregado => OrderDisplayStatus.delivered,
+    };
 
 class _CupertinoOrder {
   const _CupertinoOrder({
     required this.id,
     required this.title,
     required this.price,
+    required this.date,
     required this.status,
     required this.icon,
   });
@@ -554,6 +717,7 @@ class _CupertinoOrder {
   final String id;
   final String title;
   final String price;
+  final String date;
   final FeyamOrderStatus status;
   final IconData icon;
 }
