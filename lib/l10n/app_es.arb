@@ -152,6 +152,8 @@
     "storesHint": "Tocá una tienda para abrirla en tu navegador. Copiá el link del producto y pegalo en Feyam.",
     "checkoutTitle": "Checkout",
     "checkoutAddress": "Dirección de envío",
+    "checkoutSelectAddress": "Selecciona una dirección de envío para continuar",
+    "checkoutNoShippingAddress": "No tienes una dirección de envío. Agrega una para continuar.",
     "checkoutSummary": "Resumen del pedido",
     "checkoutPayMethod": "Método de pago",
     "checkoutPayInfo": "Te contactamos para coordinar el pago una vez revisemos tu pedido.",

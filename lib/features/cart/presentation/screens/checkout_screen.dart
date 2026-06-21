@@ -8,12 +8,20 @@ import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
+import 'package:feyam/features/profile/domain/entities/address_entity.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_state.dart';
+import 'package:feyam/features/profile/presentation/screens/addresses_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 const double _kEstimatedShipping = 18.50;
+
+/// Backend AddressType for shipping addresses (only these are valid at checkout).
+const String _kShipmentType = 'Shipment';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({required this.cart, super.key});
@@ -22,17 +30,74 @@ class CheckoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PaymentBloc>(
-      create: (_) => sl<PaymentBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<PaymentBloc>(create: (_) => sl<PaymentBloc>()),
+        BlocProvider<AddressesBloc>(create: (_) => sl<AddressesBloc>()),
+      ],
       child: _CheckoutView(cart: cart),
     );
   }
 }
 
-class _CheckoutView extends StatelessWidget {
+class _CheckoutView extends StatefulWidget {
   const _CheckoutView({required this.cart});
 
   final CartEntity cart;
+
+  @override
+  State<_CheckoutView> createState() => _CheckoutViewState();
+}
+
+class _CheckoutViewState extends State<_CheckoutView> {
+  /// Dirección de envío seleccionada. Hasta que haya una, no se permite pagar.
+  String? _selectedAddressId;
+
+  @override
+  void initState() {
+    super.initState();
+    // El locale se lee tras el primer frame (Localizations no está en initState).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final lang = Localizations.localeOf(context).languageCode;
+      context.read<AddressesBloc>().add(AddressesLoadRequested(lang));
+    });
+  }
+
+  List<AddressEntity> _shipmentsOf(AddressesState state) =>
+      state.addresses.where((a) => a.type == _kShipmentType).toList();
+
+  /// Autoselecciona la primera dirección de envío y descarta una selección que
+  /// ya no exista (p. ej. tras borrarla).
+  void _syncSelection(List<AddressEntity> shipments) {
+    final stillValid =
+        _selectedAddressId != null && shipments.any((a) => a.id == _selectedAddressId);
+    if (stillValid) return;
+    final next = shipments.isNotEmpty ? shipments.first.id : null;
+    if (next != _selectedAddressId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedAddressId = next);
+      });
+    }
+  }
+
+  Future<void> _addAddress() async {
+    // Reutiliza la pantalla de gestión de direcciones (con su propio bloc).
+    await Navigator.push(
+      context,
+      AdaptivePlatform.pageRoute<void>(
+        context: context,
+        builder: (_) => BlocProvider<AddressesBloc>(
+          create: (_) => sl<AddressesBloc>(),
+          child: const AddressesScreen(),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    // Al volver, recargamos para reflejar lo que el usuario haya creado.
+    final lang = Localizations.localeOf(context).languageCode;
+    context.read<AddressesBloc>().add(AddressesLoadRequested(lang));
+  }
 
   void _onState(BuildContext context, PaymentState state) {
     final l10n = AppLocalizations.of(context)!;
@@ -111,31 +176,269 @@ class _CheckoutView extends StatelessWidget {
     return BlocConsumer<PaymentBloc, PaymentState>(
       listenWhen: (prev, curr) => prev.status != curr.status,
       listener: _onState,
-      builder: (context, state) {
-        final busy = state.status == PaymentStatus.processing ||
-            state.status == PaymentStatus.verifying;
-        final onPay = busy
-            ? null
-            : () => context
-                .read<PaymentBloc>()
-                .add(const PaymentCheckoutRequested());
+      builder: (context, paymentState) {
+        return BlocBuilder<AddressesBloc, AddressesState>(
+          builder: (context, addressState) {
+            final shipments = _shipmentsOf(addressState);
+            _syncSelection(shipments);
 
-        if (AdaptivePlatform.isCupertino(context)) {
-          return _CupertinoCheckoutContent(
-            cart: cart,
-            busy: busy,
-            verifying: state.status == PaymentStatus.verifying,
-            onPay: onPay,
-          );
-        }
+            final busy = paymentState.status == PaymentStatus.processing ||
+                paymentState.status == PaymentStatus.verifying;
+            final canPay = !busy && _selectedAddressId != null;
+            final onPay = canPay
+                ? () => context
+                    .read<PaymentBloc>()
+                    .add(PaymentCheckoutRequested(_selectedAddressId!))
+                : null;
 
-        return _MaterialCheckoutContent(
-          cart: cart,
-          busy: busy,
-          verifying: state.status == PaymentStatus.verifying,
-          onPay: onPay,
+            final addressSection = _AddressSelection(
+              status: addressState.status,
+              shipments: shipments,
+              selectedAddressId: _selectedAddressId,
+              onSelect: (id) => setState(() => _selectedAddressId = id),
+              onAdd: _addAddress,
+              onRetry: () {
+                final lang = Localizations.localeOf(context).languageCode;
+                context.read<AddressesBloc>().add(AddressesLoadRequested(lang));
+              },
+            );
+
+            if (AdaptivePlatform.isCupertino(context)) {
+              return _CupertinoCheckoutContent(
+                cart: widget.cart,
+                busy: busy,
+                verifying: paymentState.status == PaymentStatus.verifying,
+                onPay: onPay,
+                addressSection: addressSection,
+              );
+            }
+
+            return _MaterialCheckoutContent(
+              cart: widget.cart,
+              busy: busy,
+              verifying: paymentState.status == PaymentStatus.verifying,
+              onPay: onPay,
+              addressSection: addressSection,
+            );
+          },
         );
       },
+    );
+  }
+}
+
+// ── Shipping address selection (adaptive) ──────────────────────────────────────
+
+String _addressTitle(AddressEntity a) =>
+    (a.recipient != null && a.recipient!.isNotEmpty) ? a.recipient! : a.lines.first;
+
+String _addressSubtitle(AddressEntity a) {
+  final parts = <String>[
+    if (a.recipient != null && a.recipient!.isNotEmpty)
+      ...a.lines
+    else
+      ...a.lines.skip(1),
+    ...a.subdivisions.map((s) => s.name),
+    if (a.zipCode != null && a.zipCode!.isNotEmpty) a.zipCode!,
+    a.countryCode,
+  ];
+  return parts.join(', ');
+}
+
+/// Selector adaptive de dirección de envío. Bloquea el pago cuando no hay
+/// ninguna seleccionada (la responsabilidad de deshabilitar el botón vive en
+/// el padre, que pone onPay = null sin selección).
+class _AddressSelection extends StatelessWidget {
+  const _AddressSelection({
+    required this.status,
+    required this.shipments,
+    required this.selectedAddressId,
+    required this.onSelect,
+    required this.onAdd,
+    required this.onRetry,
+  });
+
+  final AddressesStatus status;
+  final List<AddressEntity> shipments;
+  final String? selectedAddressId;
+  final ValueChanged<String> onSelect;
+  final VoidCallback onAdd;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cupertino = AdaptivePlatform.isCupertino(context);
+
+    if (status == AddressesStatus.loading && shipments.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: cupertino
+              ? const CupertinoActivityIndicator()
+              : const CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (status == AddressesStatus.failure && shipments.isEmpty) {
+      return _AddressMessageCard(
+        message: l10n.addressLoadError,
+        actionLabel: l10n.addressRetry,
+        onAction: onRetry,
+      );
+    }
+
+    if (shipments.isEmpty) {
+      return _AddressMessageCard(
+        message: l10n.checkoutNoShippingAddress,
+        actionLabel: l10n.addressAdd,
+        onAction: onAdd,
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        for (final a in shipments)
+          _AddressOption(
+            address: a,
+            selected: a.id == selectedAddressId,
+            onTap: () => onSelect(a.id),
+          ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: cupertino
+              ? CupertinoButton(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  onPressed: onAdd,
+                  child: Text(l10n.addressAdd),
+                )
+              : TextButton.icon(
+                  onPressed: onAdd,
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(l10n.addressAdd),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AddressOption extends StatelessWidget {
+  const _AddressOption({
+    required this.address,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AddressEntity address;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: selected ? colors.primaryContainer : colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 20,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        _addressTitle(address),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _addressSubtitle(address),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddressMessageCard extends StatelessWidget {
+  const _AddressMessageCard({
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              message,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FilledButton.tonalIcon(
+                onPressed: onAction,
+                icon: const Icon(Icons.add_location_alt_rounded, size: 18),
+                label: Text(actionLabel),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -148,12 +451,14 @@ class _MaterialCheckoutContent extends StatelessWidget {
     required this.busy,
     required this.verifying,
     required this.onPay,
+    required this.addressSection,
   });
 
   final CartEntity cart;
   final bool busy;
   final bool verifying;
   final VoidCallback? onPay;
+  final Widget addressSection;
 
   double get _subtotal => cart.total;
   double get _total => _subtotal + _kEstimatedShipping;
@@ -200,6 +505,12 @@ class _MaterialCheckoutContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
+                      _CoSection(
+                        scale: scale,
+                        label: l10n.checkoutAddress,
+                        child: addressSection,
+                      ),
+                      SizedBox(height: 20 * scale),
                       _CoSection(
                         scale: scale,
                         label: l10n.checkoutSummary,
@@ -312,6 +623,16 @@ class _MaterialCheckoutContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
+                      if (onPay == null && !busy) ...[
+                        Text(
+                          l10n.checkoutSelectAddress,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 12 * scale,
+                          ),
+                        ),
+                        SizedBox(height: 8 * scale),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -549,12 +870,14 @@ class _CupertinoCheckoutContent extends StatelessWidget {
     required this.busy,
     required this.verifying,
     required this.onPay,
+    required this.addressSection,
   });
 
   final CartEntity cart;
   final bool busy;
   final bool verifying;
   final VoidCallback? onPay;
+  final Widget addressSection;
 
   double get _subtotal => cart.total;
   double get _total => _subtotal + _kEstimatedShipping;
@@ -593,6 +916,15 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       SizedBox(height: 16 * scale),
+                      FeyamListSection(
+                        header: l10n.checkoutAddress,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.all(16 * scale),
+                            child: addressSection,
+                          ),
+                        ],
+                      ),
                       FeyamListSection(
                         header: l10n.checkoutSummary,
                         children: <Widget>[
@@ -681,13 +1013,26 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                           ),
                         ],
                       )
-                    : SizedBox(
-                        width: double.infinity,
-                        child: FeyamButton(
-                          label: l10n.checkoutPayButton,
-                          icon: CupertinoIcons.lock_fill,
-                          onPressed: onPay ?? () {},
-                        ),
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          if (onPay == null) ...[
+                            Text(
+                              l10n.checkoutSelectAddress,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 12, color: kFeyamLabelSec),
+                            ),
+                            SizedBox(height: 8 * scale),
+                          ],
+                          SizedBox(
+                            width: double.infinity,
+                            child: FeyamButton(
+                              label: l10n.checkoutPayButton,
+                              icon: CupertinoIcons.lock_fill,
+                              onPressed: onPay ?? () {},
+                            ),
+                          ),
+                        ],
                       ),
               ),
             ],

@@ -1016,6 +1016,18 @@ abstract class AppLocalizations {
   /// **'Shipping address'**
   String get checkoutAddress;
 
+  /// No description provided for @checkoutSelectAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a shipping address to continue'**
+  String get checkoutSelectAddress;
+
+  /// No description provided for @checkoutNoShippingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have a shipping address. Add one to continue.'**
+  String get checkoutNoShippingAddress;
+
   /// No description provided for @checkoutSummary.
   ///
   /// In en, this message translates to:

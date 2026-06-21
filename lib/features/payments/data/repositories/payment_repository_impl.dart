@@ -13,8 +13,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
   final PaymentRemoteDataSource _remoteDataSource;
 
   @override
-  Future<CheckoutSessionEntity> createCheckout() {
-    return _guard(() => _remoteDataSource.createCheckout());
+  Future<CheckoutSessionEntity> createCheckout(String addressId) {
+    return _guard(() => _remoteDataSource.createCheckout(addressId));
   }
 
   @override

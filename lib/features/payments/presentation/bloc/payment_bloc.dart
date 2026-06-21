@@ -36,7 +36,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     // 1. Crear el pago + PaymentIntent en el backend (total autoritativo).
     final CheckoutSessionEntity session;
     try {
-      session = await _createCheckout();
+      session = await _createCheckout(event.addressId);
     } on PaymentFailure catch (failure) {
       emit(state.copyWith(status: PaymentStatus.failure, failure: failure));
       return;

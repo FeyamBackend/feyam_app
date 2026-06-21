@@ -6,5 +6,6 @@ class CreateCheckoutUseCase {
 
   final PaymentRepository repository;
 
-  Future<CheckoutSessionEntity> call() => repository.createCheckout();
+  Future<CheckoutSessionEntity> call(String addressId) =>
+      repository.createCheckout(addressId);
 }

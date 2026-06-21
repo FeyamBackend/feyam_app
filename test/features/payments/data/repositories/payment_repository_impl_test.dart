@@ -18,7 +18,7 @@ void main() {
   test('maps server exceptions to PaymentFailure.serverError', () async {
     dataSource.checkoutBehaviors = <_Behavior>[_Behavior.server];
 
-    final failure = await _captureFailure(() => buildRepo().createCheckout());
+    final failure = await _captureFailure(() => buildRepo().createCheckout('addr_1'));
 
     expect(failure.code, PaymentFailureCode.serverError);
   });
@@ -26,7 +26,7 @@ void main() {
   test('returns the checkout session on success', () async {
     dataSource.checkoutBehaviors = <_Behavior>[_Behavior.ok];
 
-    final session = await buildRepo().createCheckout();
+    final session = await buildRepo().createCheckout('addr_1');
 
     expect(session.paymentId, 'pay_1');
     expect(dataSource.checkoutCalls, 1);
@@ -40,7 +40,7 @@ void main() {
       // refresh ya falló de forma definitiva: no se reintenta acá.
       dataSource.checkoutBehaviors = <_Behavior>[_Behavior.unauthorized];
 
-      final failure = await _captureFailure(() => buildRepo().createCheckout());
+      final failure = await _captureFailure(() => buildRepo().createCheckout('addr_1'));
 
       expect(failure.code, PaymentFailureCode.sessionExpired);
       expect(dataSource.checkoutCalls, 1);
@@ -66,7 +66,7 @@ class _FakeDataSource extends PaymentRemoteDataSource {
   int checkoutCalls = 0;
 
   @override
-  Future<CheckoutSessionModel> createCheckout() async {
+  Future<CheckoutSessionModel> createCheckout(String addressId) async {
     final behavior = checkoutBehaviors[checkoutCalls];
     checkoutCalls++;
     switch (behavior) {

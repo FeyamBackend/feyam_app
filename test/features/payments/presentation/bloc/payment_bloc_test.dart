@@ -35,7 +35,7 @@ void main() {
     final states = <PaymentState>[];
     final subscription = bloc.stream.listen(states.add);
 
-    bloc.add(const PaymentCheckoutRequested());
+    bloc.add(const PaymentCheckoutRequested('addr_1'));
     await bloc.stream
         .firstWhere((s) => s.status == PaymentStatus.success);
 
@@ -63,7 +63,7 @@ void main() {
     final states = <PaymentState>[];
     final subscription = bloc.stream.listen(states.add);
 
-    bloc.add(const PaymentCheckoutRequested());
+    bloc.add(const PaymentCheckoutRequested('addr_1'));
     await bloc.stream
         .firstWhere((s) => s.status == PaymentStatus.cancelled);
 
@@ -86,7 +86,7 @@ void main() {
     stripe.behavior = _SheetBehavior.error;
 
     final bloc = buildBloc();
-    bloc.add(const PaymentCheckoutRequested());
+    bloc.add(const PaymentCheckoutRequested('addr_1'));
     final state = await bloc.stream
         .firstWhere((s) => s.status == PaymentStatus.failure);
     await bloc.close();
@@ -100,7 +100,7 @@ void main() {
         const PaymentFailure(PaymentFailureCode.networkError);
 
     final bloc = buildBloc();
-    bloc.add(const PaymentCheckoutRequested());
+    bloc.add(const PaymentCheckoutRequested('addr_1'));
     final state = await bloc.stream
         .firstWhere((s) => s.status == PaymentStatus.failure);
     await bloc.close();
@@ -123,7 +123,7 @@ void main() {
     final states = <PaymentState>[];
     final subscription = bloc.stream.listen(states.add);
 
-    bloc.add(const PaymentCheckoutRequested());
+    bloc.add(const PaymentCheckoutRequested('addr_1'));
     final state = await bloc.stream
         .firstWhere((s) => s.status == PaymentStatus.pendingConfirmation);
 
@@ -150,7 +150,7 @@ void main() {
     final states = <PaymentState>[];
     final subscription = bloc.stream.listen(states.add);
 
-    bloc.add(const PaymentCheckoutRequested());
+    bloc.add(const PaymentCheckoutRequested('addr_1'));
     final state = await bloc.stream
         .firstWhere((s) => s.status == PaymentStatus.failure);
 
@@ -198,7 +198,7 @@ class _FakePaymentRepository implements PaymentRepository {
   final List<String> requestedPaymentIds = <String>[];
 
   @override
-  Future<CheckoutSessionEntity> createCheckout() async {
+  Future<CheckoutSessionEntity> createCheckout(String addressId) async {
     final failure = checkoutFailure;
     if (failure != null) throw failure;
     return session!;

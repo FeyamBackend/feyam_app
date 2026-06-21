@@ -658,7 +658,7 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
     super.initState();
     final initial = widget.initial;
     _type = initial?.type ?? 'Shipment';
-    _country = TextEditingController(text: initial?.countryCode ?? 'CO');
+    _country = TextEditingController(text: initial?.countryCode ?? 'VE');
     _lines = (initial?.lines.isNotEmpty ?? false)
         ? initial!.lines.map((l) => TextEditingController(text: l)).toList()
         : <TextEditingController>[TextEditingController()];
@@ -739,7 +739,7 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
       (b) => b.state.actionStatus == AddressActionStatus.inProgress,
     );
     final countryError =
-        _submitted && _country.text.trim().length != 2 ? 'Usá el código de 2 letras (ej. CO)' : null;
+        _submitted && _country.text.trim().length != 2 ? 'Usá el código de 2 letras (ej. VE)' : null;
     final linesError =
         _submitted && _lines[0].text.trim().isEmpty ? 'Requerido' : null;
 
@@ -819,7 +819,7 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                     const SizedBox(height: 16),
                     _SheetField(
                       label: 'País (código de 2 letras)',
-                      placeholder: 'CO',
+                      placeholder: 'VE',
                       controller: _country,
                       maxLength: 2,
                       textCapitalization: TextCapitalization.characters,

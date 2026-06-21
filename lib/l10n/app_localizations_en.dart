@@ -481,6 +481,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutAddress => 'Shipping address';
 
   @override
+  String get checkoutSelectAddress => 'Select a shipping address to continue';
+
+  @override
+  String get checkoutNoShippingAddress =>
+      'You don\'t have a shipping address. Add one to continue.';
+
+  @override
   String get checkoutSummary => 'Order summary';
 
   @override

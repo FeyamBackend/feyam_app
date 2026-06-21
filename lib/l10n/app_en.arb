@@ -158,6 +158,8 @@
     "storesHint": "Tap a store to open it in your browser. Copy the product link and paste it in Feyam.",
     "checkoutTitle": "Checkout",
     "checkoutAddress": "Shipping address",
+    "checkoutSelectAddress": "Select a shipping address to continue",
+    "checkoutNoShippingAddress": "You don't have a shipping address. Add one to continue.",
     "checkoutSummary": "Order summary",
     "checkoutPayMethod": "Payment",
     "checkoutPayInfo": "We'll contact you to coordinate payment once we review your order.",

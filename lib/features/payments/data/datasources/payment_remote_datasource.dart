@@ -24,14 +24,15 @@ class PaymentRemoteDataSource {
   final http.Client _client;
   final String _apiBaseUrl;
 
-  /// POST /api/payments/checkout — sin body; el carrito activo y el usuario
-  /// se resuelven server-side desde el token.
-  Future<CheckoutSessionModel> createCheckout() async {
+  /// POST /api/payments/checkout — el carrito activo y el usuario se resuelven
+  /// server-side desde el token; el body lleva la dirección de envío elegida.
+  Future<CheckoutSessionModel> createCheckout(String addressId) async {
     final uri = Uri.parse('$_apiBaseUrl/api/payments/checkout');
 
     final response = await _client.post(
       uri,
       headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'addressId': addressId}),
     );
 
     if (response.statusCode == 401) throw const PaymentUnauthorizedException();

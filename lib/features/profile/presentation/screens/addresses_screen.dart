@@ -472,7 +472,7 @@ class _AddressSheetState extends State<_AddressSheet> {
     super.initState();
     final initial = widget.initial;
     _type = initial?.type ?? 'Shipment';
-    _countryCode = initial?.countryCode ?? 'CO';
+    _countryCode = initial?.countryCode ?? 'VE';
     _lines = (initial?.lines.isNotEmpty ?? false)
         ? initial!.lines.map((l) => TextEditingController(text: l)).toList()
         : <TextEditingController>[TextEditingController()];
