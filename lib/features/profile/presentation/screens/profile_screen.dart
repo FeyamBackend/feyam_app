@@ -1,11 +1,19 @@
+import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:feyam/features/profile/domain/entities/address_entity.dart';
+import 'package:feyam/features/profile/domain/entities/address_params.dart';
+import 'package:feyam/features/profile/domain/entities/address_subdivision_entity.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_state.dart';
 import 'package:feyam/features/profile/presentation/screens/addresses_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/payment_methods_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -14,7 +22,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (AdaptivePlatform.isCupertino(context)) {
-      return const _CupertinoProfileContent();
+      return BlocProvider<AddressesBloc>(
+        create: (_) => sl<AddressesBloc>()
+          ..add(
+            AddressesLoadRequested(Localizations.localeOf(context).languageCode),
+          ),
+        child: const _CupertinoProfileContent(),
+      );
     }
 
     return const _MaterialProfileContent();
@@ -58,7 +72,10 @@ class _MaterialProfileContent extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute<void>(
-                              builder: (_) => const AddressesScreen(),
+                              builder: (_) => BlocProvider<AddressesBloc>(
+                                create: (_) => sl<AddressesBloc>(),
+                                child: const AddressesScreen(),
+                              ),
                             ),
                           ),
                         ),
@@ -378,16 +395,28 @@ class _CupertinoProfileContent extends StatefulWidget {
 }
 
 class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
-  static const _addresses = <_CupertinoAddress>[
-    _CupertinoAddress(id: 1, label: 'Casa',    line: 'Cra. 45 #26-12, Apto 304',  city: 'Medellín, Antioquia'),
-    _CupertinoAddress(id: 2, label: 'Oficina', line: 'Calle 50 #12-34, Piso 8',   city: 'Bogotá, Cundinamarca'),
-  ];
+  bool _sheetOpen = false;
 
-  void _showAddressSheet(BuildContext context, {_CupertinoAddress? initial}) {
+  void _showAddressSheet(BuildContext context, {AddressEntity? initial}) {
+    final bloc = context.read<AddressesBloc>();
+    _sheetOpen = true;
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (_) => _AddressSheet(initial: initial),
-    );
+      builder: (_) => BlocProvider<AddressesBloc>.value(
+        value: bloc,
+        child: _CupertinoAddressSheet(
+          initial: initial,
+          onSave: (id, params) {
+            if (id != null) {
+              bloc.add(AddressUpdateRequested(id, params));
+            } else {
+              bloc.add(AddressCreateRequested(params));
+            }
+          },
+          onDelete: (id) => bloc.add(AddressDeleteRequested(id)),
+        ),
+      ),
+    ).whenComplete(() => _sheetOpen = false);
   }
 
   void _showLogoutDialog(BuildContext context) {
@@ -476,28 +505,60 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                         ],
                       ),
                       // Addresses
-                      FeyamListSection(
-                        header: 'Mis direcciones',
-                        footer: _addresses.isEmpty ? 'Todavía no agregaste direcciones.' : null,
-                        children: <Widget>[
-                          for (var i = 0; i < _addresses.length; i++)
-                            FeyamListTile(
-                              title: Text(_addresses[i].label),
-                              subtitle: Text('${_addresses[i].line} · ${_addresses[i].city}'),
-                              leading: FeyamIconTile(
-                                icon: _addresses[i].label.toLowerCase().contains('casa') ? CupertinoIcons.house_fill : CupertinoIcons.bag_fill,
-                                color: _addresses[i].label.toLowerCase().contains('casa') ? kFeyamGreen : kFeyamTint,
+                      BlocConsumer<AddressesBloc, AddressesState>(
+                        listenWhen: (prev, curr) =>
+                            prev.actionStatus != curr.actionStatus,
+                        listener: (context, state) {
+                          if (state.actionStatus ==
+                                  AddressActionStatus.success &&
+                              _sheetOpen) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        builder: (context, state) {
+                          final addresses = state.addresses;
+                          final loading =
+                              state.status == AddressesStatus.loading &&
+                                  addresses.isEmpty;
+                          return FeyamListSection(
+                            header: 'Mis direcciones',
+                            footer: addresses.isEmpty && !loading
+                                ? 'Todavía no agregaste direcciones.'
+                                : null,
+                            children: <Widget>[
+                              if (loading)
+                                const FeyamListTile(
+                                  title: Text('Cargando…'),
+                                  chevron: false,
+                                ),
+                              for (var i = 0; i < addresses.length; i++)
+                                FeyamListTile(
+                                  title: Text(_cupertinoTitle(addresses[i])),
+                                  subtitle:
+                                      Text(_cupertinoSubtitle(addresses[i])),
+                                  leading: FeyamIconTile(
+                                    icon: addresses[i].type == 'Billing'
+                                        ? CupertinoIcons.bag_fill
+                                        : CupertinoIcons.house_fill,
+                                    color: addresses[i].type == 'Billing'
+                                        ? kFeyamTint
+                                        : kFeyamGreen,
+                                  ),
+                                  isLast: false,
+                                  onTap: () => _showAddressSheet(context,
+                                      initial: addresses[i]),
+                                ),
+                              FeyamListTile(
+                                title: const Text('Agregar dirección'),
+                                leading: FeyamIconTile(
+                                    icon: CupertinoIcons.plus_circle_fill,
+                                    color: kFeyamGreen),
+                                isLast: true,
+                                onTap: () => _showAddressSheet(context),
                               ),
-                              isLast: false,
-                              onTap: () => _showAddressSheet(context, initial: _addresses[i]),
-                            ),
-                          FeyamListTile(
-                            title: const Text('Agregar dirección'),
-                            leading: FeyamIconTile(icon: CupertinoIcons.plus_circle_fill, color: kFeyamGreen),
-                            isLast: true,
-                            onTap: () => _showAddressSheet(context),
-                          ),
-                        ],
+                            ],
+                          );
+                        },
                       ),
                       // Settings
                       FeyamListSection(
@@ -549,48 +610,138 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
   }
 }
 
-class _CupertinoAddress {
-  const _CupertinoAddress({required this.id, required this.label, required this.line, required this.city});
-  final int id;
-  final String label;
-  final String line;
-  final String city;
+String _cupertinoTitle(AddressEntity a) {
+  final recipient = a.recipient?.trim() ?? '';
+  if (recipient.isNotEmpty) return recipient;
+  return a.type == 'Billing' ? 'Facturación' : 'Envío';
+}
+
+String _cupertinoSubtitle(AddressEntity a) {
+  final parts = <String>[
+    ...a.lines,
+    ...a.subdivisions.map((s) => s.name),
+    if (a.zipCode != null && a.zipCode!.isNotEmpty) a.zipCode!,
+    a.countryCode,
+  ];
+  return parts.join(' · ');
 }
 
 // ── Address Sheet ─────────────────────────────────────────────────────────────
 
-class _AddressSheet extends StatefulWidget {
-  const _AddressSheet({this.initial});
-  final _CupertinoAddress? initial;
+class _CupertinoAddressSheet extends StatefulWidget {
+  const _CupertinoAddressSheet({
+    this.initial,
+    required this.onSave,
+    required this.onDelete,
+  });
+
+  final AddressEntity? initial;
+  final void Function(String? id, AddressParams params) onSave;
+  final void Function(String id) onDelete;
 
   @override
-  State<_AddressSheet> createState() => _AddressSheetState();
+  State<_CupertinoAddressSheet> createState() => _CupertinoAddressSheetState();
 }
 
-class _AddressSheetState extends State<_AddressSheet> {
-  late final TextEditingController _labelCtrl;
-  late final TextEditingController _lineCtrl;
-  late final TextEditingController _cityCtrl;
+class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
+  late String _type;
+  late final TextEditingController _country;
+  late final List<TextEditingController> _lines;
+  late final TextEditingController _subdivision;
+  late final TextEditingController _zip;
+  late final TextEditingController _recipient;
+  late final TextEditingController _instructions;
+  bool _submitted = false;
 
   @override
   void initState() {
     super.initState();
-    _labelCtrl = TextEditingController(text: widget.initial?.label ?? '');
-    _lineCtrl  = TextEditingController(text: widget.initial?.line  ?? '');
-    _cityCtrl  = TextEditingController(text: widget.initial?.city  ?? '');
+    final initial = widget.initial;
+    _type = initial?.type ?? 'Shipment';
+    _country = TextEditingController(text: initial?.countryCode ?? 'CO');
+    _lines = (initial?.lines.isNotEmpty ?? false)
+        ? initial!.lines.map((l) => TextEditingController(text: l)).toList()
+        : <TextEditingController>[TextEditingController()];
+    _subdivision = TextEditingController(
+      text: initial?.subdivisions.isNotEmpty ?? false
+          ? initial!.subdivisions.first.name
+          : '',
+    );
+    _zip = TextEditingController(text: initial?.zipCode ?? '');
+    _recipient = TextEditingController(text: initial?.recipient ?? '');
+    _instructions =
+        TextEditingController(text: initial?.deliveryInstructions ?? '');
   }
 
   @override
   void dispose() {
-    _labelCtrl.dispose();
-    _lineCtrl.dispose();
-    _cityCtrl.dispose();
+    _country.dispose();
+    for (final c in _lines) {
+      c.dispose();
+    }
+    _subdivision.dispose();
+    _zip.dispose();
+    _recipient.dispose();
+    _instructions.dispose();
     super.dispose();
+  }
+
+  void _addLine() {
+    if (_lines.length >= 5) return;
+    setState(() => _lines.add(TextEditingController()));
+  }
+
+  void _removeLine(int index) {
+    if (_lines.length <= 1) return;
+    setState(() => _lines.removeAt(index).dispose());
+  }
+
+  void _save() {
+    setState(() => _submitted = true);
+
+    final country = _country.text.trim();
+    final lines = _lines
+        .map((c) => c.text.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    if (country.length != 2 || lines.isEmpty) return;
+
+    final subName = _subdivision.text.trim();
+    final subdivisions = subName.isEmpty
+        ? const <AddressSubdivisionEntity>[]
+        : <AddressSubdivisionEntity>[
+            // El backend exige code no nulo; usamos el nombre como código.
+            AddressSubdivisionEntity(
+                type: 'Other', code: subName, name: subName),
+          ];
+
+    final params = AddressParams(
+      type: _type,
+      countryCode: country.toUpperCase(),
+      lines: lines,
+      zipCode: _zip.text.trim().isEmpty ? null : _zip.text.trim(),
+      recipient:
+          _recipient.text.trim().isEmpty ? null : _recipient.text.trim(),
+      deliveryInstructions: _instructions.text.trim().isEmpty
+          ? null
+          : _instructions.text.trim(),
+      subdivisions: subdivisions,
+    );
+
+    widget.onSave(widget.initial?.id, params);
   }
 
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.initial != null;
+    final inProgress = context.select<AddressesBloc, bool>(
+      (b) => b.state.actionStatus == AddressActionStatus.inProgress,
+    );
+    final countryError =
+        _submitted && _country.text.trim().length != 2 ? 'Usá el código de 2 letras (ej. CO)' : null;
+    final linesError =
+        _submitted && _lines[0].text.trim().isEmpty ? 'Requerido' : null;
 
     return Container(
       decoration: const BoxDecoration(
@@ -598,89 +749,206 @@ class _AddressSheetState extends State<_AddressSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          // Drag handle + title
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Container(
-              width: 36, height: 5,
-              decoration: BoxDecoration(color: kFeyamFillTer, borderRadius: BorderRadius.circular(3)),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Row(
-              children: <Widget>[
-                const SizedBox(width: 60),
-                Expanded(
-                  child: Text(
-                    isEdit ? 'Editar dirección' : 'Agregar dirección',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: kFeyamLabel),
-                  ),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              // Drag handle + title
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                      color: kFeyamFillTer,
+                      borderRadius: BorderRadius.circular(3)),
                 ),
-                SizedBox(
-                  width: 60,
-                  child: CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cerrar', style: TextStyle(fontSize: 17, color: kFeyamTint)),
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Row(
+                  children: <Widget>[
+                    const SizedBox(width: 60),
+                    Expanded(
+                      child: Text(
+                        isEdit ? 'Editar dirección' : 'Agregar dirección',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: kFeyamLabel),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 60,
+                      child: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed:
+                            inProgress ? null : () => Navigator.of(context).pop(),
+                        child: const Text('Cerrar',
+                            style: TextStyle(fontSize: 17, color: kFeyamTint)),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          Container(height: 0.5, color: kFeyamSepLight),
-          // Fields
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-            child: Column(
-              children: <Widget>[
-                _SheetField(label: 'Etiqueta', placeholder: 'Casa, Oficina…', controller: _labelCtrl),
-                const SizedBox(height: 16),
-                _SheetField(label: 'Dirección', placeholder: 'Calle, número, apto', controller: _lineCtrl),
-                const SizedBox(height: 16),
-                _SheetField(label: 'Ciudad', placeholder: 'Ciudad, provincia', controller: _cityCtrl),
-              ],
-            ),
-          ),
-          // Actions
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
-            child: Column(
-              children: <Widget>[
-                SizedBox(
-                  width: double.infinity,
-                  child: FeyamButton(label: 'Guardar', onPressed: () => Navigator.of(context).pop()),
+              ),
+              Container(height: 0.5, color: kFeyamSepLight),
+              // Fields
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    CupertinoSlidingSegmentedControl<String>(
+                      groupValue: _type,
+                      children: const <String, Widget>{
+                        'Shipment': Padding(
+                          padding: EdgeInsets.symmetric(vertical: 6),
+                          child: Text('Envío'),
+                        ),
+                        'Billing': Padding(
+                          padding: EdgeInsets.symmetric(vertical: 6),
+                          child: Text('Facturación'),
+                        ),
+                      },
+                      onValueChanged: (v) =>
+                          setState(() => _type = v ?? _type),
+                    ),
+                    const SizedBox(height: 16),
+                    _SheetField(
+                      label: 'País (código de 2 letras)',
+                      placeholder: 'CO',
+                      controller: _country,
+                      maxLength: 2,
+                      textCapitalization: TextCapitalization.characters,
+                      errorText: countryError,
+                    ),
+                    const SizedBox(height: 16),
+                    for (var i = 0; i < _lines.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: _SheetField(
+                                label: 'Línea ${i + 1}',
+                                placeholder: 'Calle, número, apto',
+                                controller: _lines[i],
+                                errorText: i == 0 ? linesError : null,
+                              ),
+                            ),
+                            if (_lines.length > 1)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 22, left: 4),
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _removeLine(i),
+                                  child: const Icon(
+                                      CupertinoIcons.minus_circle_fill,
+                                      color: kFeyamRed),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    if (_lines.length < 5)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: _addLine,
+                          child: const Text('Agregar línea',
+                              style: TextStyle(fontSize: 15, color: kFeyamTint)),
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    _SheetField(
+                        label: 'Ciudad / Estado',
+                        placeholder: 'Medellín, Antioquia',
+                        controller: _subdivision),
+                    const SizedBox(height: 16),
+                    _SheetField(
+                        label: 'Código postal',
+                        placeholder: '050021',
+                        controller: _zip),
+                    const SizedBox(height: 16),
+                    _SheetField(
+                        label: 'Destinatario',
+                        placeholder: 'Nombre de quien recibe',
+                        controller: _recipient),
+                    const SizedBox(height: 16),
+                    _SheetField(
+                        label: 'Instrucciones de entrega',
+                        placeholder: 'Portería, referencias…',
+                        controller: _instructions),
+                  ],
                 ),
-                if (isEdit) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FeyamButton(label: 'Eliminar dirección', variant: FeyamButtonVariant.destructivePlain, onPressed: () => Navigator.of(context).pop()),
-                  ),
-                ],
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: FeyamButton(label: 'Cancelar', variant: FeyamButtonVariant.plain, onPressed: () => Navigator.of(context).pop()),
+              ),
+              // Actions
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                child: Column(
+                  children: <Widget>[
+                    SizedBox(
+                      width: double.infinity,
+                      child: FeyamButton(
+                        label: inProgress ? 'Guardando…' : 'Guardar',
+                        onPressed: inProgress ? null : _save,
+                      ),
+                    ),
+                    if (isEdit) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FeyamButton(
+                          label: 'Eliminar dirección',
+                          variant: FeyamButtonVariant.destructivePlain,
+                          onPressed: inProgress
+                              ? null
+                              : () => widget.onDelete(widget.initial!.id),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FeyamButton(
+                        label: 'Cancelar',
+                        variant: FeyamButtonVariant.plain,
+                        onPressed:
+                            inProgress ? null : () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _SheetField extends StatelessWidget {
-  const _SheetField({required this.label, required this.placeholder, required this.controller});
+  const _SheetField({
+    required this.label,
+    required this.placeholder,
+    required this.controller,
+    this.maxLength,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.errorText,
+  });
+
   final String label;
   final String placeholder;
   final TextEditingController controller;
+  final int? maxLength;
+  final TextCapitalization textCapitalization;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -694,14 +962,26 @@ class _SheetField extends StatelessWidget {
           decoration: BoxDecoration(
             color: kFeyamCard,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: kFeyamSepLight),
+            border: Border.all(
+                color: errorText != null ? kFeyamRed : kFeyamSepLight),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: CupertinoTextField.borderless(
             controller: controller,
             placeholder: placeholder,
+            textCapitalization: textCapitalization,
+            inputFormatters: maxLength != null
+                ? <TextInputFormatter>[
+                    LengthLimitingTextInputFormatter(maxLength),
+                  ]
+                : null,
           ),
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: 4),
+          Text(errorText!,
+              style: const TextStyle(fontSize: 12, color: kFeyamRed)),
+        ],
       ],
     );
   }

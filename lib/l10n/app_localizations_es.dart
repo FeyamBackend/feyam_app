@@ -610,6 +610,51 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addressDefault => 'Predeterminada';
 
   @override
+  String get addressType => 'Tipo';
+
+  @override
+  String get addressTypeShipment => 'Envío';
+
+  @override
+  String get addressTypeBilling => 'Facturación';
+
+  @override
+  String get addressCountry => 'País';
+
+  @override
+  String get addressLine => 'Línea de dirección';
+
+  @override
+  String get addressLineAdd => 'Agregar línea';
+
+  @override
+  String get addressZip => 'Código postal';
+
+  @override
+  String get addressRecipient => 'Destinatario';
+
+  @override
+  String get addressInstructions => 'Instrucciones de entrega';
+
+  @override
+  String get addressSubdivision => 'Ciudad / Estado';
+
+  @override
+  String get addressCountryInvalid => 'Selecciona un país';
+
+  @override
+  String get addressLoadError => 'No pudimos cargar tus direcciones.';
+
+  @override
+  String get addressSaveError => 'No pudimos guardar la dirección.';
+
+  @override
+  String get addressDeleteError => 'No pudimos eliminar la dirección.';
+
+  @override
+  String get addressRetry => 'Reintentar';
+
+  @override
   String get paymentTitle => 'Métodos de pago';
 
   @override

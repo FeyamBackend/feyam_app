@@ -30,6 +30,15 @@ import 'package:feyam/features/orders/data/datasources/orders_remote_datasource.
 import 'package:feyam/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:feyam/features/orders/domain/usecases/get_recent_orders.dart';
 import 'package:feyam/features/orders/presentation/bloc/recent_orders_bloc.dart';
+import 'package:feyam/features/profile/data/datasources/address_remote_datasource.dart';
+import 'package:feyam/features/profile/data/repositories/address_repository_impl.dart';
+import 'package:feyam/features/profile/domain/repositories/address_repository.dart';
+import 'package:feyam/features/profile/domain/usecases/create_address.dart';
+import 'package:feyam/features/profile/domain/usecases/delete_address.dart';
+import 'package:feyam/features/profile/domain/usecases/get_addresses.dart';
+import 'package:feyam/features/profile/domain/usecases/get_countries.dart';
+import 'package:feyam/features/profile/domain/usecases/update_address.dart';
+import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -225,5 +234,52 @@ void configureDependencies({AppConfig? appConfig}) {
 
   sl.registerFactory<RecentOrdersBloc>(
     () => RecentOrdersBloc(getRecentOrdersUseCase: sl<GetRecentOrdersUseCase>()),
+  );
+
+  /**
+   * Profile / Addresses Module
+   */
+
+  sl.registerLazySingleton(
+    () => AddressRemoteDataSource(
+      client: sl<http.Client>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerLazySingleton<AddressRepository>(
+    () => AddressRepositoryImpl(
+      remoteDataSource: sl<AddressRemoteDataSource>(),
+    ),
+  );
+
+  sl.registerFactory<GetAddressesUseCase>(
+    () => GetAddressesUseCase(sl<AddressRepository>()),
+  );
+
+  sl.registerFactory<GetCountriesUseCase>(
+    () => GetCountriesUseCase(sl<AddressRepository>()),
+  );
+
+  sl.registerFactory<CreateAddressUseCase>(
+    () => CreateAddressUseCase(sl<AddressRepository>()),
+  );
+
+  sl.registerFactory<UpdateAddressUseCase>(
+    () => UpdateAddressUseCase(sl<AddressRepository>()),
+  );
+
+  sl.registerFactory<DeleteAddressUseCase>(
+    () => DeleteAddressUseCase(sl<AddressRepository>()),
+  );
+
+  sl.registerFactory<AddressesBloc>(
+    () => AddressesBloc(
+      getAddressesUseCase: sl<GetAddressesUseCase>(),
+      getCountriesUseCase: sl<GetCountriesUseCase>(),
+      createAddressUseCase: sl<CreateAddressUseCase>(),
+      updateAddressUseCase: sl<UpdateAddressUseCase>(),
+      deleteAddressUseCase: sl<DeleteAddressUseCase>(),
+    ),
   );
 }

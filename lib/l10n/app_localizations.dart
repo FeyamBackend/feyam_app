@@ -1256,6 +1256,96 @@ abstract class AppLocalizations {
   /// **'Default'**
   String get addressDefault;
 
+  /// No description provided for @addressType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get addressType;
+
+  /// No description provided for @addressTypeShipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping'**
+  String get addressTypeShipment;
+
+  /// No description provided for @addressTypeBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing'**
+  String get addressTypeBilling;
+
+  /// No description provided for @addressCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get addressCountry;
+
+  /// No description provided for @addressLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line'**
+  String get addressLine;
+
+  /// No description provided for @addressLineAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add line'**
+  String get addressLineAdd;
+
+  /// No description provided for @addressZip.
+  ///
+  /// In en, this message translates to:
+  /// **'ZIP / postal code'**
+  String get addressZip;
+
+  /// No description provided for @addressRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get addressRecipient;
+
+  /// No description provided for @addressInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery instructions'**
+  String get addressInstructions;
+
+  /// No description provided for @addressSubdivision.
+  ///
+  /// In en, this message translates to:
+  /// **'City / State'**
+  String get addressSubdivision;
+
+  /// No description provided for @addressCountryInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a country'**
+  String get addressCountryInvalid;
+
+  /// No description provided for @addressLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your addresses.'**
+  String get addressLoadError;
+
+  /// No description provided for @addressSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t save the address.'**
+  String get addressSaveError;
+
+  /// No description provided for @addressDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t delete the address.'**
+  String get addressDeleteError;
+
+  /// No description provided for @addressRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get addressRetry;
+
   /// No description provided for @paymentTitle.
   ///
   /// In en, this message translates to:
