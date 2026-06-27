@@ -1,4 +1,6 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/stores/domain/entities/store_entity.dart';
 import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
@@ -125,6 +127,15 @@ class _StoresScreenState extends State<StoresScreen> {
   }
 }
 
+Future<void> _openStore(String host) async {
+  final uri = Uri.parse('https://$host');
+  try {
+    await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+  } on PlatformException {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
 IconData _materialIconFromName(String iconName) => switch (iconName) {
       'shopping_bag' => Icons.shopping_bag_rounded,
       'gavel' => Icons.gavel_rounded,
@@ -150,7 +161,7 @@ class _StoreListTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return InkWell(
-      onTap: () {},
+      onTap: () => _openStore(store.host),
       child: Padding(
         padding: EdgeInsets.symmetric(
             horizontal: 8 * scale, vertical: 4 * scale),
@@ -307,7 +318,7 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
                                   ),
                                   chevron: false,
                                   isLast: i == state.stores.length - 1,
-                                  onTap: () {},
+                                  onTap: () => _openStore(state.stores[i].host),
                                 ),
                             ],
                           ),

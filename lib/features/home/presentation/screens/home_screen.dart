@@ -1,4 +1,6 @@
 import 'package:feyam/core/di/injection_container.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
@@ -31,6 +33,15 @@ class HomeScreen extends StatelessWidget {
           ? const _CupertinoHomeContent()
           : const _MaterialHomeContent(),
     );
+  }
+}
+
+Future<void> _openStore(String host) async {
+  final uri = Uri.parse('https://$host');
+  try {
+    await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+  } on PlatformException {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }
 
@@ -74,10 +85,10 @@ class _MaterialHomeContent extends StatelessWidget {
   const _MaterialHomeContent();
 
   static const _stores = <_StoreData>[
-    _StoreData(name: 'Amazon', icon: Icons.shopping_bag_rounded, color: Color(0xFFFF9900)),
-    _StoreData(name: 'eBay', icon: Icons.gavel_rounded, color: Color(0xFFE53238)),
-    _StoreData(name: 'Walmart', icon: Icons.storefront_rounded, color: Color(0xFF0071DC)),
-    _StoreData(name: 'Best Buy', icon: Icons.devices_rounded, color: Color(0xFF0A4ABF)),
+    _StoreData(name: 'Amazon',   host: 'amazon.com',   icon: Icons.shopping_bag_rounded, color: Color(0xFFFF9900)),
+    _StoreData(name: 'eBay',     host: 'ebay.com',     icon: Icons.gavel_rounded,        color: Color(0xFFE53238)),
+    _StoreData(name: 'Walmart',  host: 'walmart.com',  icon: Icons.storefront_rounded,   color: Color(0xFF0071DC)),
+    _StoreData(name: 'Best Buy', host: 'bestbuy.com',  icon: Icons.devices_rounded,      color: Color(0xFF0A4ABF)),
   ];
 
   @override
@@ -692,39 +703,43 @@ class _StoreTile extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12 * scale),
-        border: Border.all(color: colors.outlineVariant),
-        color: colors.surfaceContainerLow,
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 10 * scale),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 36 * scale,
-              height: 36 * scale,
-              decoration: BoxDecoration(
-                color: store.color,
-                borderRadius: BorderRadius.circular(8 * scale),
+    return InkWell(
+      onTap: () => _openStore(store.host),
+      borderRadius: BorderRadius.circular(12 * scale),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12 * scale),
+          border: Border.all(color: colors.outlineVariant),
+          color: colors.surfaceContainerLow,
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 10 * scale),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 36 * scale,
+                height: 36 * scale,
+                decoration: BoxDecoration(
+                  color: store.color,
+                  borderRadius: BorderRadius.circular(8 * scale),
+                ),
+                child: Icon(store.icon, color: Colors.white, size: 20 * scale),
               ),
-              child: Icon(store.icon, color: Colors.white, size: 20 * scale),
-            ),
-            SizedBox(width: 10 * scale),
-            Expanded(
-              child: Text(
-                store.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.labelLarge?.copyWith(
-                  color: colors.onSurface,
-                  fontSize: 14 * scale,
-                  fontWeight: FontWeight.w600,
+              SizedBox(width: 10 * scale),
+              Expanded(
+                child: Text(
+                  store.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: colors.onSurface,
+                    fontSize: 14 * scale,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -750,9 +765,10 @@ class _OrderPreview {
 }
 
 class _StoreData {
-  const _StoreData({required this.name, required this.icon, required this.color});
+  const _StoreData({required this.name, required this.host, required this.icon, required this.color});
 
   final String name;
+  final String host;
   final IconData icon;
   final Color color;
 }
@@ -804,7 +820,7 @@ class _CupertinoHomeContent extends StatelessWidget {
                               ),
                               chevron: false,
                               isLast: false,
-                              onTap: () {},
+                              onTap: () => _openStore(_stores[i].host),
                             ),
                           FeyamListTile(
                             title: const Text('Ver todas las tiendas'),
