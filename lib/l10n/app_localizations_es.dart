@@ -231,17 +231,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get cartRemoveItemSemanticLabel => 'Eliminar producto';
 
   @override
-  String get cartTitle => 'Your Cart';
+  String get cartTitle => 'Mi carrito';
 
   @override
   String get cartEstimatedShipping => 'Envío estimado';
 
   @override
-  String get cartCheckoutMaterialButton => 'Continue to Checkout';
+  String get cartCheckoutMaterialButton => 'Continuar al checkout';
 
   @override
   String get cartMaterialFootnote =>
-      'Tax calculated at checkout. Secure SSL encrypted payment processing.';
+      'El precio final puede variar según impuestos de aduana y tipo de cambio. Coordinamos el pago de forma segura una vez revisemos tu pedido.';
 
   @override
   String get cartEmptyTitle => 'Tu carrito está vacío';

@@ -62,7 +62,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     CartItemQuantityUpdateRequested event,
     Emitter<CartState> emit,
   ) async {
-    emit(state.copyWith(status: CartStatus.loading));
+    emit(state.copyWith(status: CartStatus.updating));
     try {
       final cart = await _updateCartItemQuantity(event.itemId, event.newQuantity);
       emit(state.copyWith(status: CartStatus.loaded, cart: cart));

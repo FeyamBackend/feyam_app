@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
 import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
 
-enum CartStatus { initial, loading, loaded, empty, failure }
+enum CartStatus { initial, loading, updating, loaded, empty, failure }
 
 class CartState extends Equatable {
   const CartState({
