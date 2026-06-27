@@ -1,9 +1,12 @@
 {
   "dart.flutterSdkPath": "C:/Users/diego/develop/flutter",
   "dart.env": {
-    "ANDROID_HOME": "C:/android/sdk",
-    "ANDROID_SDK_ROOT": "C:/android/sdk",
-    "JAVA_HOME": "C:/Program Files/Eclipse Adoptium/jdk-17.0.19.10-hotspot"
+    "ANDROID_HOME": "/Users/diego/Documents/android-sdk",
+    "ANDROID_SDK_ROOT": "/Users/diego/Documents/android-sdk"
+  },
+  "terminal.integrated.env.osx": {
+    "ANDROID_HOME": "/Users/diego/Documents/android-sdk",
+    "ANDROID_SDK_ROOT": "/Users/diego/Documents/android-sdk"
   },
   "avdmanager.sdkPath": "C:/android/sdk",
   "avdmanager.cmdVersion": "latest",

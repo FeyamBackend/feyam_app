@@ -37,8 +37,14 @@ import 'package:feyam/features/profile/domain/usecases/create_address.dart';
 import 'package:feyam/features/profile/domain/usecases/delete_address.dart';
 import 'package:feyam/features/profile/domain/usecases/get_addresses.dart';
 import 'package:feyam/features/profile/domain/usecases/get_countries.dart';
+import 'package:feyam/features/profile/domain/usecases/get_user_country_code.dart';
 import 'package:feyam/features/profile/domain/usecases/update_address.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
+import 'package:feyam/features/stores/data/datasources/stores_remote_datasource.dart';
+import 'package:feyam/features/stores/data/repositories/stores_repository_impl.dart';
+import 'package:feyam/features/stores/domain/repositories/stores_repository.dart';
+import 'package:feyam/features/stores/domain/usecases/get_stores_usecase.dart';
+import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -280,6 +286,38 @@ void configureDependencies({AppConfig? appConfig}) {
       createAddressUseCase: sl<CreateAddressUseCase>(),
       updateAddressUseCase: sl<UpdateAddressUseCase>(),
       deleteAddressUseCase: sl<DeleteAddressUseCase>(),
+    ),
+  );
+
+  sl.registerFactory<GetUserCountryCodeUseCase>(
+    () => GetUserCountryCodeUseCase(sl<AddressRepository>()),
+  );
+
+  /**
+   * Stores Module
+   */
+
+  sl.registerLazySingleton(
+    () => StoresRemoteDataSource(
+      client: sl<http.Client>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerLazySingleton<StoresRepository>(
+    () => StoresRepositoryImpl(
+      remoteDataSource: sl<StoresRemoteDataSource>(),
+    ),
+  );
+
+  sl.registerFactory<GetStoresUseCase>(
+    () => GetStoresUseCase(sl<StoresRepository>()),
+  );
+
+  sl.registerFactory<StoresBloc>(
+    () => StoresBloc(
+      getStoresUseCase: sl<GetStoresUseCase>(),
+      getUserCountryCodeUseCase: sl<GetUserCountryCodeUseCase>(),
     ),
   );
 }

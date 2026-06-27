@@ -156,6 +156,8 @@
     "ordDetailCurrentStatus": "Current status of your order",
     "storesTitle": "Supported stores",
     "storesHint": "Tap a store to open it in your browser. Copy the product link and paste it in Feyam.",
+    "storesLoadError": "We couldn't load the stores.",
+    "storesRetry": "Retry",
     "checkoutTitle": "Checkout",
     "checkoutAddress": "Shipping address",
     "checkoutSelectAddress": "Select a shipping address to continue",

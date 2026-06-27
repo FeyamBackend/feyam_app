@@ -1004,6 +1004,18 @@ abstract class AppLocalizations {
   /// **'Tap a store to open it in your browser. Copy the product link and paste it in Feyam.'**
   String get storesHint;
 
+  /// No description provided for @storesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the stores.'**
+  String get storesLoadError;
+
+  /// No description provided for @storesRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get storesRetry;
+
   /// No description provided for @checkoutTitle.
   ///
   /// In en, this message translates to:

@@ -475,6 +475,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap a store to open it in your browser. Copy the product link and paste it in Feyam.';
 
   @override
+  String get storesLoadError => 'We couldn\'t load the stores.';
+
+  @override
+  String get storesRetry => 'Retry';
+
+  @override
   String get checkoutTitle => 'Checkout';
 
   @override

@@ -475,6 +475,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tocá una tienda para abrirla en tu navegador. Copiá el link del producto y pegalo en Feyam.';
 
   @override
+  String get storesLoadError => 'No pudimos cargar las tiendas.';
+
+  @override
+  String get storesRetry => 'Reintentar';
+
+  @override
   String get checkoutTitle => 'Checkout';
 
   @override

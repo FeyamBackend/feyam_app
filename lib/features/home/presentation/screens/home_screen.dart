@@ -12,6 +12,7 @@ import 'package:feyam/features/orders/presentation/bloc/recent_orders_bloc.dart'
 import 'package:feyam/features/orders/presentation/bloc/recent_orders_event.dart';
 import 'package:feyam/features/orders/presentation/bloc/recent_orders_state.dart';
 import 'package:feyam/features/orders/presentation/screens/order_detail_screen.dart';
+import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
 import 'package:feyam/features/stores/presentation/screens/stores_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
@@ -642,7 +643,10 @@ class _MaterialStoresSection extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute<void>(
-                    builder: (_) => const StoresScreen(),
+                    builder: (_) => BlocProvider(
+                      create: (_) => sl<StoresBloc>(),
+                      child: const StoresScreen(),
+                    ),
                   ),
                 );
               },
@@ -806,7 +810,12 @@ class _CupertinoHomeContent extends StatelessWidget {
                             title: const Text('Ver todas las tiendas'),
                             isLast: true,
                             onTap: () => Navigator.of(context).push(
-                              CupertinoPageRoute<void>(builder: (_) => const StoresScreen()),
+                              CupertinoPageRoute<void>(
+                builder: (_) => BlocProvider(
+                  create: (_) => sl<StoresBloc>(),
+                  child: const StoresScreen(),
+                ),
+              ),
                             ),
                           ),
                         ],
