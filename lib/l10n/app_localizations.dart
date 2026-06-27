@@ -230,6 +230,54 @@ abstract class AppLocalizations {
   /// **'Add to cart'**
   String get addToCartButton;
 
+  /// No description provided for @addToCartButtonCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & Checkout'**
+  String get addToCartButtonCheckout;
+
+  /// No description provided for @addToCartButtonContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & Keep Shopping'**
+  String get addToCartButtonContinue;
+
+  /// No description provided for @addToCartLinkDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Link detected'**
+  String get addToCartLinkDetected;
+
+  /// No description provided for @addToCartPriceHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an estimate. We confirm the final price when reviewing your order.'**
+  String get addToCartPriceHelper;
+
+  /// No description provided for @addToCartNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes for Feyam (optional)'**
+  String get addToCartNotesLabel;
+
+  /// No description provided for @addToCartNotesPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. confirm international version…'**
+  String get addToCartNotesPlaceholder;
+
+  /// No description provided for @addToCartVariantAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add variant'**
+  String get addToCartVariantAdd;
+
+  /// No description provided for @addToCartButtonGoToCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & go to checkout'**
+  String get addToCartButtonGoToCheckout;
+
   /// No description provided for @homeImportOrderTitle.
   ///
   /// In en, this message translates to:

@@ -78,6 +78,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addToCartButton => 'Agregar al carrito';
 
   @override
+  String get addToCartButtonCheckout => 'Agregar y pagar';
+
+  @override
+  String get addToCartButtonContinue => 'Agregar y seguir';
+
+  @override
+  String get addToCartLinkDetected => 'Link detectado';
+
+  @override
+  String get addToCartPriceHelper =>
+      'Es una estimación. Confirmamos el precio final al revisar tu pedido.';
+
+  @override
+  String get addToCartNotesLabel => 'Notas para Feyam (opcional)';
+
+  @override
+  String get addToCartNotesPlaceholder =>
+      'Ej. confirmar versión internacional…';
+
+  @override
+  String get addToCartVariantAdd => 'Agregar variante';
+
+  @override
+  String get addToCartButtonGoToCheckout => 'Agregar e ir al checkout';
+
+  @override
   String get homeImportOrderTitle => 'Importar pedido';
 
   @override

@@ -2,13 +2,56 @@ import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
+import 'package:feyam/features/cart/domain/usecases/get_cart.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_event.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_state.dart';
+import 'package:feyam/features/cart/presentation/screens/checkout_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+// ── MD3 design tokens ────────────────────────────────────────────────────────
+const _kSurface = Color(0xFFF7F8FB);
+const _kCard = Color(0xFFFFFFFF);
+const _kPrimary = Color(0xFF005997);
+const _kPrimaryTint = Color(0x14005997);
+const _kOnSurface = Color(0xFF1A1C1E);
+const _kOnSurfaceVar = Color(0xFF5A5F66);
+const _kOutline = Color(0xFFDDE1EA);
+const _kGreen = Color(0xFF3E7A18);
+const _kGreenTint = Color(0x1F5FA121);
+
+String _storeNameFromUrl(String url) {
+  try {
+    final host = Uri.parse(url).host.toLowerCase();
+    if (host.contains('amazon')) return 'Amazon';
+    if (host.contains('ebay')) return 'eBay';
+    if (host.contains('walmart')) return 'Walmart';
+    if (host.contains('bestbuy')) return 'Best Buy';
+    if (host.contains('target')) return 'Target';
+    if (host.contains('aliexpress')) return 'AliExpress';
+    return host.replaceFirst('www.', '').split('.').first;
+  } catch (_) {
+    return 'Store';
+  }
+}
+
+String _shortenUrl(String url) {
+  try {
+    final uri = Uri.parse(url);
+    final host = uri.host.replaceFirst('www.', '');
+    final path = uri.path;
+    final full = '$host$path';
+    return full.length > 32 ? '${full.substring(0, 32)}…' : full;
+  } catch (_) {
+    return url.length > 32 ? '${url.substring(0, 32)}…' : url;
+  }
+}
+
+// ── Public entry point ────────────────────────────────────────────────────────
 
 class AddToCartScreen extends StatelessWidget {
   const AddToCartScreen({super.key, this.initialUrl});
@@ -39,19 +82,49 @@ class _AddToCartViewState extends State<_AddToCartView> {
     text: widget.initialUrl ?? '',
   );
   final _priceController = TextEditingController();
-  final _quantityController = TextEditingController(text: '1');
+
+  // Cupertino: variants as free text
   final _variantsController = TextEditingController();
+
+  // Material: quantity stepper + variants chips + notes field
+  int _quantity = 1;
+  final List<String> _variants = [];
+  final _notesController = TextEditingController();
+
+  bool _pendingCheckout = false;
 
   @override
   void dispose() {
     _productNameController.dispose();
     _urlController.dispose();
     _priceController.dispose();
-    _quantityController.dispose();
     _variantsController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
+  // ── Submit helpers ────────────────────────────────────────────────────────
+
+  void _submitMaterial({required bool checkout}) {
+    _pendingCheckout = checkout;
+    final variantText = _variants.join(', ');
+    final notesText = _notesController.text.trim();
+    final notes = [variantText, notesText]
+        .where((s) => s.isNotEmpty)
+        .join('\n');
+    context.read<AddToCartBloc>().add(
+          AddToCartSubmitted(
+            productName: _productNameController.text.trim(),
+            productUrl: _urlController.text.trim(),
+            quantity: _quantity,
+            unitPriceAmount:
+                double.tryParse(_priceController.text) ?? 0.0,
+            notes: notes.isEmpty ? null : notes,
+          ),
+        );
+  }
+
+  // Cupertino submit path (unchanged)
   void _submit(int qty) {
     context.read<AddToCartBloc>().add(
           AddToCartSubmitted(
@@ -67,18 +140,53 @@ class _AddToCartViewState extends State<_AddToCartView> {
         );
   }
 
+  void _submitContinue(int qty) {
+    _pendingCheckout = false;
+    _submit(qty);
+  }
+
+  void _submitCheckout(int qty) {
+    _pendingCheckout = true;
+    _submit(qty);
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  Future<void> _navigateToCheckout(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final useCupertino = AdaptivePlatform.isCupertino(context);
+    try {
+      final cart = await sl<GetCartUseCase>()();
+      if (!mounted) return;
+      if (cart != null && cart.items.isNotEmpty) {
+        navigator.pushReplacement(
+          useCupertino
+              ? CupertinoPageRoute<void>(
+                  builder: (_) => CheckoutScreen(cart: cart),
+                )
+              : MaterialPageRoute<void>(
+                  builder: (_) => CheckoutScreen(cart: cart),
+                ),
+        );
+        return;
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    navigator.pop(true);
+  }
+
   void _onStateChange(BuildContext context, AddToCartState state) {
     if (state.status == AddToCartStatus.success) {
-      Navigator.of(context).pop(true);
+      if (_pendingCheckout) {
+        _navigateToCheckout(context);
+      } else {
+        Navigator.of(context).pop(true);
+      }
       return;
     }
     if (state.status == AddToCartStatus.failure) {
       final failure = state.failure!;
-      if (failure.code == CartFailureCode.sessionExpired) {
-        // El logout es global (AuthenticatedHttpClient → AuthBloc): no mostramos
-        // diálogo, MainScreen navega a LoginScreen.
-        return;
-      }
+      if (failure.code == CartFailureCode.sessionExpired) return;
       final message = _failureMessage(context, failure);
       if (AdaptivePlatform.isCupertino(context)) {
         showCupertinoDialog<void>(
@@ -95,9 +203,8 @@ class _AddToCartViewState extends State<_AddToCartView> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
       }
     }
   }
@@ -113,6 +220,63 @@ class _AddToCartViewState extends State<_AddToCartView> {
     };
   }
 
+  // ── Async helpers ─────────────────────────────────────────────────────────
+
+  Future<void> _openUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+    } catch (_) {
+      try {
+        await launchUrl(Uri.parse(url),
+            mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _showAddVariantDialog() async {
+    // Use the State's own context (stable), not the BlocBuilder's builder context.
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.addToCartVariantAdd),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.addToCartVariantsPlaceholder,
+          ),
+          onSubmitted: (v) {
+            if (v.trim().isNotEmpty) Navigator.of(ctx).pop(v.trim());
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.dialogCancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final v = controller.text.trim();
+              if (v.isNotEmpty) Navigator.of(ctx).pop(v);
+            },
+            child: Text(l10n.addToCartVariantAdd),
+          ),
+        ],
+      ),
+    );
+    // Defer disposal until after the dialog's exit animation completes.
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => controller.dispose());
+    if (result != null && result.isNotEmpty && mounted) {
+      setState(() => _variants.add(result));
+    }
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AddToCartBloc, AddToCartState>(
@@ -120,6 +284,7 @@ class _AddToCartViewState extends State<_AddToCartView> {
       child: BlocBuilder<AddToCartBloc, AddToCartState>(
         builder: (context, state) {
           final isLoading = state.status == AddToCartStatus.loading;
+          final l10n = AppLocalizations.of(context)!;
 
           if (AdaptivePlatform.isCupertino(context)) {
             return _CupertinoProductFormContent(
@@ -128,49 +293,168 @@ class _AddToCartViewState extends State<_AddToCartView> {
               priceController: _priceController,
               variantsController: _variantsController,
               isLoading: isLoading,
-              onSubmit: _submit,
+              pendingCheckout: _pendingCheckout,
+              onSubmitAndContinue: _submitContinue,
+              onSubmitAndCheckout: _submitCheckout,
             );
           }
 
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final scale = (constraints.maxWidth / 688).clamp(0.54, 1.0);
-              return Scaffold(
-                backgroundColor: const Color(0xFFFAF9FE),
-                body: Column(
-                  children: <Widget>[
-                    _MaterialAddToCartHeader(scale: scale),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.fromLTRB(
-                          28 * scale,
-                          28 * scale,
-                          28 * scale,
-                          40 * scale,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            _MaterialAddToCartForm(
-                              scale: scale,
-                              productNameController: _productNameController,
-                              urlController: _urlController,
-                              priceController: _priceController,
-                              quantityController: _quantityController,
-                              variantsController: _variantsController,
-                              isLoading: isLoading,
-                              onSubmit: () => _submit(
-                                int.tryParse(_quantityController.text) ?? 1,
+          final hasUrl = widget.initialUrl?.isNotEmpty ?? false;
+
+          return Scaffold(
+            backgroundColor: _kSurface,
+            body: SafeArea(
+              bottom: false,
+              child: Column(
+                children: <Widget>[
+                  // ── App bar ──────────────────────────────────────────────
+                  _MD3AppBar(onBack: () => Navigator.pop(context), l10n: l10n),
+
+                  // ── Scrollable body ──────────────────────────────────────
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          // Source card (when URL comes from deep link)
+                          if (hasUrl) ...<Widget>[
+                            _MD3SourceCard(
+                              url: widget.initialUrl!,
+                              l10n: l10n,
+                              onOpen: () => _openUrl(widget.initialUrl!),
+                            ),
+                            const SizedBox(height: 14),
+                          ],
+
+                          // Section label
+                          Text(
+                            l10n.addToCartSectionLabel,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                              color: _kOnSurfaceVar,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Product name
+                          _MD3OutlinedField(
+                            label: l10n.addToCartProductNameLabel,
+                            controller: _productNameController,
+                            hint: l10n.addToCartProductNamePlaceholder,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // URL field (only when no detected link)
+                          if (!hasUrl) ...<Widget>[
+                            _MD3OutlinedField(
+                              label: l10n.addToCartProductLinkLabel,
+                              controller: _urlController,
+                              keyboardType: TextInputType.url,
+                            ),
+                            const SizedBox(height: 14),
+                          ],
+
+                          // Price + helper
+                          _MD3OutlinedField(
+                            label: l10n.addToCartPriceLabel,
+                            controller: _priceController,
+                            prefixText: '\$ ',
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            suffix: Container(
+                              margin: const EdgeInsets.only(right: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _kSurface,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: const Text(
+                                'USD',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kOnSurfaceVar,
+                                ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                const Icon(Icons.verified_outlined,
+                                    size: 14, color: _kGreen),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    l10n.addToCartPriceHelper,
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: _kOnSurfaceVar,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Quantity stepper
+                          _MD3QuantityRow(
+                            label: l10n.addToCartQuantityLabel,
+                            quantity: _quantity,
+                            onDecrement: () =>
+                                setState(() => _quantity = (_quantity - 1).clamp(1, 99)),
+                            onIncrement: () =>
+                                setState(() => _quantity++),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Variants chips
+                          _MD3VariantsSection(
+                            label: l10n.addToCartVariantsLabel,
+                            addLabel: l10n.addToCartVariantAdd,
+                            variants: _variants,
+                            onRemove: (i) =>
+                                setState(() => _variants.removeAt(i)),
+                            onAdd: _showAddVariantDialog,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Notes
+                          _MD3OutlinedField(
+                            label: l10n.addToCartNotesLabel,
+                            controller: _notesController,
+                            hint: l10n.addToCartNotesPlaceholder,
+                            minLines: 2,
+                            maxLines: 4,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              );
-            },
+                  ),
+
+                  // ── Bottom bar ───────────────────────────────────────────
+                  _MD3BottomBar(
+                    l10n: l10n,
+                    isLoading: isLoading,
+                    pendingCheckout: _pendingCheckout,
+                    onAddToCart: () => _submitMaterial(checkout: false),
+                    onGoToCheckout: () => _submitMaterial(checkout: true),
+                  ),
+                ],
+              ),
+            ),
           );
         },
       ),
@@ -178,48 +462,498 @@ class _AddToCartViewState extends State<_AddToCartView> {
   }
 }
 
-// ── Material ──────────────────────────────────────────────────────────────────
+// ── MD3 Components ────────────────────────────────────────────────────────────
 
-class _MaterialAddToCartHeader extends StatelessWidget {
-  const _MaterialAddToCartHeader({required this.scale});
+class _MD3AppBar extends StatelessWidget {
+  const _MD3AppBar({required this.onBack, required this.l10n});
 
-  final double scale;
+  final VoidCallback onBack;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final textTheme = Theme.of(context).textTheme;
-
     return DecoratedBox(
       decoration: const BoxDecoration(
-        color: Color(0xFFFAF9FE),
-        border: Border(bottom: BorderSide(color: Color(0xFFD8DBE3))),
+        color: _kSurface,
+        border: Border(bottom: BorderSide(color: _kOutline)),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 100 * scale,
-          child: Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              Text(
-                l10n.addToCartTitle,
-                style: textTheme.headlineMedium?.copyWith(
-                  color: const Color(0xFF002B45),
-                  fontSize: 30 * scale,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
+      child: SizedBox(
+        height: 56,
+        child: Row(
+          children: <Widget>[
+            IconButton(
+              onPressed: onBack,
+              icon: const Icon(Icons.arrow_back, color: _kOnSurface),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              l10n.addToCartTitle,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: _kOnSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MD3SourceCard extends StatelessWidget {
+  const _MD3SourceCard({
+    required this.url,
+    required this.l10n,
+    required this.onOpen,
+  });
+
+  final String url;
+  final AppLocalizations l10n;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final storeName = _storeNameFromUrl(url);
+    final shortUrl = _shortenUrl(url);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _kCard,
+        border: Border.all(color: _kOutline),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: <Widget>[
+          // Thumbnail
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _kSurface,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: const Icon(
+              Icons.inventory_2_outlined,
+              size: 26,
+              color: _kOnSurfaceVar,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    const Icon(Icons.storefront,
+                        size: 17, color: _kPrimary),
+                    const SizedBox(width: 5),
+                    Text(
+                      storeName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _kOnSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _kGreenTint,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        l10n.addToCartLinkDetected,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: _kGreen,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  shortUrl,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: _kOnSurfaceVar,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Open button
+          IconButton(
+            onPressed: onOpen,
+            icon: const Icon(Icons.open_in_new,
+                size: 20, color: _kOnSurfaceVar),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MD3OutlinedField extends StatelessWidget {
+  const _MD3OutlinedField({
+    required this.label,
+    required this.controller,
+    this.hint,
+    this.prefixText,
+    this.suffix,
+    this.keyboardType,
+    this.minLines,
+    this.maxLines = 1,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final String? hint;
+  final String? prefixText;
+  final Widget? suffix;
+  final TextInputType? keyboardType;
+  final int? minLines;
+  final int maxLines;
+
+  static const _border = OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(10)),
+    borderSide: BorderSide(color: _kOutline),
+  );
+  static const _focusedBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(10)),
+    borderSide: BorderSide(color: _kPrimary, width: 2),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      minLines: minLines,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixText: prefixText,
+        suffix: suffix,
+        labelStyle: const TextStyle(color: _kOnSurfaceVar),
+        filled: true,
+        fillColor: _kCard,
+        border: _border,
+        enabledBorder: _border,
+        focusedBorder: _focusedBorder,
+        floatingLabelStyle: const TextStyle(color: _kPrimary),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      ),
+    );
+  }
+}
+
+class _MD3QuantityRow extends StatelessWidget {
+  const _MD3QuantityRow({
+    required this.label,
+    required this.quantity,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  final String label;
+  final int quantity;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kCard,
+        border: Border.all(color: _kOutline),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: _kOnSurface,
+              ),
+            ),
+          ),
+          // Stepper pill
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: _kPrimaryTint,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                  onTap: quantity > 1 ? onDecrement : null,
+                  child: SizedBox(
+                    width: 34,
+                    height: 34,
+                    child: Icon(
+                      Icons.remove,
+                      size: 20,
+                      color: quantity > 1
+                          ? _kPrimary
+                          : _kPrimary.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 28,
+                  child: Text(
+                    '$quantity',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _kOnSurface,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: onIncrement,
+                  child: const SizedBox(
+                    width: 34,
+                    height: 34,
+                    child: Icon(Icons.add, size: 20, color: _kPrimary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MD3VariantsSection extends StatelessWidget {
+  const _MD3VariantsSection({
+    required this.label,
+    required this.addLabel,
+    required this.variants,
+    required this.onRemove,
+    required this.onAdd,
+  });
+
+  final String label;
+  final String addLabel;
+  final List<String> variants;
+  final void Function(int index) onRemove;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: _kOnSurfaceVar,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: <Widget>[
+            for (int i = 0; i < variants.length; i++)
+              _MD3VariantChip(
+                label: variants[i],
+                onRemove: () => onRemove(i),
+              ),
+            // Add chip
+            GestureDetector(
+              onTap: onAdd,
+              child: Container(
+                height: 34,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: _kOutline),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    const Icon(Icons.add,
+                        size: 17, color: _kOnSurfaceVar),
+                    const SizedBox(width: 4),
+                    Text(
+                      addLabel,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _kOnSurfaceVar,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: const Color(0xFF002B45),
-                    size: 32 * scale,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MD3VariantChip extends StatelessWidget {
+  const _MD3VariantChip({required this.label, required this.onRemove});
+
+  final String label;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 34,
+      padding: const EdgeInsets.only(left: 12, right: 6),
+      decoration: BoxDecoration(
+        color: _kPrimaryTint,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _kPrimary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.close,
+                size: 16, color: _kPrimary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MD3BottomBar extends StatelessWidget {
+  const _MD3BottomBar({
+    required this.l10n,
+    required this.isLoading,
+    required this.pendingCheckout,
+    required this.onAddToCart,
+    required this.onGoToCheckout,
+  });
+
+  final AppLocalizations l10n;
+  final bool isLoading;
+  final bool pendingCheckout;
+  final VoidCallback onAddToCart;
+  final VoidCallback onGoToCheckout;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: _kCard,
+        border: Border(top: BorderSide(color: _kOutline)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              // Primary: Add to cart
+              SizedBox(
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: isLoading ? null : onAddToCart,
+                  icon: (isLoading && !pendingCheckout)
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.add_shopping_cart_outlined,
+                          size: 21),
+                  label: Text(l10n.addToCartButton),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _kPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              // Secondary: Add & go to checkout
+              SizedBox(
+                height: 46,
+                child: TextButton.icon(
+                  onPressed: isLoading ? null : onGoToCheckout,
+                  icon: (isLoading && pendingCheckout)
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: _kPrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.shopping_cart_checkout_outlined,
+                          size: 19),
+                  label: Text(l10n.addToCartButtonGoToCheckout),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _kPrimary,
+                    textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -227,174 +961,6 @@ class _MaterialAddToCartHeader extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _MaterialAddToCartForm extends StatelessWidget {
-  const _MaterialAddToCartForm({
-    required this.scale,
-    required this.productNameController,
-    required this.urlController,
-    required this.priceController,
-    required this.quantityController,
-    required this.variantsController,
-    required this.isLoading,
-    required this.onSubmit,
-  });
-
-  final double scale;
-  final TextEditingController productNameController;
-  final TextEditingController urlController;
-  final TextEditingController priceController;
-  final TextEditingController quantityController;
-  final TextEditingController variantsController;
-  final bool isLoading;
-  final VoidCallback onSubmit;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final textTheme = Theme.of(context).textTheme;
-
-    final fieldStyle = textTheme.bodyLarge?.copyWith(
-      color: const Color(0xFF111315),
-      fontSize: 26 * scale,
-      fontWeight: FontWeight.w400,
-    );
-    final labelStyle = TextStyle(
-      color: const Color(0xFF62676E),
-      fontSize: 20 * scale,
-      fontWeight: FontWeight.w400,
-    );
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(6 * scale),
-      borderSide: const BorderSide(color: Color(0xFF62676E)),
-    );
-    final focusedBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(6 * scale),
-      borderSide: const BorderSide(color: Color(0xFF002B45), width: 2),
-    );
-    final contentPadding = EdgeInsets.symmetric(
-      horizontal: 18 * scale,
-      vertical: 20 * scale,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Text(
-          l10n.addToCartSectionLabel,
-          style: textTheme.labelMedium?.copyWith(
-            color: const Color(0xFF4A7A87),
-            fontSize: 16 * scale,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 1.2,
-          ),
-        ),
-        SizedBox(height: 14 * scale),
-        TextField(
-          controller: productNameController,
-          style: fieldStyle,
-          decoration: InputDecoration(
-            labelText: l10n.addToCartProductNameLabel,
-            hintText: l10n.addToCartProductNamePlaceholder,
-            labelStyle: labelStyle,
-            border: border,
-            enabledBorder: border,
-            focusedBorder: focusedBorder,
-            contentPadding: contentPadding,
-          ),
-        ),
-        SizedBox(height: 22 * scale),
-        TextField(
-          controller: urlController,
-          keyboardType: TextInputType.url,
-          style: fieldStyle,
-          decoration: InputDecoration(
-            labelText: l10n.addToCartProductLinkLabel,
-            labelStyle: labelStyle,
-            border: border,
-            enabledBorder: border,
-            focusedBorder: focusedBorder,
-            contentPadding: contentPadding,
-          ),
-        ),
-        SizedBox(height: 22 * scale),
-        TextField(
-          controller: priceController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: fieldStyle,
-          decoration: InputDecoration(
-            labelText: l10n.addToCartPriceLabel,
-            labelStyle: labelStyle,
-            prefixText: r'$ ',
-            prefixStyle: fieldStyle,
-            border: border,
-            enabledBorder: border,
-            focusedBorder: focusedBorder,
-            contentPadding: contentPadding,
-          ),
-        ),
-        SizedBox(height: 22 * scale),
-        TextField(
-          controller: quantityController,
-          keyboardType: TextInputType.number,
-          style: fieldStyle,
-          decoration: InputDecoration(
-            labelText: l10n.addToCartQuantityLabel,
-            labelStyle: labelStyle,
-            border: border,
-            enabledBorder: border,
-            focusedBorder: focusedBorder,
-            contentPadding: contentPadding,
-          ),
-        ),
-        SizedBox(height: 22 * scale),
-        TextField(
-          controller: variantsController,
-          style: fieldStyle,
-          decoration: InputDecoration(
-            labelText: l10n.addToCartVariantsLabel,
-            labelStyle: labelStyle,
-            hintText: l10n.addToCartVariantsPlaceholder,
-            hintStyle: labelStyle.copyWith(color: const Color(0xFF999CA5)),
-            border: border,
-            enabledBorder: border,
-            focusedBorder: focusedBorder,
-            contentPadding: contentPadding,
-          ),
-        ),
-        SizedBox(height: 48 * scale),
-        SizedBox(
-          height: 90 * scale,
-          child: FilledButton.icon(
-            onPressed: isLoading ? null : onSubmit,
-            icon: isLoading
-                ? SizedBox(
-                    width: 24 * scale,
-                    height: 24 * scale,
-                    child: const CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(Icons.shopping_cart_outlined, size: 28 * scale),
-            label: Text(l10n.addToCartButton),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF002B45),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14 * scale),
-              ),
-              textStyle: textTheme.headlineSmall?.copyWith(
-                fontSize: 28 * scale,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -408,7 +974,9 @@ class _CupertinoProductFormContent extends StatefulWidget {
     required this.priceController,
     required this.variantsController,
     required this.isLoading,
-    required this.onSubmit,
+    required this.pendingCheckout,
+    required this.onSubmitAndContinue,
+    required this.onSubmitAndCheckout,
   });
 
   final TextEditingController productNameController;
@@ -416,7 +984,9 @@ class _CupertinoProductFormContent extends StatefulWidget {
   final TextEditingController priceController;
   final TextEditingController variantsController;
   final bool isLoading;
-  final void Function(int qty) onSubmit;
+  final bool pendingCheckout;
+  final void Function(int qty) onSubmitAndContinue;
+  final void Function(int qty) onSubmitAndCheckout;
 
   @override
   State<_CupertinoProductFormContent> createState() =>
@@ -456,7 +1026,7 @@ class _CupertinoProductFormContentState
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.only(bottom: 100 * scale),
+                  padding: EdgeInsets.only(bottom: 160 * scale),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -646,16 +1216,28 @@ class _CupertinoProductFormContentState
                     top: BorderSide(color: kFeyamSepLight, width: 0.5),
                   ),
                 ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: widget.isLoading
-                      ? const Center(child: CupertinoActivityIndicator())
-                      : FeyamButton(
-                          label: l10n.addToCartButton,
-                          icon: CupertinoIcons.cart_fill,
-                          onPressed: () => widget.onSubmit(_qty),
-                        ),
-                ),
+                child: widget.isLoading
+                    ? const Center(child: CupertinoActivityIndicator())
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          FeyamButton(
+                            label: l10n.addToCartButtonCheckout,
+                            icon: CupertinoIcons.cart_badge_plus,
+                            onPressed: () =>
+                                widget.onSubmitAndCheckout(_qty),
+                          ),
+                          SizedBox(height: 10 * scale),
+                          FeyamButton(
+                            label: l10n.addToCartButtonContinue,
+                            icon: CupertinoIcons.arrow_left,
+                            variant: FeyamButtonVariant.tinted,
+                            onPressed: () =>
+                                widget.onSubmitAndContinue(_qty),
+                          ),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -696,7 +1278,7 @@ class _CupertinoFieldState extends State<_CupertinoField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        if (widget.label != null) ...[
+        if (widget.label != null) ...<Widget>[
           Text(
             widget.label!,
             style: const TextStyle(
@@ -714,7 +1296,7 @@ class _CupertinoFieldState extends State<_CupertinoField> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: borderColor),
             boxShadow: _focused
-                ? [
+                ? <BoxShadow>[
                     BoxShadow(
                       color: kFeyamTint.withValues(alpha: 0.15),
                       blurRadius: 4,
@@ -740,7 +1322,7 @@ class _CupertinoFieldState extends State<_CupertinoField> {
                   onTapOutside: (_) => setState(() => _focused = false),
                 ),
         ),
-        if (widget.helper != null) ...[
+        if (widget.helper != null) ...<Widget>[
           const SizedBox(height: 4),
           Text(
             widget.helper!,
