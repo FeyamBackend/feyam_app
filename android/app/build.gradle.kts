@@ -20,20 +20,42 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.feyamuniversellc.feyam"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // flutter_stripe (Stripe Android SDK) requiere minSdk >= 23.
         minSdk = maxOf(23, flutter.minSdkVersion)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders.putAll(
-            mapOf(
-                "appAuthRedirectScheme" to "com.feyamuniversellc.feyam",
-            ),
-        )
+    }
+
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("local") {
+            dimension = "environment"
+            applicationIdSuffix = ".local"
+            versionNameSuffix = "-local"
+            resValue("string", "app_name", "Feyam Local")
+            manifestPlaceholders["appAuthRedirectScheme"] = "com.feyamuniversellc.feyam.local"
+        }
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Feyam Dev")
+            manifestPlaceholders["appAuthRedirectScheme"] = "com.feyamuniversellc.feyam.dev"
+        }
+        create("stg") {
+            dimension = "environment"
+            applicationIdSuffix = ".stg"
+            versionNameSuffix = "-stg"
+            resValue("string", "app_name", "Feyam Staging")
+            manifestPlaceholders["appAuthRedirectScheme"] = "com.feyamuniversellc.feyam.stg"
+        }
+        create("prod") {
+            dimension = "environment"
+            resValue("string", "app_name", "Feyam")
+            manifestPlaceholders["appAuthRedirectScheme"] = "com.feyamuniversellc.feyam"
+        }
     }
 
     buildTypes {
