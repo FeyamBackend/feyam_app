@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:feyam/features/cart/data/models/add_to_cart_request_model.dart';
 import 'package:feyam/features/cart/data/models/cart_model.dart';
 import 'package:feyam/features/cart/data/models/cart_summary_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class CartUnauthorizedException implements Exception {
@@ -27,6 +28,11 @@ class CartRemoteDataSource {
 
   Future<CartSummaryModel> addItem(AddToCartRequestModel request) async {
     final uri = Uri.parse('$_apiBaseUrl/api/cart/items');
+
+    debugPrint(
+      'CartRemoteDataSource.addItem -> productUrl: ${request.productUrl}, '
+      'productImageUrl: ${request.productImageUrl}',
+    );
 
     final response = await _client.post(
       uri,

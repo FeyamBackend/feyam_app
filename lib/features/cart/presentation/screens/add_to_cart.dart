@@ -554,20 +554,32 @@ class _MD3SourceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 7,
+                  runSpacing: 4,
                   children: <Widget>[
-                    const Icon(Icons.storefront,
-                        size: 17, color: _kPrimary),
-                    const SizedBox(width: 5),
-                    Text(
-                      storeName,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: _kOnSurface,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const Icon(Icons.storefront,
+                            size: 17, color: _kPrimary),
+                        const SizedBox(width: 5),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 140),
+                          child: Text(
+                            storeName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: _kOnSurface,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 7),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
@@ -577,6 +589,8 @@ class _MD3SourceCard extends StatelessWidget {
                       ),
                       child: Text(
                         l10n.addToCartLinkDetected,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
