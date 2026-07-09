@@ -27,6 +27,7 @@ class AddToCartBloc extends Bloc<AddToCartEvent, AddToCartState> {
           unitPriceAmount: event.unitPriceAmount,
           currencyCode: 'USD',
           notes: event.notes?.isEmpty ?? true ? null : event.notes,
+          variantAttributes: event.variantAttributes,
         ),
       );
       emit(state.copyWith(status: AddToCartStatus.success, summary: summary));

@@ -7,6 +7,8 @@
       "type": "dart",
       "program": "lib/main_local.dart",
       "args": [
+        "--flavor",
+        "local",
         "--dart-define-from-file=env/local.json"
       ]
     },
@@ -16,6 +18,8 @@
       "type": "dart",
       "program": "lib/main_dev.dart",
       "args": [
+        "--flavor",
+        "dev",
         "--dart-define-from-file=env/dev.json"
       ]
     },
@@ -23,7 +27,11 @@
       "name": "Feyam Prod",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main.dart"
+      "program": "lib/main.dart",
+      "args": [
+        "--flavor",
+        "prod"
+      ]
     }
   ]
 }

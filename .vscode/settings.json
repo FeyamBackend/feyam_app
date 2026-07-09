@@ -1,5 +1,5 @@
 {
-  "dart.flutterSdkPath": "C:/Users/diego/develop/flutter",
+  "dart.flutterSdkPath": "/Users/diego/flutter",
   "dart.env": {
     "ANDROID_HOME": "/Users/diego/Documents/android-sdk",
     "ANDROID_SDK_ROOT": "/Users/diego/Documents/android-sdk"
@@ -8,9 +8,9 @@
     "ANDROID_HOME": "/Users/diego/Documents/android-sdk",
     "ANDROID_SDK_ROOT": "/Users/diego/Documents/android-sdk"
   },
-  "avdmanager.sdkPath": "C:/android/sdk",
+  "avdmanager.sdkPath": "/Users/diego/Documents/android-sdk",
   "avdmanager.cmdVersion": "latest",
-  "avdmanager.avdmanager": "C:/android/sdk/cmdline-tools/latest/bin/avdmanager.bat",
-  "avdmanager.sdkManager": "C:/android/sdk/cmdline-tools/latest/bin/sdkmanager.bat",
-  "avdmanager.emulator": "C:/android/sdk/emulator/emulator.exe"
+  "avdmanager.avdmanager": "/Users/diego/Documents/android-sdk/cmdline-tools/latest/bin/avdmanager",
+  "avdmanager.sdkManager": "/Users/diego/Documents/android-sdk/cmdline-tools/latest/bin/sdkmanager",
+  "avdmanager.emulator": "/Users/diego/Documents/android-sdk/emulator/emulator"
 }

@@ -400,7 +400,7 @@ class _MaterialQuantityStepper extends StatelessWidget {
           _MaterialQuantityButton(
             scale: scale,
             icon: Icons.add,
-            enabled: true,
+            enabled: item.quantity < 3,
             onTap: () => context.read<CartBloc>().add(
                   CartItemQuantityUpdateRequested(item.itemId, item.quantity + 1),
                 ),
@@ -1034,11 +1034,13 @@ class _CupertinoCartRow extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           GestureDetector(
-                            onTap: onIncrement,
-                            child: const Icon(
+                            onTap: item.quantity < 3 ? onIncrement : null,
+                            child: Icon(
                               CupertinoIcons.plus_circled,
                               size: 22,
-                              color: kFeyamTint,
+                              color: item.quantity < 3
+                                  ? kFeyamTint
+                                  : kFeyamLabelTer,
                             ),
                           ),
                         ],

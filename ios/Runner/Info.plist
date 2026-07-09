@@ -28,6 +28,9 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.feyamuniversellc.feyam</string>
+				<string>com.feyamuniversellc.feyam.dev</string>
+				<string>com.feyamuniversellc.feyam.stg</string>
+				<string>com.feyamuniversellc.feyam.local</string>
 			</array>
 		</dict>
 	</array>

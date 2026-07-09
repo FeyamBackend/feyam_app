@@ -49,10 +49,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addToCartQuantityLabel => 'Cantidad';
 
   @override
-  String get addToCartVariantsLabel => 'Variantes (Color/Talla)';
+  String get addToCartSizeLabel => 'Talla';
 
   @override
-  String get addToCartVariantsPlaceholder => 'Ej. Plateado, Grande';
+  String get addToCartSizePlaceholder => 'Ej. M, 42, Única';
+
+  @override
+  String get addToCartColorLabel => 'Color';
+
+  @override
+  String get addToCartColorPlaceholder => 'Ej. Rojo, Negro';
+
+  @override
+  String get addToCartNotApplicable => 'No aplica';
+
+  @override
+  String get addToCartSizeRequiredError =>
+      'Ingresá la talla o marcá \'No aplica\'';
+
+  @override
+  String get addToCartColorRequiredError =>
+      'Ingresá el color o marcá \'No aplica\'';
 
   @override
   String get addToCartProductNameLabel => 'Nombre del producto';
@@ -96,9 +113,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get addToCartNotesPlaceholder =>
       'Ej. confirmar versión internacional…';
-
-  @override
-  String get addToCartVariantAdd => 'Agregar variante';
 
   @override
   String get addToCartButtonGoToCheckout => 'Agregar e ir al checkout';

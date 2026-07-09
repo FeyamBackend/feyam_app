@@ -176,17 +176,47 @@ abstract class AppLocalizations {
   /// **'Quantity'**
   String get addToCartQuantityLabel;
 
-  /// No description provided for @addToCartVariantsLabel.
+  /// No description provided for @addToCartSizeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Variants (Color/Size)'**
-  String get addToCartVariantsLabel;
+  /// **'Size'**
+  String get addToCartSizeLabel;
 
-  /// No description provided for @addToCartVariantsPlaceholder.
+  /// No description provided for @addToCartSizePlaceholder.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Silver, Large'**
-  String get addToCartVariantsPlaceholder;
+  /// **'e.g. M, 42, One size'**
+  String get addToCartSizePlaceholder;
+
+  /// No description provided for @addToCartColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get addToCartColorLabel;
+
+  /// No description provided for @addToCartColorPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Red, Black'**
+  String get addToCartColorPlaceholder;
+
+  /// No description provided for @addToCartNotApplicable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not applicable'**
+  String get addToCartNotApplicable;
+
+  /// No description provided for @addToCartSizeRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a size or check \'Not applicable\''**
+  String get addToCartSizeRequiredError;
+
+  /// No description provided for @addToCartColorRequiredError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a color or check \'Not applicable\''**
+  String get addToCartColorRequiredError;
 
   /// No description provided for @addToCartProductNameLabel.
   ///
@@ -265,12 +295,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. confirm international version…'**
   String get addToCartNotesPlaceholder;
-
-  /// No description provided for @addToCartVariantAdd.
-  ///
-  /// In en, this message translates to:
-  /// **'Add variant'**
-  String get addToCartVariantAdd;
 
   /// No description provided for @addToCartButtonGoToCheckout.
   ///

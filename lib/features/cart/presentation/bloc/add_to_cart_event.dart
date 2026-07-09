@@ -14,6 +14,7 @@ class AddToCartSubmitted extends AddToCartEvent {
     required this.quantity,
     required this.unitPriceAmount,
     this.notes,
+    this.variantAttributes,
   });
 
   final String productName;
@@ -21,6 +22,7 @@ class AddToCartSubmitted extends AddToCartEvent {
   final int quantity;
   final double unitPriceAmount;
   final String? notes;
+  final Map<String, String>? variantAttributes;
 
   @override
   List<Object?> get props => [
@@ -29,5 +31,6 @@ class AddToCartSubmitted extends AddToCartEvent {
         quantity,
         unitPriceAmount,
         notes,
+        variantAttributes,
       ];
 }

@@ -83,12 +83,14 @@ class _AddToCartViewState extends State<_AddToCartView> {
   );
   final _priceController = TextEditingController();
 
-  // Cupertino: variants as free text
-  final _variantsController = TextEditingController();
-
-  // Material: quantity stepper + variants chips + notes field
+  // Material: quantity stepper + talla/color fields + notes field
   int _quantity = 1;
-  final List<String> _variants = [];
+  final _sizeController = TextEditingController();
+  final _colorController = TextEditingController();
+  bool _sizeNotApplicable = false;
+  bool _colorNotApplicable = false;
+  String? _sizeError;
+  String? _colorError;
   final _notesController = TextEditingController();
 
   bool _pendingCheckout = false;
@@ -98,20 +100,48 @@ class _AddToCartViewState extends State<_AddToCartView> {
     _productNameController.dispose();
     _urlController.dispose();
     _priceController.dispose();
-    _variantsController.dispose();
+    _sizeController.dispose();
+    _colorController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   // ── Submit helpers ────────────────────────────────────────────────────────
 
+  bool _validateVariants(AppLocalizations l10n) {
+    setState(() {
+      _sizeError =
+          (!_sizeNotApplicable && _sizeController.text.trim().isEmpty)
+              ? l10n.addToCartSizeRequiredError
+              : null;
+      _colorError =
+          (!_colorNotApplicable && _colorController.text.trim().isEmpty)
+              ? l10n.addToCartColorRequiredError
+              : null;
+    });
+    return _sizeError == null && _colorError == null;
+  }
+
+  Map<String, String> _buildVariantAttributes(
+    AppLocalizations l10n, {
+    required bool sizeNotApplicable,
+    required bool colorNotApplicable,
+    required String sizeText,
+    required String colorText,
+  }) {
+    return {
+      l10n.addToCartSizeLabel:
+          sizeNotApplicable ? l10n.addToCartNotApplicable : sizeText,
+      l10n.addToCartColorLabel:
+          colorNotApplicable ? l10n.addToCartNotApplicable : colorText,
+    };
+  }
+
   void _submitMaterial({required bool checkout}) {
+    final l10n = AppLocalizations.of(context)!;
+    if (!_validateVariants(l10n)) return;
     _pendingCheckout = checkout;
-    final variantText = _variants.join(', ');
     final notesText = _notesController.text.trim();
-    final notes = [variantText, notesText]
-        .where((s) => s.isNotEmpty)
-        .join('\n');
     context.read<AddToCartBloc>().add(
           AddToCartSubmitted(
             productName: _productNameController.text.trim(),
@@ -119,13 +149,20 @@ class _AddToCartViewState extends State<_AddToCartView> {
             quantity: _quantity,
             unitPriceAmount:
                 double.tryParse(_priceController.text) ?? 0.0,
-            notes: notes.isEmpty ? null : notes,
+            notes: notesText.isEmpty ? null : notesText,
+            variantAttributes: _buildVariantAttributes(
+              l10n,
+              sizeNotApplicable: _sizeNotApplicable,
+              colorNotApplicable: _colorNotApplicable,
+              sizeText: _sizeController.text.trim(),
+              colorText: _colorController.text.trim(),
+            ),
           ),
         );
   }
 
-  // Cupertino submit path (unchanged)
-  void _submit(int qty) {
+  // Cupertino submit path
+  void _submit(int qty, Map<String, String> variantAttributes) {
     context.read<AddToCartBloc>().add(
           AddToCartSubmitted(
             productName: _productNameController.text.trim(),
@@ -133,21 +170,19 @@ class _AddToCartViewState extends State<_AddToCartView> {
             quantity: qty,
             unitPriceAmount:
                 double.tryParse(_priceController.text) ?? 0.0,
-            notes: _variantsController.text.trim().isEmpty
-                ? null
-                : _variantsController.text.trim(),
+            variantAttributes: variantAttributes,
           ),
         );
   }
 
-  void _submitContinue(int qty) {
+  void _submitContinue(int qty, Map<String, String> variantAttributes) {
     _pendingCheckout = false;
-    _submit(qty);
+    _submit(qty, variantAttributes);
   }
 
-  void _submitCheckout(int qty) {
+  void _submitCheckout(int qty, Map<String, String> variantAttributes) {
     _pendingCheckout = true;
-    _submit(qty);
+    _submit(qty, variantAttributes);
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -234,47 +269,6 @@ class _AddToCartViewState extends State<_AddToCartView> {
     }
   }
 
-  Future<void> _showAddVariantDialog() async {
-    // Use the State's own context (stable), not the BlocBuilder's builder context.
-    final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.addToCartVariantAdd),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.addToCartVariantsPlaceholder,
-          ),
-          onSubmitted: (v) {
-            if (v.trim().isNotEmpty) Navigator.of(ctx).pop(v.trim());
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.dialogCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final v = controller.text.trim();
-              if (v.isNotEmpty) Navigator.of(ctx).pop(v);
-            },
-            child: Text(l10n.addToCartVariantAdd),
-          ),
-        ],
-      ),
-    );
-    // Defer disposal until after the dialog's exit animation completes.
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => controller.dispose());
-    if (result != null && result.isNotEmpty && mounted) {
-      setState(() => _variants.add(result));
-    }
-  }
-
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -291,7 +285,6 @@ class _AddToCartViewState extends State<_AddToCartView> {
               productNameController: _productNameController,
               urlController: _urlController,
               priceController: _priceController,
-              variantsController: _variantsController,
               isLoading: isLoading,
               pendingCheckout: _pendingCheckout,
               onSubmitAndContinue: _submitContinue,
@@ -413,20 +406,40 @@ class _AddToCartViewState extends State<_AddToCartView> {
                             label: l10n.addToCartQuantityLabel,
                             quantity: _quantity,
                             onDecrement: () =>
-                                setState(() => _quantity = (_quantity - 1).clamp(1, 99)),
-                            onIncrement: () =>
-                                setState(() => _quantity++),
+                                setState(() => _quantity = (_quantity - 1).clamp(1, 3)),
+                            onIncrement: _quantity < 3
+                                ? () => setState(() => _quantity++)
+                                : null,
                           ),
                           const SizedBox(height: 14),
 
-                          // Variants chips
-                          _MD3VariantsSection(
-                            label: l10n.addToCartVariantsLabel,
-                            addLabel: l10n.addToCartVariantAdd,
-                            variants: _variants,
-                            onRemove: (i) =>
-                                setState(() => _variants.removeAt(i)),
-                            onAdd: _showAddVariantDialog,
+                          // Talla (required, with "No aplica")
+                          _MD3VariantField(
+                            label: l10n.addToCartSizeLabel,
+                            controller: _sizeController,
+                            hint: l10n.addToCartSizePlaceholder,
+                            notApplicable: _sizeNotApplicable,
+                            notApplicableLabel: l10n.addToCartNotApplicable,
+                            errorText: _sizeError,
+                            onToggleNotApplicable: (v) => setState(() {
+                              _sizeNotApplicable = v;
+                              _sizeError = null;
+                            }),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Color (required, with "No aplica")
+                          _MD3VariantField(
+                            label: l10n.addToCartColorLabel,
+                            controller: _colorController,
+                            hint: l10n.addToCartColorPlaceholder,
+                            notApplicable: _colorNotApplicable,
+                            notApplicableLabel: l10n.addToCartNotApplicable,
+                            errorText: _colorError,
+                            onToggleNotApplicable: (v) => setState(() {
+                              _colorNotApplicable = v;
+                              _colorError = null;
+                            }),
                           ),
                           const SizedBox(height: 14),
 
@@ -696,7 +709,7 @@ class _MD3QuantityRow extends StatelessWidget {
   final String label;
   final int quantity;
   final VoidCallback onDecrement;
-  final VoidCallback onIncrement;
+  final VoidCallback? onIncrement;
 
   @override
   Widget build(BuildContext context) {
@@ -758,10 +771,16 @@ class _MD3QuantityRow extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: onIncrement,
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: 34,
                     height: 34,
-                    child: Icon(Icons.add, size: 20, color: _kPrimary),
+                    child: Icon(
+                      Icons.add,
+                      size: 20,
+                      color: onIncrement != null
+                          ? _kPrimary
+                          : _kPrimary.withValues(alpha: 0.3),
+                    ),
                   ),
                 ),
               ],
@@ -773,114 +792,70 @@ class _MD3QuantityRow extends StatelessWidget {
   }
 }
 
-class _MD3VariantsSection extends StatelessWidget {
-  const _MD3VariantsSection({
+class _MD3VariantField extends StatelessWidget {
+  const _MD3VariantField({
     required this.label,
-    required this.addLabel,
-    required this.variants,
-    required this.onRemove,
-    required this.onAdd,
+    required this.controller,
+    required this.hint,
+    required this.notApplicable,
+    required this.notApplicableLabel,
+    required this.onToggleNotApplicable,
+    this.errorText,
   });
 
   final String label;
-  final String addLabel;
-  final List<String> variants;
-  final void Function(int index) onRemove;
-  final VoidCallback onAdd;
+  final TextEditingController controller;
+  final String hint;
+  final bool notApplicable;
+  final String notApplicableLabel;
+  final ValueChanged<bool> onToggleNotApplicable;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            color: _kOnSurfaceVar,
+        TextField(
+          controller: controller,
+          enabled: !notApplicable,
+          decoration: InputDecoration(
+            labelText: label,
+            hintText: hint,
+            errorText: errorText,
+            labelStyle: const TextStyle(color: _kOnSurfaceVar),
+            filled: true,
+            fillColor: notApplicable ? _kSurface : _kCard,
+            border: _MD3OutlinedField._border,
+            enabledBorder: _MD3OutlinedField._border,
+            focusedBorder: _MD3OutlinedField._focusedBorder,
+            floatingLabelStyle: const TextStyle(color: _kPrimary),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           ),
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: <Widget>[
-            for (int i = 0; i < variants.length; i++)
-              _MD3VariantChip(
-                label: variants[i],
-                onRemove: () => onRemove(i),
+        const SizedBox(height: 6),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onToggleNotApplicable(!notApplicable),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Checkbox(
+                value: notApplicable,
+                onChanged: (v) => onToggleNotApplicable(v ?? false),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-            // Add chip
-            GestureDetector(
-              onTap: onAdd,
-              child: Container(
-                height: 34,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: _kOutline),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Icon(Icons.add,
-                        size: 17, color: _kOnSurfaceVar),
-                    const SizedBox(width: 4),
-                    Text(
-                      addLabel,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _kOnSurfaceVar,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(width: 4),
+              Text(
+                notApplicableLabel,
+                style: const TextStyle(fontSize: 13, color: _kOnSurfaceVar),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
-    );
-  }
-}
-
-class _MD3VariantChip extends StatelessWidget {
-  const _MD3VariantChip({required this.label, required this.onRemove});
-
-  final String label;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 34,
-      padding: const EdgeInsets.only(left: 12, right: 6),
-      decoration: BoxDecoration(
-        color: _kPrimaryTint,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: _kPrimary,
-            ),
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            onTap: onRemove,
-            child: const Icon(Icons.close,
-                size: 16, color: _kPrimary),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -986,7 +961,6 @@ class _CupertinoProductFormContent extends StatefulWidget {
     required this.productNameController,
     required this.urlController,
     required this.priceController,
-    required this.variantsController,
     required this.isLoading,
     required this.pendingCheckout,
     required this.onSubmitAndContinue,
@@ -996,11 +970,12 @@ class _CupertinoProductFormContent extends StatefulWidget {
   final TextEditingController productNameController;
   final TextEditingController urlController;
   final TextEditingController priceController;
-  final TextEditingController variantsController;
   final bool isLoading;
   final bool pendingCheckout;
-  final void Function(int qty) onSubmitAndContinue;
-  final void Function(int qty) onSubmitAndCheckout;
+  final void Function(int qty, Map<String, String> variantAttributes)
+      onSubmitAndContinue;
+  final void Function(int qty, Map<String, String> variantAttributes)
+      onSubmitAndCheckout;
 
   @override
   State<_CupertinoProductFormContent> createState() =>
@@ -1010,6 +985,52 @@ class _CupertinoProductFormContent extends StatefulWidget {
 class _CupertinoProductFormContentState
     extends State<_CupertinoProductFormContent> {
   int _qty = 1;
+  final _sizeController = TextEditingController();
+  final _colorController = TextEditingController();
+  bool _sizeNotApplicable = false;
+  bool _colorNotApplicable = false;
+  String? _sizeError;
+  String? _colorError;
+
+  @override
+  void dispose() {
+    _sizeController.dispose();
+    _colorController.dispose();
+    super.dispose();
+  }
+
+  bool _validateVariants(AppLocalizations l10n) {
+    setState(() {
+      _sizeError =
+          (!_sizeNotApplicable && _sizeController.text.trim().isEmpty)
+              ? l10n.addToCartSizeRequiredError
+              : null;
+      _colorError =
+          (!_colorNotApplicable && _colorController.text.trim().isEmpty)
+              ? l10n.addToCartColorRequiredError
+              : null;
+    });
+    return _sizeError == null && _colorError == null;
+  }
+
+  Map<String, String> _variantAttributes(AppLocalizations l10n) => {
+        l10n.addToCartSizeLabel: _sizeNotApplicable
+            ? l10n.addToCartNotApplicable
+            : _sizeController.text.trim(),
+        l10n.addToCartColorLabel: _colorNotApplicable
+            ? l10n.addToCartNotApplicable
+            : _colorController.text.trim(),
+      };
+
+  void _handleContinue(AppLocalizations l10n) {
+    if (!_validateVariants(l10n)) return;
+    widget.onSubmitAndContinue(_qty, _variantAttributes(l10n));
+  }
+
+  void _handleCheckout(AppLocalizations l10n) {
+    if (!_validateVariants(l10n)) return;
+    widget.onSubmitAndCheckout(_qty, _variantAttributes(l10n));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1160,7 +1181,7 @@ class _CupertinoProductFormContentState
                                             GestureDetector(
                                               onTap: () => setState(
                                                 () => _qty =
-                                                    (_qty - 1).clamp(1, 99),
+                                                    (_qty - 1).clamp(1, 3),
                                               ),
                                               child: Icon(
                                                 CupertinoIcons.minus_circled,
@@ -1180,12 +1201,16 @@ class _CupertinoProductFormContentState
                                               ),
                                             ),
                                             GestureDetector(
-                                              onTap: () =>
-                                                  setState(() => _qty++),
+                                              onTap: _qty < 3
+                                                  ? () =>
+                                                      setState(() => _qty++)
+                                                  : null,
                                               child: Icon(
                                                 CupertinoIcons.plus_circled,
                                                 size: 22 * scale,
-                                                color: kFeyamTint,
+                                                color: _qty < 3
+                                                    ? kFeyamTint
+                                                    : kFeyamLabelTer,
                                               ),
                                             ),
                                           ],
@@ -1200,15 +1225,41 @@ class _CupertinoProductFormContentState
                         ],
                       ),
                       FeyamListSection(
-                        header: 'Variantes u observaciones · opcional',
-                        footer: 'Ej: color negro, talle M, versión internacional…',
+                        header: 'Talla y color',
                         children: <Widget>[
                           Padding(
                             padding: EdgeInsets.all(12 * scale),
-                            child: _CupertinoField(
-                              placeholder: 'Color, talle, versión…',
-                              controller: widget.variantsController,
-                              multiline: true,
+                            child: _CupertinoVariantField(
+                              label: l10n.addToCartSizeLabel,
+                              placeholder: l10n.addToCartSizePlaceholder,
+                              controller: _sizeController,
+                              notApplicable: _sizeNotApplicable,
+                              notApplicableLabel: l10n.addToCartNotApplicable,
+                              errorText: _sizeError,
+                              onToggleNotApplicable: (v) => setState(() {
+                                _sizeNotApplicable = v;
+                                _sizeError = null;
+                              }),
+                            ),
+                          ),
+                          Container(
+                            height: 0.5,
+                            color: kFeyamSepLight,
+                            margin: EdgeInsets.only(left: 16 * scale),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(12 * scale),
+                            child: _CupertinoVariantField(
+                              label: l10n.addToCartColorLabel,
+                              placeholder: l10n.addToCartColorPlaceholder,
+                              controller: _colorController,
+                              notApplicable: _colorNotApplicable,
+                              notApplicableLabel: l10n.addToCartNotApplicable,
+                              errorText: _colorError,
+                              onToggleNotApplicable: (v) => setState(() {
+                                _colorNotApplicable = v;
+                                _colorError = null;
+                              }),
                             ),
                           ),
                         ],
@@ -1239,16 +1290,14 @@ class _CupertinoProductFormContentState
                           FeyamButton(
                             label: l10n.addToCartButtonCheckout,
                             icon: CupertinoIcons.cart_badge_plus,
-                            onPressed: () =>
-                                widget.onSubmitAndCheckout(_qty),
+                            onPressed: () => _handleCheckout(l10n),
                           ),
                           SizedBox(height: 10 * scale),
                           FeyamButton(
                             label: l10n.addToCartButtonContinue,
                             icon: CupertinoIcons.arrow_left,
                             variant: FeyamButtonVariant.tinted,
-                            onPressed: () =>
-                                widget.onSubmitAndContinue(_qty),
+                            onPressed: () => _handleContinue(l10n),
                           ),
                         ],
                       ),
@@ -1261,6 +1310,83 @@ class _CupertinoProductFormContentState
   }
 }
 
+class _CupertinoVariantField extends StatelessWidget {
+  const _CupertinoVariantField({
+    required this.label,
+    required this.placeholder,
+    required this.controller,
+    required this.notApplicable,
+    required this.notApplicableLabel,
+    required this.onToggleNotApplicable,
+    this.errorText,
+  });
+
+  final String label;
+  final String placeholder;
+  final TextEditingController controller;
+  final bool notApplicable;
+  final String notApplicableLabel;
+  final ValueChanged<bool> onToggleNotApplicable;
+  final String? errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Opacity(
+          opacity: notApplicable ? 0.4 : 1,
+          child: IgnorePointer(
+            ignoring: notApplicable,
+            child: _CupertinoField(
+              label: label,
+              placeholder: placeholder,
+              controller: controller,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onToggleNotApplicable(!notApplicable),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(
+                notApplicable
+                    ? CupertinoIcons.checkmark_square_fill
+                    : CupertinoIcons.square,
+                size: 20,
+                color: notApplicable ? kFeyamTint : kFeyamLabelTer,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                notApplicableLabel,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: kFeyamLabelSec,
+                  fontFamily: '.SF Pro Text',
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (errorText != null) ...<Widget>[
+          const SizedBox(height: 4),
+          Text(
+            errorText!,
+            style: const TextStyle(
+              fontSize: 12,
+              color: CupertinoColors.systemRed,
+              fontFamily: '.SF Pro Text',
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _CupertinoField extends StatefulWidget {
   const _CupertinoField({
     this.label,
@@ -1268,7 +1394,6 @@ class _CupertinoField extends StatefulWidget {
     required this.controller,
     this.helper,
     this.keyboardType,
-    this.multiline = false,
   });
 
   final String? label;
@@ -1276,7 +1401,6 @@ class _CupertinoField extends StatefulWidget {
   final TextEditingController controller;
   final String? helper;
   final TextInputType? keyboardType;
-  final bool multiline;
 
   @override
   State<_CupertinoField> createState() => _CupertinoFieldState();
@@ -1319,22 +1443,13 @@ class _CupertinoFieldState extends State<_CupertinoField> {
                 : null,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          child: widget.multiline
-              ? CupertinoTextField.borderless(
-                  controller: widget.controller,
-                  placeholder: widget.placeholder,
-                  minLines: 4,
-                  maxLines: 6,
-                  onTap: () => setState(() => _focused = true),
-                  onTapOutside: (_) => setState(() => _focused = false),
-                )
-              : CupertinoTextField.borderless(
-                  controller: widget.controller,
-                  placeholder: widget.placeholder,
-                  keyboardType: widget.keyboardType,
-                  onTap: () => setState(() => _focused = true),
-                  onTapOutside: (_) => setState(() => _focused = false),
-                ),
+          child: CupertinoTextField.borderless(
+            controller: widget.controller,
+            placeholder: widget.placeholder,
+            keyboardType: widget.keyboardType,
+            onTap: () => setState(() => _focused = true),
+            onTapOutside: (_) => setState(() => _focused = false),
+          ),
         ),
         if (widget.helper != null) ...<Widget>[
           const SizedBox(height: 4),
