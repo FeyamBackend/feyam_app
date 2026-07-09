@@ -8,7 +8,7 @@ import io.flutter.plugin.common.EventChannel
 // flutter_stripe requiere que la Activity extienda FlutterFragmentActivity.
 class MainActivity : FlutterFragmentActivity() {
     private val shareChannelName = "com.feyamuniversellc.feyam/share"
-    private var pendingUrl: String? = null
+    private var pendingShare: Map<String, String>? = null
     private var eventSink: EventChannel.EventSink? = null
     private var intentHandled = false
 
@@ -18,9 +18,9 @@ class MainActivity : FlutterFragmentActivity() {
             .setStreamHandler(object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, sink: EventChannel.EventSink) {
                     eventSink = sink
-                    pendingUrl?.let {
+                    pendingShare?.let {
                         sink.success(it)
-                        pendingUrl = null
+                        pendingShare = null
                     }
                 }
 
@@ -34,11 +34,11 @@ class MainActivity : FlutterFragmentActivity() {
         super.onResume()
         if (!intentHandled) {
             intentHandled = true
-            extractSharedUrl(intent)?.let { url ->
+            extractSharedContent(intent)?.let { share ->
                 if (eventSink != null) {
-                    eventSink?.success(url)
+                    eventSink?.success(share)
                 } else {
-                    pendingUrl = url
+                    pendingShare = share
                 }
             }
         }
@@ -50,10 +50,10 @@ class MainActivity : FlutterFragmentActivity() {
         intentHandled = false
     }
 
-    private fun extractSharedUrl(intent: Intent?): String? {
-        if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            return intent.getStringExtra(Intent.EXTRA_TEXT)
+    private fun extractSharedContent(intent: Intent?): Map<String, String>? {
+        if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") {
+            return null
         }
-        return null
+        return ShareTextParser.parse(intent.getStringExtra(Intent.EXTRA_TEXT))
     }
 }

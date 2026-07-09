@@ -14,6 +14,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// A product link received from the native share-intent handler, with the
+/// title (if any) already separated from the URL.
+class SharedProductLink {
+  const SharedProductLink({required this.url, this.title});
+
+  final String url;
+  final String? title;
+}
+
+/// Parses the payload emitted by the native `.../share` EventChannel.
+///
+/// The native side (see `MainActivity.extractSharedContent`) sends a
+/// `{"url": ..., "title": ...}` map with the URL already separated from any
+/// surrounding text (e.g. "Product name https://a.co/xyz"). A bare `String`
+/// is accepted as a legacy fallback and is treated as the URL verbatim.
+SharedProductLink? parseSharedProductEvent(dynamic share) {
+  if (share is Map) {
+    final url = share['url'] as String?;
+    if (url == null || url.isEmpty) return null;
+    final title = share['title'] as String?;
+    return SharedProductLink(url: url, title: (title != null && title.isNotEmpty) ? title : null);
+  }
+  if (share is String && share.isNotEmpty) {
+    return SharedProductLink(url: share);
+  }
+  return null;
+}
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -35,20 +63,24 @@ class _MainScreenState extends State<MainScreen> {
         .listen(_onSharedUrl);
   }
 
-  void _onSharedUrl(dynamic url) {
-    if (url is String && url.isNotEmpty) {
-      _openAddToCart(url);
+  void _onSharedUrl(dynamic share) {
+    final link = parseSharedProductEvent(share);
+    if (link != null) {
+      _openAddToCart(link.url, title: link.title);
     }
   }
 
-  void _openAddToCart(String url) {
+  void _openAddToCart(String url, {String? title}) {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.of(context).push(
         AdaptivePlatform.pageRoute<void>(
           context: context,
-          builder: (_) => AddToCartScreen(initialUrl: url),
+          builder: (_) => AddToCartScreen(
+            initialUrl: url,
+            initialProductName: title,
+          ),
         ),
       );
     });

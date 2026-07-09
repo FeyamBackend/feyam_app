@@ -54,30 +54,37 @@ String _shortenUrl(String url) {
 // ── Public entry point ────────────────────────────────────────────────────────
 
 class AddToCartScreen extends StatelessWidget {
-  const AddToCartScreen({super.key, this.initialUrl});
+  const AddToCartScreen({super.key, this.initialUrl, this.initialProductName});
 
   final String? initialUrl;
+  final String? initialProductName;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<AddToCartBloc>(),
-      child: _AddToCartView(initialUrl: initialUrl),
+      child: _AddToCartView(
+        initialUrl: initialUrl,
+        initialProductName: initialProductName,
+      ),
     );
   }
 }
 
 class _AddToCartView extends StatefulWidget {
-  const _AddToCartView({this.initialUrl});
+  const _AddToCartView({this.initialUrl, this.initialProductName});
 
   final String? initialUrl;
+  final String? initialProductName;
 
   @override
   State<_AddToCartView> createState() => _AddToCartViewState();
 }
 
 class _AddToCartViewState extends State<_AddToCartView> {
-  final _productNameController = TextEditingController();
+  late final _productNameController = TextEditingController(
+    text: widget.initialProductName ?? '',
+  );
   late final _urlController = TextEditingController(
     text: widget.initialUrl ?? '',
   );
