@@ -5,8 +5,8 @@ import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
-import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
+import 'package:feyam/features/product_search/presentation/screens/product_search_screen.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/orders/domain/entities/order_display_status.dart';
 import 'package:feyam/features/orders/domain/entities/recent_order_entity.dart';
@@ -113,7 +113,7 @@ class _MaterialHomeContent extends StatelessWidget {
                   children: <Widget>[
                     _MaterialGreeting(scale: scale),
                     SizedBox(height: 12 * scale),
-                    _MaterialPasteBar(scale: scale),
+                    _MaterialSearchBar(scale: scale),
                     SizedBox(height: 16 * scale),
                     _MaterialRecentOrders(scale: scale),
                     SizedBox(height: 16 * scale),
@@ -237,8 +237,8 @@ class _MaterialGreeting extends StatelessWidget {
   }
 }
 
-class _MaterialPasteBar extends StatelessWidget {
-  const _MaterialPasteBar({required this.scale});
+class _MaterialSearchBar extends StatelessWidget {
+  const _MaterialSearchBar({required this.scale});
 
   final double scale;
 
@@ -252,7 +252,7 @@ class _MaterialPasteBar extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute<void>(builder: (_) => const AddToCartScreen()),
+          MaterialPageRoute<void>(builder: (_) => const ProductSearchScreen()),
         );
       },
       child: DecoratedBox(
@@ -268,11 +268,11 @@ class _MaterialPasteBar extends StatelessWidget {
           ),
           child: Row(
             children: <Widget>[
-              Icon(Icons.link_rounded, color: colors.onSurfaceVariant, size: 22 * scale),
+              Icon(Icons.search_rounded, color: colors.onSurfaceVariant, size: 22 * scale),
               SizedBox(width: 12 * scale),
               Expanded(
                 child: Text(
-                  l10n.homePasteLinkHint,
+                  l10n.homeSearchHint,
                   style: textTheme.bodyLarge?.copyWith(
                     color: colors.onSurfaceVariant,
                     fontSize: 15 * scale,
@@ -1012,7 +1012,7 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).push(
                     CupertinoPageRoute<void>(
-                      builder: (_) => const AddToCartScreen(),
+                      builder: (_) => const ProductSearchScreen(),
                     ),
                   ),
                   child: Container(
@@ -1027,7 +1027,7 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                         Icon(CupertinoIcons.search, size: 16 * scale, color: kFeyamLabelTer),
                         SizedBox(width: 7 * scale),
                         Text(
-                          l10n.homePasteLinkHint,
+                          l10n.homeSearchHint,
                           style: TextStyle(
                             fontSize: 17 * scale,
                             color: kFeyamLabelTer,

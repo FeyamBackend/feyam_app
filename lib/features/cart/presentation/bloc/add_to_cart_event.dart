@@ -13,6 +13,7 @@ class AddToCartSubmitted extends AddToCartEvent {
     required this.productUrl,
     required this.quantity,
     required this.unitPriceAmount,
+    this.productImageUrl,
     this.notes,
     this.variantAttributes,
   });
@@ -21,6 +22,7 @@ class AddToCartSubmitted extends AddToCartEvent {
   final String productUrl;
   final int quantity;
   final double unitPriceAmount;
+  final String? productImageUrl;
   final String? notes;
   final Map<String, String>? variantAttributes;
 
@@ -30,6 +32,7 @@ class AddToCartSubmitted extends AddToCartEvent {
         productUrl,
         quantity,
         unitPriceAmount,
+        productImageUrl,
         notes,
         variantAttributes,
       ];

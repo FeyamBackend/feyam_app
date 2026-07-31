@@ -26,6 +26,7 @@ class AddToCartBloc extends Bloc<AddToCartEvent, AddToCartState> {
           quantity: event.quantity,
           unitPriceAmount: event.unitPriceAmount,
           currencyCode: 'USD',
+          productImageUrl: event.productImageUrl,
           notes: event.notes?.isEmpty ?? true ? null : event.notes,
           variantAttributes: event.variantAttributes,
         ),

@@ -392,6 +392,12 @@ abstract class AppLocalizations {
   /// **'Paste the product link…'**
   String get homePasteLinkHint;
 
+  /// No description provided for @homeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a product…'**
+  String get homeSearchHint;
+
   /// No description provided for @homeMisOrders.
   ///
   /// In en, this message translates to:
@@ -1073,8 +1079,80 @@ abstract class AppLocalizations {
   /// No description provided for @storesHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap a store to open it in your browser. Copy the product link and paste it in Feyam.'**
+  /// **'Tap a store to search products there. Use the icon to open it in your browser.'**
   String get storesHint;
+
+  /// No description provided for @productSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a product'**
+  String get productSearchTitle;
+
+  /// No description provided for @productSearchFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you looking for?'**
+  String get productSearchFieldHint;
+
+  /// No description provided for @productSearchChipAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get productSearchChipAll;
+
+  /// No description provided for @productSearchInitialHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type at least 3 letters to search'**
+  String get productSearchInitialHint;
+
+  /// No description provided for @productSearchEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get productSearchEmptyTitle;
+
+  /// No description provided for @productSearchEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search or paste the product link directly.'**
+  String get productSearchEmptyBody;
+
+  /// No description provided for @productSearchPartialBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t search some stores. Showing what we did find.'**
+  String get productSearchPartialBanner;
+
+  /// No description provided for @productSearchPriceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Price to be confirmed'**
+  String get productSearchPriceUnknown;
+
+  /// No description provided for @productSearchPasteLinkCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find it? Paste the product link'**
+  String get productSearchPasteLinkCta;
+
+  /// No description provided for @productSearchErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t complete the search'**
+  String get productSearchErrorTitle;
+
+  /// No description provided for @productSearchRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get productSearchRetry;
+
+  /// No description provided for @productSearchLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'See more results'**
+  String get productSearchLoadMore;
 
   /// No description provided for @storesLoadError.
   ///

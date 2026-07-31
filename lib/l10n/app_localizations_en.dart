@@ -162,6 +162,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePasteLinkHint => 'Paste the product link…';
 
   @override
+  String get homeSearchHint => 'Search for a product…';
+
+  @override
   String get homeMisOrders => 'My orders';
 
   @override
@@ -511,7 +514,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storesHint =>
-      'Tap a store to open it in your browser. Copy the product link and paste it in Feyam.';
+      'Tap a store to search products there. Use the icon to open it in your browser.';
+
+  @override
+  String get productSearchTitle => 'Search for a product';
+
+  @override
+  String get productSearchFieldHint => 'What are you looking for?';
+
+  @override
+  String get productSearchChipAll => 'All';
+
+  @override
+  String get productSearchInitialHint => 'Type at least 3 letters to search';
+
+  @override
+  String get productSearchEmptyTitle => 'No results found';
+
+  @override
+  String get productSearchEmptyBody =>
+      'Try another search or paste the product link directly.';
+
+  @override
+  String get productSearchPartialBanner =>
+      'We couldn\'t search some stores. Showing what we did find.';
+
+  @override
+  String get productSearchPriceUnknown => 'Price to be confirmed';
+
+  @override
+  String get productSearchPasteLinkCta =>
+      'Can\'t find it? Paste the product link';
+
+  @override
+  String get productSearchErrorTitle => 'We couldn\'t complete the search';
+
+  @override
+  String get productSearchRetry => 'Retry';
+
+  @override
+  String get productSearchLoadMore => 'See more results';
 
   @override
   String get storesLoadError => 'We couldn\'t load the stores.';
