@@ -39,6 +39,11 @@ import 'package:feyam/features/profile/domain/usecases/get_addresses.dart';
 import 'package:feyam/features/profile/domain/usecases/get_countries.dart';
 import 'package:feyam/features/profile/domain/usecases/get_user_country_code.dart';
 import 'package:feyam/features/profile/domain/usecases/update_address.dart';
+import 'package:feyam/features/product_search/data/datasources/product_search_remote_datasource.dart';
+import 'package:feyam/features/product_search/data/repositories/product_search_repository_impl.dart';
+import 'package:feyam/features/product_search/domain/repositories/product_search_repository.dart';
+import 'package:feyam/features/product_search/domain/usecases/search_products.dart';
+import 'package:feyam/features/product_search/presentation/bloc/product_search_bloc.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
 import 'package:feyam/features/stores/data/datasources/stores_remote_datasource.dart';
 import 'package:feyam/features/stores/data/repositories/stores_repository_impl.dart';
@@ -319,5 +324,30 @@ void configureDependencies({AppConfig? appConfig}) {
       getStoresUseCase: sl<GetStoresUseCase>(),
       getUserCountryCodeUseCase: sl<GetUserCountryCodeUseCase>(),
     ),
+  );
+
+  /**
+   * Product Search Module (Zinc-backed)
+   */
+
+  sl.registerLazySingleton(
+    () => ProductSearchRemoteDataSource(
+      client: sl<http.Client>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerLazySingleton<ProductSearchRepository>(
+    () => ProductSearchRepositoryImpl(
+      remoteDataSource: sl<ProductSearchRemoteDataSource>(),
+    ),
+  );
+
+  sl.registerFactory<SearchProductsUseCase>(
+    () => SearchProductsUseCase(sl<ProductSearchRepository>()),
+  );
+
+  sl.registerFactory<ProductSearchBloc>(
+    () => ProductSearchBloc(searchProductsUseCase: sl<SearchProductsUseCase>()),
   );
 }

@@ -1,7 +1,9 @@
+import 'package:feyam/core/utils/zinc_retailer_slug.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/features/product_search/presentation/screens/product_search_screen.dart';
 import 'package:feyam/features/stores/domain/entities/store_entity.dart';
 import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
 import 'package:feyam/features/stores/presentation/bloc/stores_event.dart';
@@ -136,6 +138,15 @@ Future<void> _openStore(String host) async {
   }
 }
 
+void _openStoreSearch(BuildContext context, String host) {
+  Navigator.of(context).push(
+    AdaptivePlatform.pageRoute(
+      context: context,
+      builder: (_) => ProductSearchScreen(initialRetailer: zincRetailerSlugFromHost(host)),
+    ),
+  );
+}
+
 IconData _materialIconFromName(String iconName) => switch (iconName) {
       'shopping_bag' => Icons.shopping_bag_rounded,
       'gavel' => Icons.gavel_rounded,
@@ -159,9 +170,12 @@ class _StoreListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final searchable = zincRetailerSlugFromHost(store.host) != null;
 
     return InkWell(
-      onTap: () => _openStore(store.host),
+      onTap: () => searchable
+          ? _openStoreSearch(context, store.host)
+          : _openStore(store.host),
       child: Padding(
         padding: EdgeInsets.symmetric(
             horizontal: 8 * scale, vertical: 4 * scale),
@@ -206,9 +220,10 @@ class _StoreListTile extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.all(12 * scale),
-              child: Icon(
+            IconButton(
+              onPressed: () => _openStore(store.host),
+              tooltip: store.host,
+              icon: Icon(
                 Icons.open_in_new_rounded,
                 size: 20 * scale,
                 color: colors.onSurfaceVariant,
@@ -287,7 +302,7 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
                           const Padding(
                             padding: EdgeInsets.fromLTRB(32, 12, 32, 4),
                             child: Text(
-                              'Tocá una tienda para abrirla en tu navegador. Copiá el link del producto y pegalo en Feyam.',
+                              'Tocá una tienda para buscar productos ahí. Usá el ícono para abrirla en tu navegador.',
                               style: TextStyle(
                                   fontSize: 15,
                                   color: kFeyamLabelSec,
@@ -309,16 +324,25 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
                                     color: _colorFromHex(
                                         state.stores[i].colorHex),
                                   ),
-                                  trailing: const Padding(
-                                    padding: EdgeInsets.only(left: 6),
-                                    child: Icon(
-                                        CupertinoIcons.arrow_up_right_square,
-                                        size: 18,
-                                        color: kFeyamTint),
+                                  trailing: GestureDetector(
+                                    onTap: () =>
+                                        _openStore(state.stores[i].host),
+                                    child: const Padding(
+                                      padding: EdgeInsets.only(left: 6),
+                                      child: Icon(
+                                          CupertinoIcons.arrow_up_right_square,
+                                          size: 18,
+                                          color: kFeyamTint),
+                                    ),
                                   ),
                                   chevron: false,
                                   isLast: i == state.stores.length - 1,
-                                  onTap: () => _openStore(state.stores[i].host),
+                                  onTap: () => zincRetailerSlugFromHost(
+                                              state.stores[i].host) !=
+                                          null
+                                      ? _openStoreSearch(
+                                          context, state.stores[i].host)
+                                      : _openStore(state.stores[i].host),
                                 ),
                             ],
                           ),

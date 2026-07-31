@@ -163,6 +163,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homePasteLinkHint => 'Pegá el link del producto…';
 
   @override
+  String get homeSearchHint => 'Buscá un producto…';
+
+  @override
   String get homeMisOrders => 'Mis pedidos';
 
   @override
@@ -512,7 +515,47 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get storesHint =>
-      'Tocá una tienda para abrirla en tu navegador. Copiá el link del producto y pegalo en Feyam.';
+      'Tocá una tienda para buscar productos ahí. Usá el ícono para abrirla en tu navegador.';
+
+  @override
+  String get productSearchTitle => 'Buscar producto';
+
+  @override
+  String get productSearchFieldHint => '¿Qué estás buscando?';
+
+  @override
+  String get productSearchChipAll => 'Todas';
+
+  @override
+  String get productSearchInitialHint =>
+      'Escribí al menos 3 letras para buscar';
+
+  @override
+  String get productSearchEmptyTitle => 'No encontramos resultados';
+
+  @override
+  String get productSearchEmptyBody =>
+      'Probá con otra búsqueda o pegá el link del producto directamente.';
+
+  @override
+  String get productSearchPartialBanner =>
+      'No pudimos buscar en algunas tiendas. Mostramos lo que sí encontramos.';
+
+  @override
+  String get productSearchPriceUnknown => 'Precio a confirmar';
+
+  @override
+  String get productSearchPasteLinkCta =>
+      '¿No lo encontrás? Pegá el link del producto';
+
+  @override
+  String get productSearchErrorTitle => 'No pudimos completar la búsqueda';
+
+  @override
+  String get productSearchRetry => 'Reintentar';
+
+  @override
+  String get productSearchLoadMore => 'Ver más resultados';
 
   @override
   String get storesLoadError => 'No pudimos cargar las tiendas.';

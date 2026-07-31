@@ -54,10 +54,22 @@ String _shortenUrl(String url) {
 // ── Public entry point ────────────────────────────────────────────────────────
 
 class AddToCartScreen extends StatelessWidget {
-  const AddToCartScreen({super.key, this.initialUrl, this.initialProductName});
+  const AddToCartScreen({
+    super.key,
+    this.initialUrl,
+    this.initialProductName,
+    this.initialPriceAmount,
+    this.initialImageUrl,
+  });
 
   final String? initialUrl;
   final String? initialProductName;
+
+  /// Prefilled from a Zinc search result; left null (and the field left
+  /// empty/editable) for the manual paste-link flow or when Zinc didn't
+  /// return a price for the chosen product.
+  final double? initialPriceAmount;
+  final String? initialImageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -66,16 +78,25 @@ class AddToCartScreen extends StatelessWidget {
       child: _AddToCartView(
         initialUrl: initialUrl,
         initialProductName: initialProductName,
+        initialPriceAmount: initialPriceAmount,
+        initialImageUrl: initialImageUrl,
       ),
     );
   }
 }
 
 class _AddToCartView extends StatefulWidget {
-  const _AddToCartView({this.initialUrl, this.initialProductName});
+  const _AddToCartView({
+    this.initialUrl,
+    this.initialProductName,
+    this.initialPriceAmount,
+    this.initialImageUrl,
+  });
 
   final String? initialUrl;
   final String? initialProductName;
+  final double? initialPriceAmount;
+  final String? initialImageUrl;
 
   @override
   State<_AddToCartView> createState() => _AddToCartViewState();
@@ -88,7 +109,11 @@ class _AddToCartViewState extends State<_AddToCartView> {
   late final _urlController = TextEditingController(
     text: widget.initialUrl ?? '',
   );
-  final _priceController = TextEditingController();
+  late final _priceController = TextEditingController(
+    text: widget.initialPriceAmount != null
+        ? widget.initialPriceAmount!.toStringAsFixed(2)
+        : '',
+  );
 
   // Material: quantity stepper + talla/color fields + notes field
   int _quantity = 1;
@@ -156,6 +181,7 @@ class _AddToCartViewState extends State<_AddToCartView> {
             quantity: _quantity,
             unitPriceAmount:
                 double.tryParse(_priceController.text) ?? 0.0,
+            productImageUrl: widget.initialImageUrl,
             notes: notesText.isEmpty ? null : notesText,
             variantAttributes: _buildVariantAttributes(
               l10n,
@@ -177,6 +203,7 @@ class _AddToCartViewState extends State<_AddToCartView> {
             quantity: qty,
             unitPriceAmount:
                 double.tryParse(_priceController.text) ?? 0.0,
+            productImageUrl: widget.initialImageUrl,
             variantAttributes: variantAttributes,
           ),
         );
@@ -321,6 +348,7 @@ class _AddToCartViewState extends State<_AddToCartView> {
                           if (hasUrl) ...<Widget>[
                             _MD3SourceCard(
                               url: widget.initialUrl!,
+                              imageUrl: widget.initialImageUrl,
                               l10n: l10n,
                               onOpen: () => _openUrl(widget.initialUrl!),
                             ),
@@ -526,9 +554,11 @@ class _MD3SourceCard extends StatelessWidget {
     required this.url,
     required this.l10n,
     required this.onOpen,
+    this.imageUrl,
   });
 
   final String url;
+  final String? imageUrl;
   final AppLocalizations l10n;
   final VoidCallback onOpen;
 
@@ -536,6 +566,7 @@ class _MD3SourceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final storeName = _storeNameFromUrl(url);
     final shortUrl = _shortenUrl(url);
+    final imageUrl = this.imageUrl;
 
     return Container(
       decoration: BoxDecoration(
@@ -557,15 +588,26 @@ class _MD3SourceCard extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: _kSurface,
               borderRadius: BorderRadius.circular(11),
             ),
-            child: const Icon(
-              Icons.inventory_2_outlined,
-              size: 26,
-              color: _kOnSurfaceVar,
-            ),
+            child: imageUrl != null
+                ? Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.inventory_2_outlined,
+                      size: 26,
+                      color: _kOnSurfaceVar,
+                    ),
+                  )
+                : const Icon(
+                    Icons.inventory_2_outlined,
+                    size: 26,
+                    color: _kOnSurfaceVar,
+                  ),
           ),
           const SizedBox(width: 12),
           // Info
