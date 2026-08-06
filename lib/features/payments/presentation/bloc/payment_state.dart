@@ -26,18 +26,12 @@ enum PaymentStatus {
 }
 
 class PaymentState extends Equatable {
-  const PaymentState({
-    this.status = PaymentStatus.initial,
-    this.failure,
-  });
+  const PaymentState({this.status = PaymentStatus.initial, this.failure});
 
   final PaymentStatus status;
   final PaymentFailure? failure;
 
-  PaymentState copyWith({
-    PaymentStatus? status,
-    PaymentFailure? failure,
-  }) {
+  PaymentState copyWith({PaymentStatus? status, PaymentFailure? failure}) {
     return PaymentState(
       status: status ?? this.status,
       failure: failure ?? this.failure,

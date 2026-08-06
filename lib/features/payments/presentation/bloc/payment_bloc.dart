@@ -12,10 +12,10 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     required CreateCheckoutUseCase createCheckoutUseCase,
     required GetPaymentStatusUseCase getPaymentStatusUseCase,
     required StripePaymentService stripeService,
-  })  : _createCheckout = createCheckoutUseCase,
-        _getPaymentStatus = getPaymentStatusUseCase,
-        _stripeService = stripeService,
-        super(const PaymentState()) {
+  }) : _createCheckout = createCheckoutUseCase,
+       _getPaymentStatus = getPaymentStatusUseCase,
+       _stripeService = stripeService,
+       super(const PaymentState()) {
     on<PaymentCheckoutRequested>(_onCheckoutRequested);
   }
 
@@ -49,10 +49,12 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       emit(state.copyWith(status: PaymentStatus.cancelled));
       return;
     } on StripePaymentException {
-      emit(state.copyWith(
-        status: PaymentStatus.failure,
-        failure: const PaymentFailure(PaymentFailureCode.unknown),
-      ));
+      emit(
+        state.copyWith(
+          status: PaymentStatus.failure,
+          failure: const PaymentFailure(PaymentFailureCode.unknown),
+        ),
+      );
       return;
     }
 
@@ -70,10 +72,12 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           return;
         }
         if (payment.isFailed) {
-          emit(state.copyWith(
-            status: PaymentStatus.failure,
-            failure: const PaymentFailure(PaymentFailureCode.serverError),
-          ));
+          emit(
+            state.copyWith(
+              status: PaymentStatus.failure,
+              failure: const PaymentFailure(PaymentFailureCode.serverError),
+            ),
+          );
           return;
         }
         await Future<void>.delayed(_pollInterval);

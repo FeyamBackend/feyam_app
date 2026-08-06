@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:feyam/features/payments/data/models/checkout_session_model.dart';
 import 'package:feyam/features/payments/data/models/payment_status_model.dart';
+import 'package:feyam/features/payments/data/models/price_adjustment_status_model.dart';
 import 'package:http/http.dart' as http;
 
 class PaymentUnauthorizedException implements Exception {
@@ -18,8 +19,8 @@ class PaymentRemoteDataSource {
   PaymentRemoteDataSource({
     required http.Client client,
     required String apiBaseUrl,
-  })  : _client = client,
-        _apiBaseUrl = apiBaseUrl;
+  }) : _client = client,
+       _apiBaseUrl = apiBaseUrl;
 
   final http.Client _client;
   final String _apiBaseUrl;
@@ -57,6 +58,49 @@ class PaymentRemoteDataSource {
     }
 
     return PaymentStatusModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  /// POST /api/payments/price-adjustments — starts the top-up charge for a purchase whose
+  /// verified price exceeded the original estimate. Returns the same shape as checkout.
+  Future<CheckoutSessionModel> createPriceAdjustmentPayment(
+    String purchaseId,
+  ) async {
+    final uri = Uri.parse('$_apiBaseUrl/api/payments/price-adjustments');
+
+    final response = await _client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'purchaseId': purchaseId}),
+    );
+
+    if (response.statusCode == 401) throw const PaymentUnauthorizedException();
+    if (response.statusCode != 200) {
+      throw PaymentServerException(response.statusCode);
+    }
+
+    return CheckoutSessionModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/payments/price-adjustments/{id} — polled after the PaymentSheet closes.
+  Future<PriceAdjustmentStatusModel> getPriceAdjustmentPaymentStatus(
+    String chargeId,
+  ) async {
+    final uri = Uri.parse(
+      '$_apiBaseUrl/api/payments/price-adjustments/$chargeId',
+    );
+
+    final response = await _client.get(uri);
+
+    if (response.statusCode == 401) throw const PaymentUnauthorizedException();
+    if (response.statusCode != 200) {
+      throw PaymentServerException(response.statusCode);
+    }
+
+    return PriceAdjustmentStatusModel.fromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }

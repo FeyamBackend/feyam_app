@@ -18,7 +18,9 @@ void main() {
   test('maps server exceptions to PaymentFailure.serverError', () async {
     dataSource.checkoutBehaviors = <_Behavior>[_Behavior.server];
 
-    final failure = await _captureFailure(() => buildRepo().createCheckout('addr_1'));
+    final failure = await _captureFailure(
+      () => buildRepo().createCheckout('addr_1'),
+    );
 
     expect(failure.code, PaymentFailureCode.serverError);
   });
@@ -40,7 +42,9 @@ void main() {
       // refresh ya falló de forma definitiva: no se reintenta acá.
       dataSource.checkoutBehaviors = <_Behavior>[_Behavior.unauthorized];
 
-      final failure = await _captureFailure(() => buildRepo().createCheckout('addr_1'));
+      final failure = await _captureFailure(
+        () => buildRepo().createCheckout('addr_1'),
+      );
 
       expect(failure.code, PaymentFailureCode.sessionExpired);
       expect(dataSource.checkoutCalls, 1);

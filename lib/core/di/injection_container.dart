@@ -26,8 +26,11 @@ import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
 import 'package:feyam/features/payments/data/repositories/payment_repository_impl.dart';
 import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
+import 'package:feyam/features/payments/domain/usecases/create_price_adjustment_payment.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
+import 'package:feyam/features/payments/domain/usecases/get_price_adjustment_payment_status.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
+import 'package:feyam/features/payments/presentation/bloc/price_adjustment_payment_bloc.dart';
 import 'package:feyam/features/notifications/data/datasources/notifications_remote_datasource.dart';
 import 'package:feyam/features/notifications/data/repositories/notifications_repository_impl.dart';
 import 'package:feyam/features/notifications/domain/usecases/get_notifications.dart';
@@ -215,6 +218,24 @@ void configureDependencies({AppConfig? appConfig}) {
 
   sl.registerFactory<GetPaymentStatusUseCase>(
     () => GetPaymentStatusUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
+  sl.registerFactory<CreatePriceAdjustmentPaymentUseCase>(
+    () => CreatePriceAdjustmentPaymentUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
+  sl.registerFactory<GetPriceAdjustmentPaymentStatusUseCase>(
+    () => GetPriceAdjustmentPaymentStatusUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
+  sl.registerFactory<PriceAdjustmentPaymentBloc>(
+    () => PriceAdjustmentPaymentBloc(
+      createPriceAdjustmentPaymentUseCase:
+          sl<CreatePriceAdjustmentPaymentUseCase>(),
+      getPriceAdjustmentPaymentStatusUseCase:
+          sl<GetPriceAdjustmentPaymentStatusUseCase>(),
+      stripeService: sl<StripePaymentService>(),
+    ),
   );
 
   sl.registerFactory<PaymentBloc>(

@@ -23,12 +23,12 @@ class CheckoutSessionEntity extends Equatable {
 
   @override
   List<Object> get props => [
-        paymentId,
-        paymentIntentClientSecret,
-        ephemeralKeySecret,
-        stripeCustomerId,
-        publishableKey,
-        chargedAmount,
-        currencyCode,
-      ];
+    paymentId,
+    paymentIntentClientSecret,
+    ephemeralKeySecret,
+    stripeCustomerId,
+    publishableKey,
+    chargedAmount,
+    currencyCode,
+  ];
 }

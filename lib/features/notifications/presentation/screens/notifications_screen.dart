@@ -3,6 +3,7 @@ import 'package:feyam/features/notifications/domain/entities/notification_entity
 import 'package:feyam/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:feyam/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:feyam/features/notifications/presentation/bloc/notifications_state.dart';
+import 'package:feyam/features/payments/presentation/screens/price_adjustment_payment_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -94,9 +95,22 @@ class _NotificationsView extends StatelessWidget {
                       return _NotifTile(
                         scale: scale,
                         item: item,
-                        onTap: () => context.read<NotificationsBloc>().add(
-                          NotificationsMarkReadRequested(item.id),
-                        ),
+                        onTap: () {
+                          context.read<NotificationsBloc>().add(
+                            NotificationsMarkReadRequested(item.id),
+                          );
+                          if (item.relatedEntityType == 'PriceAdjustment' &&
+                              item.relatedEntityId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (_) => PriceAdjustmentPaymentScreen(
+                                  purchaseId: item.relatedEntityId!,
+                                ),
+                              ),
+                            );
+                          }
+                        },
                       );
                     },
                   );

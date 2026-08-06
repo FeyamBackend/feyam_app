@@ -1382,6 +1382,72 @@ abstract class AppLocalizations {
   /// **'Payment cancelled.'**
   String get paymentCancelled;
 
+  /// No description provided for @priceAdjustmentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price difference'**
+  String get priceAdjustmentTitle;
+
+  /// No description provided for @priceAdjustmentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The verified price for your order came in higher than originally estimated. Pay the difference below to continue your order.'**
+  String get priceAdjustmentIntro;
+
+  /// No description provided for @priceAdjustmentAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount due'**
+  String get priceAdjustmentAmountLabel;
+
+  /// No description provided for @priceAdjustmentPayButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay difference'**
+  String get priceAdjustmentPayButton;
+
+  /// No description provided for @priceAdjustmentSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment confirmed'**
+  String get priceAdjustmentSuccessTitle;
+
+  /// No description provided for @priceAdjustmentSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! Your order will now proceed to purchase.'**
+  String get priceAdjustmentSuccessBody;
+
+  /// No description provided for @priceAdjustmentPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received'**
+  String get priceAdjustmentPendingTitle;
+
+  /// No description provided for @priceAdjustmentPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re confirming your payment — this can take a moment. We\'ll notify you once it\'s done.'**
+  String get priceAdjustmentPendingBody;
+
+  /// No description provided for @priceAdjustmentFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed'**
+  String get priceAdjustmentFailureTitle;
+
+  /// No description provided for @priceAdjustmentRetryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get priceAdjustmentRetryButton;
+
+  /// No description provided for @priceAdjustmentDoneButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get priceAdjustmentDoneButton;
+
   /// No description provided for @successTitle.
   ///
   /// In en, this message translates to:

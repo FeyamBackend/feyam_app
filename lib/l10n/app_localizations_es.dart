@@ -684,6 +684,42 @@ class AppLocalizationsEs extends AppLocalizations {
   String get paymentCancelled => 'Pago cancelado.';
 
   @override
+  String get priceAdjustmentTitle => 'Diferencia de precio';
+
+  @override
+  String get priceAdjustmentIntro =>
+      'El precio verificado de tu pedido fue mayor al estimado originalmente. Pagá la diferencia para continuar con tu pedido.';
+
+  @override
+  String get priceAdjustmentAmountLabel => 'Monto a pagar';
+
+  @override
+  String get priceAdjustmentPayButton => 'Pagar diferencia';
+
+  @override
+  String get priceAdjustmentSuccessTitle => 'Pago confirmado';
+
+  @override
+  String get priceAdjustmentSuccessBody =>
+      '¡Gracias! Tu pedido va a continuar con la compra.';
+
+  @override
+  String get priceAdjustmentPendingTitle => 'Pago recibido';
+
+  @override
+  String get priceAdjustmentPendingBody =>
+      'Estamos confirmando tu pago — puede tardar un momento. Te avisamos cuando esté listo.';
+
+  @override
+  String get priceAdjustmentFailureTitle => 'Pago fallido';
+
+  @override
+  String get priceAdjustmentRetryButton => 'Reintentar';
+
+  @override
+  String get priceAdjustmentDoneButton => 'Listo';
+
+  @override
   String get successTitle => '¡Pedido confirmado!';
 
   @override

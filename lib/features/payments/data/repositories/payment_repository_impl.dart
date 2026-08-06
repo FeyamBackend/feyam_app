@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_session_entity.dart';
 import 'package:feyam/features/payments/domain/entities/payment_status_entity.dart';
+import 'package:feyam/features/payments/domain/entities/price_adjustment_status_entity.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/domain/repositories/payment_repository.dart';
 
 class PaymentRepositoryImpl implements PaymentRepository {
   PaymentRepositoryImpl({required PaymentRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   final PaymentRemoteDataSource _remoteDataSource;
 
@@ -20,6 +21,24 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<PaymentStatusEntity> getPaymentStatus(String paymentId) {
     return _guard(() => _remoteDataSource.getPaymentStatus(paymentId));
+  }
+
+  @override
+  Future<CheckoutSessionEntity> createPriceAdjustmentPayment(
+    String purchaseId,
+  ) {
+    return _guard(
+      () => _remoteDataSource.createPriceAdjustmentPayment(purchaseId),
+    );
+  }
+
+  @override
+  Future<PriceAdjustmentStatusEntity> getPriceAdjustmentPaymentStatus(
+    String chargeId,
+  ) {
+    return _guard(
+      () => _remoteDataSource.getPriceAdjustmentPaymentStatus(chargeId),
+    );
   }
 
   /// Ejecuta [action] mapeando las excepciones del datasource a [PaymentFailure].

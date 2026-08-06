@@ -12,6 +12,7 @@ import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_event.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
+import 'package:feyam/features/payments/presentation/screens/price_adjustment_payment_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -90,20 +91,36 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     _openedAppMessageSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
-      (_) {
-        _openNotifications();
-      },
+      _openFromPush,
     );
 
     FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) _openNotifications();
+      if (message != null) _openFromPush(message);
     });
   }
 
-  void _openNotifications() {
+  /// Opens the notification history, unless the push carries a "PriceAdjustment" deep link
+  /// (see PushDispatcherBackgroundService's data payload on the backend), in which case it
+  /// opens the payment screen directly with the PurchaseId it needs.
+  void _openFromPush(RemoteMessage message) {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      final relatedEntityType = message.data['relatedEntityType'] as String?;
+      final relatedEntityId = message.data['relatedEntityId'] as String?;
+
+      if (relatedEntityType == 'PriceAdjustment' && relatedEntityId != null) {
+        Navigator.of(context).push(
+          AdaptivePlatform.pageRoute<void>(
+            context: context,
+            builder: (_) =>
+                PriceAdjustmentPaymentScreen(purchaseId: relatedEntityId),
+          ),
+        );
+        return;
+      }
+
       Navigator.of(context).push(
         AdaptivePlatform.pageRoute<void>(
           context: context,
