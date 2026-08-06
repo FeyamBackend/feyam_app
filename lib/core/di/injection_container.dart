@@ -5,6 +5,8 @@ import 'package:feyam/core/config/app_flavor.dart';
 import 'package:feyam/core/network/authenticated_http_client.dart';
 import 'package:feyam/core/network/session_expired_notifier.dart';
 import 'package:feyam/core/payments/stripe_payment_service.dart';
+import 'package:feyam/core/push/device_token_service.dart';
+import 'package:feyam/core/push/local_notifications_service.dart';
 import 'package:feyam/features/auth/data/datasources/keycloak_auth_datasource.dart';
 import 'package:feyam/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
@@ -26,6 +28,14 @@ import 'package:feyam/features/payments/data/repositories/payment_repository_imp
 import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
+import 'package:feyam/features/notifications/data/datasources/notifications_remote_datasource.dart';
+import 'package:feyam/features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'package:feyam/features/notifications/domain/usecases/get_notifications.dart';
+import 'package:feyam/features/notifications/domain/usecases/get_unread_count.dart';
+import 'package:feyam/features/notifications/domain/usecases/mark_all_notifications_read.dart';
+import 'package:feyam/features/notifications/domain/usecases/mark_notification_read.dart';
+import 'package:feyam/features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/orders/data/datasources/orders_remote_datasource.dart';
 import 'package:feyam/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:feyam/features/orders/domain/usecases/get_recent_orders.dart';
@@ -94,13 +104,9 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   // Use cases
-  sl.registerFactory<LoginUseCase>(
-    () => LoginUseCase(sl<AuthRepository>()),
-  );
+  sl.registerFactory<LoginUseCase>(() => LoginUseCase(sl<AuthRepository>()));
 
-  sl.registerFactory<LogoutUseCase>(
-    () => LogoutUseCase(sl<AuthRepository>()),
-  );
+  sl.registerFactory<LogoutUseCase>(() => LogoutUseCase(sl<AuthRepository>()));
 
   sl.registerFactory<CheckAuthSessionUseCase>(
     () => CheckAuthSessionUseCase(sl<AuthRepository>()),
@@ -154,9 +160,7 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   sl.registerFactory<CartRepositoryImpl>(
-    () => CartRepositoryImpl(
-      remoteDataSource: sl<CartRemoteDataSource>(),
-    ),
+    () => CartRepositoryImpl(remoteDataSource: sl<CartRemoteDataSource>()),
   );
 
   sl.registerFactory<AddToCartUseCase>(
@@ -201,9 +205,8 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerLazySingleton(() => StripePaymentService());
 
   sl.registerFactory<PaymentRepositoryImpl>(
-    () => PaymentRepositoryImpl(
-      remoteDataSource: sl<PaymentRemoteDataSource>(),
-    ),
+    () =>
+        PaymentRepositoryImpl(remoteDataSource: sl<PaymentRemoteDataSource>()),
   );
 
   sl.registerFactory<CreateCheckoutUseCase>(
@@ -234,9 +237,7 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   sl.registerFactory<OrdersRepositoryImpl>(
-    () => OrdersRepositoryImpl(
-      remoteDataSource: sl<OrdersRemoteDataSource>(),
-    ),
+    () => OrdersRepositoryImpl(remoteDataSource: sl<OrdersRemoteDataSource>()),
   );
 
   sl.registerFactory<GetRecentOrdersUseCase>(
@@ -244,7 +245,8 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   sl.registerFactory<RecentOrdersBloc>(
-    () => RecentOrdersBloc(getRecentOrdersUseCase: sl<GetRecentOrdersUseCase>()),
+    () =>
+        RecentOrdersBloc(getRecentOrdersUseCase: sl<GetRecentOrdersUseCase>()),
   );
 
   /**
@@ -259,9 +261,8 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   sl.registerLazySingleton<AddressRepository>(
-    () => AddressRepositoryImpl(
-      remoteDataSource: sl<AddressRemoteDataSource>(),
-    ),
+    () =>
+        AddressRepositoryImpl(remoteDataSource: sl<AddressRemoteDataSource>()),
   );
 
   sl.registerFactory<GetAddressesUseCase>(
@@ -310,9 +311,7 @@ void configureDependencies({AppConfig? appConfig}) {
   );
 
   sl.registerLazySingleton<StoresRepository>(
-    () => StoresRepositoryImpl(
-      remoteDataSource: sl<StoresRemoteDataSource>(),
-    ),
+    () => StoresRepositoryImpl(remoteDataSource: sl<StoresRemoteDataSource>()),
   );
 
   sl.registerFactory<GetStoresUseCase>(
@@ -350,4 +349,55 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerFactory<ProductSearchBloc>(
     () => ProductSearchBloc(searchProductsUseCase: sl<SearchProductsUseCase>()),
   );
+
+  /**
+   * Notifications Module
+   */
+
+  sl.registerLazySingleton(
+    () => NotificationsRemoteDataSource(
+      client: sl<http.Client>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerFactory<NotificationsRepositoryImpl>(
+    () => NotificationsRepositoryImpl(
+      remoteDataSource: sl<NotificationsRemoteDataSource>(),
+    ),
+  );
+
+  sl.registerFactory<GetNotificationsUseCase>(
+    () => GetNotificationsUseCase(sl<NotificationsRepositoryImpl>()),
+  );
+
+  sl.registerFactory<GetUnreadCountUseCase>(
+    () => GetUnreadCountUseCase(sl<NotificationsRepositoryImpl>()),
+  );
+
+  sl.registerFactory<MarkNotificationReadUseCase>(
+    () => MarkNotificationReadUseCase(sl<NotificationsRepositoryImpl>()),
+  );
+
+  sl.registerFactory<MarkAllNotificationsReadUseCase>(
+    () => MarkAllNotificationsReadUseCase(sl<NotificationsRepositoryImpl>()),
+  );
+
+  sl.registerFactory<NotificationsBloc>(
+    () => NotificationsBloc(
+      getNotificationsUseCase: sl<GetNotificationsUseCase>(),
+      markNotificationReadUseCase: sl<MarkNotificationReadUseCase>(),
+      markAllNotificationsReadUseCase: sl<MarkAllNotificationsReadUseCase>(),
+    ),
+  );
+
+  sl.registerFactory<UnreadCountBloc>(
+    () => UnreadCountBloc(getUnreadCountUseCase: sl<GetUnreadCountUseCase>()),
+  );
+
+  sl.registerLazySingleton(
+    () => DeviceTokenService(repository: sl<NotificationsRepositoryImpl>()),
+  );
+
+  sl.registerLazySingleton(() => LocalNotificationsService());
 }

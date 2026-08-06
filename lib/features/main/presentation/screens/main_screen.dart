@@ -1,14 +1,20 @@
 import 'dart:async';
 
+import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/push/local_notifications_service.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/auth/presentation/screens/login_screen.dart';
 import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/features/help/presentation/screens/help_screen.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
+import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
+import 'package:feyam/features/notifications/presentation/bloc/unread_count_event.dart';
+import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +40,10 @@ SharedProductLink? parseSharedProductEvent(dynamic share) {
     final url = share['url'] as String?;
     if (url == null || url.isEmpty) return null;
     final title = share['title'] as String?;
-    return SharedProductLink(url: url, title: (title != null && title.isNotEmpty) ? title : null);
+    return SharedProductLink(
+      url: url,
+      title: (title != null && title.isNotEmpty) ? title : null,
+    );
   }
   if (share is String && share.isNotEmpty) {
     return SharedProductLink(url: share);
@@ -54,13 +63,54 @@ class _MainScreenState extends State<MainScreen> {
 
   var _currentIndex = 0;
   late final StreamSubscription<dynamic> _sharingSubscription;
+  late final UnreadCountBloc _unreadCountBloc;
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
+  StreamSubscription<RemoteMessage>? _openedAppMessageSubscription;
 
   @override
   void initState() {
     super.initState();
-    _sharingSubscription = _shareChannel
-        .receiveBroadcastStream()
-        .listen(_onSharedUrl);
+    _sharingSubscription = _shareChannel.receiveBroadcastStream().listen(
+      _onSharedUrl,
+    );
+
+    _unreadCountBloc = sl<UnreadCountBloc>()
+      ..add(const UnreadCountRefreshRequested());
+    _setUpPushListeners();
+  }
+
+  void _setUpPushListeners() {
+    _foregroundMessageSubscription = FirebaseMessaging.onMessage.listen((
+      message,
+    ) {
+      unawaited(
+        sl<LocalNotificationsService>().showForegroundNotification(message),
+      );
+      _unreadCountBloc.add(const UnreadCountIncremented());
+    });
+
+    _openedAppMessageSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
+      (_) {
+        _openNotifications();
+      },
+    );
+
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) _openNotifications();
+    });
+  }
+
+  void _openNotifications() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        AdaptivePlatform.pageRoute<void>(
+          context: context,
+          builder: (_) => const NotificationsScreen(),
+        ),
+      );
+    });
   }
 
   void _onSharedUrl(dynamic share) {
@@ -77,10 +127,8 @@ class _MainScreenState extends State<MainScreen> {
       Navigator.of(context).push(
         AdaptivePlatform.pageRoute<void>(
           context: context,
-          builder: (_) => AddToCartScreen(
-            initialUrl: url,
-            initialProductName: title,
-          ),
+          builder: (_) =>
+              AddToCartScreen(initialUrl: url, initialProductName: title),
         ),
       );
     });
@@ -89,6 +137,9 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     _sharingSubscription.cancel();
+    _foregroundMessageSubscription?.cancel();
+    _openedAppMessageSubscription?.cancel();
+    _unreadCountBloc.close();
     super.dispose();
   }
 
@@ -111,29 +162,32 @@ class _MainScreenState extends State<MainScreen> {
       },
     );
 
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (previous, current) =>
-          previous.status != current.status &&
-          current.status == AuthStatus.initial,
-      listener: (context, state) {
-        Navigator.of(context).pushAndRemoveUntil(
-          AdaptivePlatform.pageRoute<void>(
-            context: context,
-            builder: (_) => const LoginScreen(),
-          ),
-          (_) => false,
-        );
-      },
-      child: AdaptiveAppScaffold(
-        title:
-            _currentIndex == 0 ||
-                _currentIndex == 1 ||
-                _currentIndex == 2 ||
-                _currentIndex == 3
-            ? null
-            : currentLabel,
-        body: _MainTabContent(currentIndex: _currentIndex),
-        bottomNavigationBar: bottomNavigationBar,
+    return BlocProvider<UnreadCountBloc>.value(
+      value: _unreadCountBloc,
+      child: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == AuthStatus.initial,
+        listener: (context, state) {
+          Navigator.of(context).pushAndRemoveUntil(
+            AdaptivePlatform.pageRoute<void>(
+              context: context,
+              builder: (_) => const LoginScreen(),
+            ),
+            (_) => false,
+          );
+        },
+        child: AdaptiveAppScaffold(
+          title:
+              _currentIndex == 0 ||
+                  _currentIndex == 1 ||
+                  _currentIndex == 2 ||
+                  _currentIndex == 3
+              ? null
+              : currentLabel,
+          body: _MainTabContent(currentIndex: _currentIndex),
+          bottomNavigationBar: bottomNavigationBar,
+        ),
       ),
     );
   }

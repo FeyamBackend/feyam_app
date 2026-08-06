@@ -121,9 +121,15 @@ class _FeyamListTileState extends State<FeyamListTile> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: widget.onTap != null ? (_) => setState(() => _pressed = true) : null,
-      onTapUp: widget.onTap != null ? (_) => setState(() => _pressed = false) : null,
-      onTapCancel: widget.onTap != null ? () => setState(() => _pressed = false) : null,
+      onTapDown: widget.onTap != null
+          ? (_) => setState(() => _pressed = true)
+          : null,
+      onTapUp: widget.onTap != null
+          ? (_) => setState(() => _pressed = false)
+          : null,
+      onTapCancel: widget.onTap != null
+          ? () => setState(() => _pressed = false)
+          : null,
       onTap: widget.onTap,
       child: ColoredBox(
         color: _pressed ? kFeyamFillQuat : CupertinoColors.transparent,
@@ -142,7 +148,10 @@ class _FeyamListTileState extends State<FeyamListTile> {
                     border: widget.isLast
                         ? null
                         : const Border(
-                            bottom: BorderSide(color: kFeyamSepLight, width: 0.5),
+                            bottom: BorderSide(
+                              color: kFeyamSepLight,
+                              width: 0.5,
+                            ),
                           ),
                   ),
                   child: Row(
@@ -156,7 +165,9 @@ class _FeyamListTileState extends State<FeyamListTile> {
                               style: TextStyle(
                                 fontSize: 17,
                                 letterSpacing: -0.41,
-                                color: widget.destructive ? kFeyamRed : kFeyamLabel,
+                                color: widget.destructive
+                                    ? kFeyamRed
+                                    : kFeyamLabel,
                                 fontFamily: '.SF Pro Text',
                               ),
                               child: widget.title,
@@ -183,7 +194,10 @@ class _FeyamListTileState extends State<FeyamListTile> {
                         children: <Widget>[
                           if (widget.badge != null)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
                               decoration: BoxDecoration(
                                 color: kFeyamRed,
                                 borderRadius: BorderRadius.circular(9999),
@@ -239,10 +253,14 @@ enum FeyamOrderStatus { enRevision, porPagar, enCamino, entregado }
 
 FeyamOrderStatus feyamStatusFromString(String s) {
   switch (s) {
-    case 'payment': return FeyamOrderStatus.porPagar;
-    case 'shipping': return FeyamOrderStatus.enCamino;
-    case 'delivered': return FeyamOrderStatus.entregado;
-    default: return FeyamOrderStatus.enRevision;
+    case 'payment':
+      return FeyamOrderStatus.porPagar;
+    case 'shipping':
+      return FeyamOrderStatus.enCamino;
+    case 'delivered':
+      return FeyamOrderStatus.entregado;
+    default:
+      return FeyamOrderStatus.enRevision;
   }
 }
 
@@ -381,10 +399,7 @@ class FeyamEmptyState extends StatelessWidget {
                 ),
               ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: 16),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 16), action!],
           ],
         ),
       ),
@@ -394,7 +409,8 @@ class FeyamEmptyState extends StatelessWidget {
 
 // ── FeyamNavBar ── standard nav bar (mimics CupertinoNavigationBar) ───────────
 
-class FeyamNavBar extends StatelessWidget implements ObstructingPreferredSizeWidget {
+class FeyamNavBar extends StatelessWidget
+    implements ObstructingPreferredSizeWidget {
   const FeyamNavBar({
     super.key,
     required this.title,
@@ -426,10 +442,7 @@ class FeyamNavBar extends StatelessWidget implements ObstructingPreferredSizeWid
                 children: <Widget>[
                   const Icon(CupertinoIcons.chevron_back, size: 18),
                   const SizedBox(width: 2),
-                  Text(
-                    backLabel!,
-                    style: const TextStyle(fontSize: 17),
-                  ),
+                  Text(backLabel!, style: const TextStyle(fontSize: 17)),
                 ],
               ),
             )
@@ -456,6 +469,55 @@ class FeyamCartButton extends StatelessWidget {
         clipBehavior: Clip.none,
         children: <Widget>[
           const Icon(CupertinoIcons.cart_fill, size: 22, color: kFeyamTint),
+          if (count > 0)
+            Positioned(
+              top: -4,
+              right: -6,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: kFeyamRed,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '$count',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: CupertinoColors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── FeyamNotificationsButton ── bell icon with badge ──────────────────────────
+
+class FeyamNotificationsButton extends StatelessWidget {
+  const FeyamNotificationsButton({
+    super.key,
+    required this.count,
+    required this.onTap,
+  });
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: <Widget>[
+          const Icon(CupertinoIcons.bell, size: 22, color: kFeyamTint),
           if (count > 0)
             Positioned(
               top: -4,
@@ -520,7 +582,15 @@ class FeyamSegmented<T> extends StatelessWidget {
                   color: active ? kFeyamCard : CupertinoColors.transparent,
                   borderRadius: BorderRadius.circular(7),
                   boxShadow: active
-                      ? [BoxShadow(color: CupertinoColors.black.withValues(alpha: 0.10), blurRadius: 3, offset: const Offset(0, 1))]
+                      ? [
+                          BoxShadow(
+                            color: CupertinoColors.black.withValues(
+                              alpha: 0.10,
+                            ),
+                            blurRadius: 3,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
                       : null,
                 ),
                 child: Center(
@@ -576,33 +646,50 @@ class _FeyamButtonState extends State<FeyamButton> {
   Color get _bg {
     if (widget.disabled) return kFeyamFillTer;
     switch (widget.variant) {
-      case FeyamButtonVariant.filled: return _pressed ? const Color(0xFF155BBD) : kFeyamTint;
-      case FeyamButtonVariant.tinted: return _pressed ? const Color(0x381B6DE0) : kFeyamTintBg;
-      case FeyamButtonVariant.plain: return CupertinoColors.transparent;
-      case FeyamButtonVariant.destructivePlain: return CupertinoColors.transparent;
+      case FeyamButtonVariant.filled:
+        return _pressed ? const Color(0xFF155BBD) : kFeyamTint;
+      case FeyamButtonVariant.tinted:
+        return _pressed ? const Color(0x381B6DE0) : kFeyamTintBg;
+      case FeyamButtonVariant.plain:
+        return CupertinoColors.transparent;
+      case FeyamButtonVariant.destructivePlain:
+        return CupertinoColors.transparent;
     }
   }
 
   Color get _fg {
     if (widget.disabled) return kFeyamLabelTer;
     switch (widget.variant) {
-      case FeyamButtonVariant.filled: return CupertinoColors.white;
-      case FeyamButtonVariant.tinted: return kFeyamTint;
-      case FeyamButtonVariant.plain: return kFeyamTint;
-      case FeyamButtonVariant.destructivePlain: return kFeyamRed;
+      case FeyamButtonVariant.filled:
+        return CupertinoColors.white;
+      case FeyamButtonVariant.tinted:
+        return kFeyamTint;
+      case FeyamButtonVariant.plain:
+        return kFeyamTint;
+      case FeyamButtonVariant.destructivePlain:
+        return kFeyamRed;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: widget.disabled ? null : (_) => setState(() => _pressed = true),
+      onTapDown: widget.disabled
+          ? null
+          : (_) => setState(() => _pressed = true),
       onTapUp: widget.disabled ? null : (_) => setState(() => _pressed = false),
-      onTapCancel: widget.disabled ? null : () => setState(() => _pressed = false),
+      onTapCancel: widget.disabled
+          ? null
+          : () => setState(() => _pressed = false),
       onTap: widget.disabled ? null : widget.onPressed,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 100),
-        opacity: _pressed && (widget.variant == FeyamButtonVariant.plain || widget.variant == FeyamButtonVariant.destructivePlain) ? 0.6 : 1.0,
+        opacity:
+            _pressed &&
+                (widget.variant == FeyamButtonVariant.plain ||
+                    widget.variant == FeyamButtonVariant.destructivePlain)
+            ? 0.6
+            : 1.0,
         child: Container(
           padding: EdgeInsets.symmetric(
             horizontal: 20,

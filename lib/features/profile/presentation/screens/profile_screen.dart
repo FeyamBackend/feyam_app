@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/push/device_token_service.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:feyam/features/notifications/presentation/screens/notification_settings_screen.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
 import 'package:feyam/features/profile/domain/entities/address_params.dart';
 import 'package:feyam/features/profile/domain/entities/address_subdivision_entity.dart';
@@ -25,7 +29,9 @@ class ProfileScreen extends StatelessWidget {
       return BlocProvider<AddressesBloc>(
         create: (_) => sl<AddressesBloc>()
           ..add(
-            AddressesLoadRequested(Localizations.localeOf(context).languageCode),
+            AddressesLoadRequested(
+              Localizations.localeOf(context).languageCode,
+            ),
           ),
         child: const _CupertinoProfileContent(),
       );
@@ -92,7 +98,10 @@ class _MaterialProfileContent extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 24 * scale),
-                    _MaterialLogoutButton(label: l10n.profileLogOut, scale: scale),
+                    _MaterialLogoutButton(
+                      label: l10n.profileLogOut,
+                      scale: scale,
+                    ),
                   ],
                 ),
               ),
@@ -314,11 +323,7 @@ class _MaterialProfileRow extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
-            Icon(
-              data.icon,
-              color: colors.onSurfaceVariant,
-              size: 22 * scale,
-            ),
+            Icon(data.icon, color: colors.onSurfaceVariant, size: 22 * scale),
             SizedBox(width: 16 * scale),
             Expanded(
               child: Text(
@@ -356,7 +361,10 @@ class _MaterialLogoutButton extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return OutlinedButton.icon(
-      onPressed: () => context.read<AuthBloc>().add(SignOutPressed()),
+      onPressed: () {
+        unawaited(sl<DeviceTokenService>().clearToken());
+        context.read<AuthBloc>().add(SignOutPressed());
+      },
       icon: Icon(Icons.logout_rounded, size: 18 * scale),
       label: Text(label),
       style: OutlinedButton.styleFrom(
@@ -391,7 +399,8 @@ class _CupertinoProfileContent extends StatefulWidget {
   const _CupertinoProfileContent();
 
   @override
-  State<_CupertinoProfileContent> createState() => _CupertinoProfileContentState();
+  State<_CupertinoProfileContent> createState() =>
+      _CupertinoProfileContentState();
 }
 
 class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
@@ -438,6 +447,7 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
             isDestructiveAction: true,
             onPressed: () {
               Navigator.of(context).pop();
+              unawaited(sl<DeviceTokenService>().clearToken());
               bloc.add(SignOutPressed());
             },
             child: Text(l10n.profileLogOut),
@@ -466,12 +476,25 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
               // Large title
               Container(
                 color: kFeyamBg,
-                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
+                ),
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
+                  padding: EdgeInsets.fromLTRB(
+                    16 * scale,
+                    8 * scale,
+                    16 * scale,
+                    0,
+                  ),
                   child: Text(
                     l10n.navProfile,
-                    style: TextStyle(fontSize: 34 * scale, fontWeight: FontWeight.w700, color: kFeyamLabel, letterSpacing: 0.37, fontFamily: '.SF Pro Display'),
+                    style: TextStyle(
+                      fontSize: 34 * scale,
+                      fontWeight: FontWeight.w700,
+                      color: kFeyamLabel,
+                      letterSpacing: 0.37,
+                      fontFamily: '.SF Pro Display',
+                    ),
                   ),
                 ),
               ),
@@ -491,11 +514,20 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                             leading: Container(
                               width: 40,
                               height: 40,
-                              decoration: const BoxDecoration(color: kFeyamTint, shape: BoxShape.circle),
+                              decoration: const BoxDecoration(
+                                color: kFeyamTint,
+                                shape: BoxShape.circle,
+                              ),
                               child: Center(
                                 child: Text(
-                                  displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.white),
+                                  displayName.isNotEmpty
+                                      ? displayName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoColors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -519,7 +551,7 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                           final addresses = state.addresses;
                           final loading =
                               state.status == AddressesStatus.loading &&
-                                  addresses.isEmpty;
+                              addresses.isEmpty;
                           return FeyamListSection(
                             header: 'Mis direcciones',
                             footer: addresses.isEmpty && !loading
@@ -534,8 +566,9 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                               for (var i = 0; i < addresses.length; i++)
                                 FeyamListTile(
                                   title: Text(_cupertinoTitle(addresses[i])),
-                                  subtitle:
-                                      Text(_cupertinoSubtitle(addresses[i])),
+                                  subtitle: Text(
+                                    _cupertinoSubtitle(addresses[i]),
+                                  ),
                                   leading: FeyamIconTile(
                                     icon: addresses[i].type == 'Billing'
                                         ? CupertinoIcons.bag_fill
@@ -545,14 +578,17 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                                         : kFeyamGreen,
                                   ),
                                   isLast: false,
-                                  onTap: () => _showAddressSheet(context,
-                                      initial: addresses[i]),
+                                  onTap: () => _showAddressSheet(
+                                    context,
+                                    initial: addresses[i],
+                                  ),
                                 ),
                               FeyamListTile(
                                 title: const Text('Agregar dirección'),
                                 leading: FeyamIconTile(
-                                    icon: CupertinoIcons.plus_circle_fill,
-                                    color: kFeyamGreen),
+                                  icon: CupertinoIcons.plus_circle_fill,
+                                  color: kFeyamGreen,
+                                ),
                                 isLast: true,
                                 onTap: () => _showAddressSheet(context),
                               ),
@@ -565,13 +601,28 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                         header: 'Configuración',
                         children: <Widget>[
                           FeyamListTile(
-                            title: const Text('Notificaciones'),
-                            leading: FeyamIconTile(icon: CupertinoIcons.bell_fill, color: kFeyamRed),
-                            onTap: () {},
+                            title: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.profileNotifications,
+                            ),
+                            leading: FeyamIconTile(
+                              icon: CupertinoIcons.bell_fill,
+                              color: kFeyamRed,
+                            ),
+                            onTap: () => Navigator.of(context).push(
+                              CupertinoPageRoute<void>(
+                                builder: (_) =>
+                                    const NotificationSettingsScreen(),
+                              ),
+                            ),
                           ),
                           FeyamListTile(
                             title: const Text('Seguridad y acceso'),
-                            leading: FeyamIconTile(icon: CupertinoIcons.lock_fill, color: kFeyamLabelSec),
+                            leading: FeyamIconTile(
+                              icon: CupertinoIcons.lock_fill,
+                              color: kFeyamLabelSec,
+                            ),
                             isLast: true,
                             onTap: () {},
                           ),
@@ -582,7 +633,10 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                         children: <Widget>[
                           FeyamListTile(
                             title: const Text('Cerrar sesión'),
-                            leading: FeyamIconTile(icon: CupertinoIcons.square_arrow_right_fill, color: kFeyamRed),
+                            leading: FeyamIconTile(
+                              icon: CupertinoIcons.square_arrow_right_fill,
+                              color: kFeyamRed,
+                            ),
                             destructive: true,
                             chevron: false,
                             isLast: true,
@@ -595,7 +649,11 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                         child: Text(
                           'Feyam v2.0.0 (Cupertino)',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 12, color: kFeyamLabelTer, fontFamily: '.SF Pro Text'),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: kFeyamLabelTer,
+                            fontFamily: '.SF Pro Text',
+                          ),
                         ),
                       ),
                     ],
@@ -669,8 +727,9 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
     );
     _zip = TextEditingController(text: initial?.zipCode ?? '');
     _recipient = TextEditingController(text: initial?.recipient ?? '');
-    _instructions =
-        TextEditingController(text: initial?.deliveryInstructions ?? '');
+    _instructions = TextEditingController(
+      text: initial?.deliveryInstructions ?? '',
+    );
   }
 
   @override
@@ -713,7 +772,10 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
         : <AddressSubdivisionEntity>[
             // El backend exige code no nulo; usamos el nombre como código.
             AddressSubdivisionEntity(
-                type: 'Other', code: subName, name: subName),
+              type: 'Other',
+              code: subName,
+              name: subName,
+            ),
           ];
 
     final params = AddressParams(
@@ -721,8 +783,7 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
       countryCode: country.toUpperCase(),
       lines: lines,
       zipCode: _zip.text.trim().isEmpty ? null : _zip.text.trim(),
-      recipient:
-          _recipient.text.trim().isEmpty ? null : _recipient.text.trim(),
+      recipient: _recipient.text.trim().isEmpty ? null : _recipient.text.trim(),
       deliveryInstructions: _instructions.text.trim().isEmpty
           ? null
           : _instructions.text.trim(),
@@ -738,17 +799,21 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
     final inProgress = context.select<AddressesBloc, bool>(
       (b) => b.state.actionStatus == AddressActionStatus.inProgress,
     );
-    final countryError =
-        _submitted && _country.text.trim().length != 2 ? 'Usá el código de 2 letras (ej. VE)' : null;
-    final linesError =
-        _submitted && _lines[0].text.trim().isEmpty ? 'Requerido' : null;
+    final countryError = _submitted && _country.text.trim().length != 2
+        ? 'Usá el código de 2 letras (ej. VE)'
+        : null;
+    final linesError = _submitted && _lines[0].text.trim().isEmpty
+        ? 'Requerido'
+        : null;
 
     return Container(
       decoration: const BoxDecoration(
         color: kFeyamCard,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -762,8 +827,9 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                   width: 36,
                   height: 5,
                   decoration: BoxDecoration(
-                      color: kFeyamFillTer,
-                      borderRadius: BorderRadius.circular(3)),
+                    color: kFeyamFillTer,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
                 ),
               ),
               Padding(
@@ -776,19 +842,23 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                         isEdit ? 'Editar dirección' : 'Agregar dirección',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            color: kFeyamLabel),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: kFeyamLabel,
+                        ),
                       ),
                     ),
                     SizedBox(
                       width: 60,
                       child: CupertinoButton(
                         padding: EdgeInsets.zero,
-                        onPressed:
-                            inProgress ? null : () => Navigator.of(context).pop(),
-                        child: const Text('Cerrar',
-                            style: TextStyle(fontSize: 17, color: kFeyamTint)),
+                        onPressed: inProgress
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: const Text(
+                          'Cerrar',
+                          style: TextStyle(fontSize: 17, color: kFeyamTint),
+                        ),
                       ),
                     ),
                   ],
@@ -813,8 +883,7 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                           child: Text('Facturación'),
                         ),
                       },
-                      onValueChanged: (v) =>
-                          setState(() => _type = v ?? _type),
+                      onValueChanged: (v) => setState(() => _type = v ?? _type),
                     ),
                     const SizedBox(height: 16),
                     _SheetField(
@@ -842,13 +911,17 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                             ),
                             if (_lines.length > 1)
                               Padding(
-                                padding: const EdgeInsets.only(top: 22, left: 4),
+                                padding: const EdgeInsets.only(
+                                  top: 22,
+                                  left: 4,
+                                ),
                                 child: CupertinoButton(
                                   padding: EdgeInsets.zero,
                                   onPressed: () => _removeLine(i),
                                   child: const Icon(
-                                      CupertinoIcons.minus_circle_fill,
-                                      color: kFeyamRed),
+                                    CupertinoIcons.minus_circle_fill,
+                                    color: kFeyamRed,
+                                  ),
                                 ),
                               ),
                           ],
@@ -860,30 +933,36 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                         child: CupertinoButton(
                           padding: EdgeInsets.zero,
                           onPressed: _addLine,
-                          child: const Text('Agregar línea',
-                              style: TextStyle(fontSize: 15, color: kFeyamTint)),
+                          child: const Text(
+                            'Agregar línea',
+                            style: TextStyle(fontSize: 15, color: kFeyamTint),
+                          ),
                         ),
                       ),
                     const SizedBox(height: 8),
                     _SheetField(
-                        label: 'Ciudad / Estado',
-                        placeholder: 'Medellín, Antioquia',
-                        controller: _subdivision),
+                      label: 'Ciudad / Estado',
+                      placeholder: 'Medellín, Antioquia',
+                      controller: _subdivision,
+                    ),
                     const SizedBox(height: 16),
                     _SheetField(
-                        label: 'Código postal',
-                        placeholder: '050021',
-                        controller: _zip),
+                      label: 'Código postal',
+                      placeholder: '050021',
+                      controller: _zip,
+                    ),
                     const SizedBox(height: 16),
                     _SheetField(
-                        label: 'Destinatario',
-                        placeholder: 'Nombre de quien recibe',
-                        controller: _recipient),
+                      label: 'Destinatario',
+                      placeholder: 'Nombre de quien recibe',
+                      controller: _recipient,
+                    ),
                     const SizedBox(height: 16),
                     _SheetField(
-                        label: 'Instrucciones de entrega',
-                        placeholder: 'Portería, referencias…',
-                        controller: _instructions),
+                      label: 'Instrucciones de entrega',
+                      placeholder: 'Portería, referencias…',
+                      controller: _instructions,
+                    ),
                   ],
                 ),
               ),
@@ -918,8 +997,9 @@ class _CupertinoAddressSheetState extends State<_CupertinoAddressSheet> {
                       child: FeyamButton(
                         label: 'Cancelar',
                         variant: FeyamButtonVariant.plain,
-                        onPressed:
-                            inProgress ? null : () => Navigator.of(context).pop(),
+                        onPressed: inProgress
+                            ? null
+                            : () => Navigator.of(context).pop(),
                       ),
                     ),
                   ],
@@ -955,7 +1035,14 @@ class _SheetField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(label, style: const TextStyle(fontSize: 13, color: kFeyamLabelSec, fontFamily: '.SF Pro Text')),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: kFeyamLabelSec,
+            fontFamily: '.SF Pro Text',
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
           height: 44,
@@ -963,7 +1050,8 @@ class _SheetField extends StatelessWidget {
             color: kFeyamCard,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: errorText != null ? kFeyamRed : kFeyamSepLight),
+              color: errorText != null ? kFeyamRed : kFeyamSepLight,
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: CupertinoTextField.borderless(
@@ -979,8 +1067,10 @@ class _SheetField extends StatelessWidget {
         ),
         if (errorText != null) ...[
           const SizedBox(height: 4),
-          Text(errorText!,
-              style: const TextStyle(fontSize: 12, color: kFeyamRed)),
+          Text(
+            errorText!,
+            style: const TextStyle(fontSize: 12, color: kFeyamRed),
+          ),
         ],
       ],
     );

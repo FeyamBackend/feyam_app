@@ -7,6 +7,7 @@ import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
 import 'package:feyam/features/product_search/presentation/screens/product_search_screen.dart';
+import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/orders/domain/entities/order_display_status.dart';
 import 'package:feyam/features/orders/domain/entities/recent_order_entity.dart';
@@ -51,33 +52,43 @@ String _formatPrice(double amount) => '\$${amount.toStringAsFixed(2)}';
 
 String _formatDate(DateTime d) {
   const months = [
-    'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-    'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
   ];
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
 
 _OrderStatus _toMaterialStatus(OrderDisplayStatus s) => switch (s) {
-      OrderDisplayStatus.review => _OrderStatus.review,
-      OrderDisplayStatus.payment => _OrderStatus.payment,
-      OrderDisplayStatus.shipping => _OrderStatus.shipping,
-      OrderDisplayStatus.delivered => _OrderStatus.delivered,
-    };
+  OrderDisplayStatus.review => _OrderStatus.review,
+  OrderDisplayStatus.payment => _OrderStatus.payment,
+  OrderDisplayStatus.shipping => _OrderStatus.shipping,
+  OrderDisplayStatus.delivered => _OrderStatus.delivered,
+};
 
 FeyamOrderStatus _toFeyamStatus(OrderDisplayStatus s) => switch (s) {
-      OrderDisplayStatus.review => FeyamOrderStatus.enRevision,
-      OrderDisplayStatus.payment => FeyamOrderStatus.porPagar,
-      OrderDisplayStatus.shipping => FeyamOrderStatus.enCamino,
-      OrderDisplayStatus.delivered => FeyamOrderStatus.entregado,
-    };
+  OrderDisplayStatus.review => FeyamOrderStatus.enRevision,
+  OrderDisplayStatus.payment => FeyamOrderStatus.porPagar,
+  OrderDisplayStatus.shipping => FeyamOrderStatus.enCamino,
+  OrderDisplayStatus.delivered => FeyamOrderStatus.entregado,
+};
 
 _OrderPreview _toPreview(RecentOrderEntity o) => _OrderPreview(
-      id: o.orderId,
-      title: o.title,
-      status: _toMaterialStatus(o.displayStatus),
-      price: _formatPrice(o.chargedAmount),
-      date: _formatDate(o.createdDate),
-    );
+  id: o.orderId,
+  title: o.title,
+  status: _toMaterialStatus(o.displayStatus),
+  price: _formatPrice(o.chargedAmount),
+  date: _formatDate(o.createdDate),
+);
 
 // ── Material ──────────────────────────────────────────────────────────────────
 
@@ -85,10 +96,30 @@ class _MaterialHomeContent extends StatelessWidget {
   const _MaterialHomeContent();
 
   static const _stores = <_StoreData>[
-    _StoreData(name: 'Amazon',   host: 'amazon.com',   icon: Icons.shopping_bag_rounded, color: Color(0xFFFF9900)),
-    _StoreData(name: 'eBay',     host: 'ebay.com',     icon: Icons.gavel_rounded,        color: Color(0xFFE53238)),
-    _StoreData(name: 'Walmart',  host: 'walmart.com',  icon: Icons.storefront_rounded,   color: Color(0xFF0071DC)),
-    _StoreData(name: 'Best Buy', host: 'bestbuy.com',  icon: Icons.devices_rounded,      color: Color(0xFF0A4ABF)),
+    _StoreData(
+      name: 'Amazon',
+      host: 'amazon.com',
+      icon: Icons.shopping_bag_rounded,
+      color: Color(0xFFFF9900),
+    ),
+    _StoreData(
+      name: 'eBay',
+      host: 'ebay.com',
+      icon: Icons.gavel_rounded,
+      color: Color(0xFFE53238),
+    ),
+    _StoreData(
+      name: 'Walmart',
+      host: 'walmart.com',
+      icon: Icons.storefront_rounded,
+      color: Color(0xFF0071DC),
+    ),
+    _StoreData(
+      name: 'Best Buy',
+      host: 'bestbuy.com',
+      icon: Icons.devices_rounded,
+      color: Color(0xFF0A4ABF),
+    ),
   ];
 
   @override
@@ -117,10 +148,7 @@ class _MaterialHomeContent extends StatelessWidget {
                     SizedBox(height: 16 * scale),
                     _MaterialRecentOrders(scale: scale),
                     SizedBox(height: 16 * scale),
-                    _MaterialStoresSection(
-                      scale: scale,
-                      stores: _stores,
-                    ),
+                    _MaterialStoresSection(scale: scale, stores: _stores),
                   ],
                 ),
               ),
@@ -154,10 +182,7 @@ class _MaterialTopBar extends StatelessWidget {
             padding: EdgeInsets.only(left: 16 * scale, right: 8 * scale),
             child: Row(
               children: <Widget>[
-                Image.asset(
-                  'assets/branding/logo.png',
-                  height: 26 * scale,
-                ),
+                Image.asset('assets/branding/logo.png', height: 26 * scale),
                 const Spacer(),
                 IconButton(
                   onPressed: () {
@@ -186,10 +211,15 @@ class _MaterialTopBar extends StatelessWidget {
                       ),
                     );
                   },
-                  icon: Icon(
-                    Icons.notifications_outlined,
-                    color: colors.onSurface,
-                    size: 24 * scale,
+                  icon: Badge.count(
+                    count: context.watch<UnreadCountBloc>().state.count,
+                    isLabelVisible:
+                        context.watch<UnreadCountBloc>().state.count > 0,
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: colors.onSurface,
+                      size: 24 * scale,
+                    ),
                   ),
                 ),
               ],
@@ -268,7 +298,11 @@ class _MaterialSearchBar extends StatelessWidget {
           ),
           child: Row(
             children: <Widget>[
-              Icon(Icons.search_rounded, color: colors.onSurfaceVariant, size: 22 * scale),
+              Icon(
+                Icons.search_rounded,
+                color: colors.onSurfaceVariant,
+                size: 22 * scale,
+              ),
               SizedBox(width: 12 * scale),
               Expanded(
                 child: Text(
@@ -279,7 +313,11 @@ class _MaterialSearchBar extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, color: colors.onSurfaceVariant, size: 14 * scale),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: colors.onSurfaceVariant,
+                size: 14 * scale,
+              ),
             ],
           ),
         ),
@@ -378,9 +416,9 @@ class _MaterialRecentOrders extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () => context
-                    .read<RecentOrdersBloc>()
-                    .add(const RecentOrdersLoadRequested()),
+                onPressed: () => context.read<RecentOrdersBloc>().add(
+                  const RecentOrdersLoadRequested(),
+                ),
                 child: Text(
                   l10n.ordersRetry,
                   style: textTheme.labelLarge?.copyWith(
@@ -423,10 +461,7 @@ class _MaterialRecentOrders extends StatelessWidget {
         color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(16 * scale),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(20 * scale),
-        child: child,
-      ),
+      child: Padding(padding: EdgeInsets.all(20 * scale), child: child),
     );
   }
 }
@@ -456,7 +491,12 @@ class _LoadedRecentOrders extends StatelessWidget {
         borderRadius: BorderRadius.circular(16 * scale),
       ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(20 * scale, 20 * scale, 20 * scale, 12 * scale),
+        padding: EdgeInsets.fromLTRB(
+          20 * scale,
+          20 * scale,
+          20 * scale,
+          12 * scale,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -470,7 +510,9 @@ class _LoadedRecentOrders extends StatelessWidget {
                       Text(
                         l10n.homeEstimatedPrice,
                         style: textTheme.bodySmall?.copyWith(
-                          color: colors.onPrimaryContainer.withValues(alpha: 0.7),
+                          color: colors.onPrimaryContainer.withValues(
+                            alpha: 0.7,
+                          ),
                           fontSize: 12 * scale,
                         ),
                       ),
@@ -511,7 +553,9 @@ class _LoadedRecentOrders extends StatelessWidget {
                     if (i < orders.length - 1)
                       Divider(
                         height: 1,
-                        color: colors.onPrimaryContainer.withValues(alpha: 0.15),
+                        color: colors.onPrimaryContainer.withValues(
+                          alpha: 0.15,
+                        ),
                       ),
                   ],
                 ],
@@ -542,10 +586,26 @@ class _OrderPreviewRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final (statusLabel, statusBg, statusFg) = switch (order.status) {
-      _OrderStatus.review => (l10n.ordersStatusEnRevision, colors.surfaceContainerHighest, colors.onSurfaceVariant),
-      _OrderStatus.payment => (l10n.ordersStatusPorPagar, colors.tertiaryContainer, colors.onTertiaryContainer),
-      _OrderStatus.shipping => (l10n.ordersStatusEnCamino, colors.primaryContainer, colors.onPrimaryContainer),
-      _OrderStatus.delivered => (l10n.ordersStatusEntregado, colors.secondaryContainer, colors.onSecondaryContainer),
+      _OrderStatus.review => (
+        l10n.ordersStatusEnRevision,
+        colors.surfaceContainerHighest,
+        colors.onSurfaceVariant,
+      ),
+      _OrderStatus.payment => (
+        l10n.ordersStatusPorPagar,
+        colors.tertiaryContainer,
+        colors.onTertiaryContainer,
+      ),
+      _OrderStatus.shipping => (
+        l10n.ordersStatusEnCamino,
+        colors.primaryContainer,
+        colors.onPrimaryContainer,
+      ),
+      _OrderStatus.delivered => (
+        l10n.ordersStatusEntregado,
+        colors.secondaryContainer,
+        colors.onSecondaryContainer,
+      ),
     };
 
     return InkWell(
@@ -565,7 +625,10 @@ class _OrderPreviewRow extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(10 * scale),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 10 * scale),
+        padding: EdgeInsets.symmetric(
+          horizontal: 14 * scale,
+          vertical: 10 * scale,
+        ),
         child: Row(
           children: <Widget>[
             Expanded(
@@ -671,7 +734,11 @@ class _MaterialStoresSection extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: colors.primary, size: 16 * scale),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: colors.primary,
+                    size: 16 * scale,
+                  ),
                 ],
               ),
             ),
@@ -685,7 +752,9 @@ class _MaterialStoresSection extends StatelessWidget {
           mainAxisSpacing: 10 * scale,
           crossAxisSpacing: 10 * scale,
           childAspectRatio: 2.8,
-          children: stores.map((s) => _StoreTile(scale: scale, store: s)).toList(),
+          children: stores
+              .map((s) => _StoreTile(scale: scale, store: s))
+              .toList(),
         ),
       ],
     );
@@ -713,7 +782,10 @@ class _StoreTile extends StatelessWidget {
           color: colors.surfaceContainerLow,
         ),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14 * scale, vertical: 10 * scale),
+          padding: EdgeInsets.symmetric(
+            horizontal: 14 * scale,
+            vertical: 10 * scale,
+          ),
           child: Row(
             children: <Widget>[
               Container(
@@ -765,7 +837,12 @@ class _OrderPreview {
 }
 
 class _StoreData {
-  const _StoreData({required this.name, required this.host, required this.icon, required this.color});
+  const _StoreData({
+    required this.name,
+    required this.host,
+    required this.icon,
+    required this.color,
+  });
 
   final String name;
   final String host;
@@ -779,10 +856,30 @@ class _CupertinoHomeContent extends StatelessWidget {
   const _CupertinoHomeContent();
 
   static const _stores = <_CupertinoHomeStore>[
-    _CupertinoHomeStore(name: 'Amazon',     host: 'amazon.com',      icon: CupertinoIcons.bag_fill,       color: Color(0xFFFF9900)),
-    _CupertinoHomeStore(name: 'eBay',       host: 'ebay.com',        icon: CupertinoIcons.hammer_fill,    color: Color(0xFFE53238)),
-    _CupertinoHomeStore(name: 'Walmart',    host: 'walmart.com',     icon: CupertinoIcons.building_2_fill, color: Color(0xFF0071DC)),
-    _CupertinoHomeStore(name: 'Best Buy',   host: 'bestbuy.com',     icon: CupertinoIcons.desktopcomputer, color: Color(0xFF0A4ABF)),
+    _CupertinoHomeStore(
+      name: 'Amazon',
+      host: 'amazon.com',
+      icon: CupertinoIcons.bag_fill,
+      color: Color(0xFFFF9900),
+    ),
+    _CupertinoHomeStore(
+      name: 'eBay',
+      host: 'ebay.com',
+      icon: CupertinoIcons.hammer_fill,
+      color: Color(0xFFE53238),
+    ),
+    _CupertinoHomeStore(
+      name: 'Walmart',
+      host: 'walmart.com',
+      icon: CupertinoIcons.building_2_fill,
+      color: Color(0xFF0071DC),
+    ),
+    _CupertinoHomeStore(
+      name: 'Best Buy',
+      host: 'bestbuy.com',
+      icon: CupertinoIcons.desktopcomputer,
+      color: Color(0xFF0A4ABF),
+    ),
   ];
 
   @override
@@ -813,10 +910,17 @@ class _CupertinoHomeContent extends StatelessWidget {
                             FeyamListTile(
                               title: Text(_stores[i].name),
                               detail: Text(_stores[i].host),
-                              leading: FeyamIconTile(icon: _stores[i].icon, color: _stores[i].color),
+                              leading: FeyamIconTile(
+                                icon: _stores[i].icon,
+                                color: _stores[i].color,
+                              ),
                               trailing: const Padding(
                                 padding: EdgeInsets.only(left: 6),
-                                child: Icon(CupertinoIcons.arrow_up_right_square, size: 18, color: kFeyamTint),
+                                child: Icon(
+                                  CupertinoIcons.arrow_up_right_square,
+                                  size: 18,
+                                  color: kFeyamTint,
+                                ),
                               ),
                               chevron: false,
                               isLast: false,
@@ -827,11 +931,11 @@ class _CupertinoHomeContent extends StatelessWidget {
                             isLast: true,
                             onTap: () => Navigator.of(context).push(
                               CupertinoPageRoute<void>(
-                builder: (_) => BlocProvider(
-                  create: (_) => sl<StoresBloc>(),
-                  child: const StoresScreen(),
-                ),
-              ),
+                                builder: (_) => BlocProvider(
+                                  create: (_) => sl<StoresBloc>(),
+                                  child: const StoresScreen(),
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -875,9 +979,9 @@ class _CupertinoRecentOrders extends StatelessWidget {
                   style: const TextStyle(color: kFeyamLabelSec, fontSize: 15),
                 ),
                 CupertinoButton(
-                  onPressed: () => context
-                      .read<RecentOrdersBloc>()
-                      .add(const RecentOrdersLoadRequested()),
+                  onPressed: () => context.read<RecentOrdersBloc>().add(
+                    const RecentOrdersLoadRequested(),
+                  ),
                   child: Text(l10n.ordersRetry),
                 ),
               ],
@@ -898,7 +1002,12 @@ class _CupertinoRecentOrders extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 0),
+              padding: EdgeInsets.fromLTRB(
+                16 * scale,
+                16 * scale,
+                16 * scale,
+                0,
+              ),
               child: _CupertinoSummaryCard(
                 scale: scale,
                 total: state.activeTotal,
@@ -974,16 +1083,30 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                 padding: EdgeInsets.only(right: 8 * scale),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: FeyamCartButton(
-                    count: 0,
-                    onTap: () => Navigator.of(context).push(
-                      CupertinoPageRoute<void>(
-                        builder: (_) => BlocProvider(
-                          create: (_) => sl<CartBloc>(),
-                          child: const CartScreen(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      FeyamNotificationsButton(
+                        count: context.watch<UnreadCountBloc>().state.count,
+                        onTap: () => Navigator.of(context).push(
+                          CupertinoPageRoute<void>(
+                            builder: (_) => const NotificationsScreen(),
+                          ),
                         ),
                       ),
-                    ),
+                      SizedBox(width: 18 * scale),
+                      FeyamCartButton(
+                        count: 0,
+                        onTap: () => Navigator.of(context).push(
+                          CupertinoPageRoute<void>(
+                            builder: (_) => BlocProvider(
+                              create: (_) => sl<CartBloc>(),
+                              child: const CartScreen(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -991,7 +1114,12 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
             ColoredBox(
               color: kFeyamBg,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16 * scale, 2 * scale, 16 * scale, 0),
+                padding: EdgeInsets.fromLTRB(
+                  16 * scale,
+                  2 * scale,
+                  16 * scale,
+                  0,
+                ),
                 child: Text(
                   '${l10n.homeGreetingPrefix} ${displayName.split(' ').first}',
                   style: TextStyle(
@@ -1008,7 +1136,12 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
             ColoredBox(
               color: kFeyamBg,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 8 * scale),
+                padding: EdgeInsets.fromLTRB(
+                  16 * scale,
+                  8 * scale,
+                  16 * scale,
+                  8 * scale,
+                ),
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).push(
                     CupertinoPageRoute<void>(
@@ -1024,7 +1157,11 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 10 * scale),
                     child: Row(
                       children: <Widget>[
-                        Icon(CupertinoIcons.search, size: 16 * scale, color: kFeyamLabelTer),
+                        Icon(
+                          CupertinoIcons.search,
+                          size: 16 * scale,
+                          color: kFeyamLabelTer,
+                        ),
                         SizedBox(width: 7 * scale),
                         Text(
                           l10n.homeSearchHint,
@@ -1067,13 +1204,22 @@ class _CupertinoSummaryCard extends StatelessWidget {
         color: kFeyamTint,
         borderRadius: BorderRadius.circular(16 * scale),
       ),
-      padding: EdgeInsets.fromLTRB(20 * scale, 18 * scale, 20 * scale, 16 * scale),
+      padding: EdgeInsets.fromLTRB(
+        20 * scale,
+        18 * scale,
+        20 * scale,
+        16 * scale,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             'Precio estimado a pagar',
-            style: TextStyle(fontSize: 13 * scale, color: const Color(0xBFFFFFFF), fontFamily: '.SF Pro Text'),
+            style: TextStyle(
+              fontSize: 13 * scale,
+              color: const Color(0xBFFFFFFF),
+              fontFamily: '.SF Pro Text',
+            ),
           ),
           SizedBox(height: 4 * scale),
           Text(
@@ -1090,7 +1236,11 @@ class _CupertinoSummaryCard extends StatelessWidget {
           SizedBox(height: 6 * scale),
           Text(
             '$activeCount pedido${activeCount == 1 ? ' activo' : 's activos'}',
-            style: TextStyle(fontSize: 13 * scale, color: const Color(0xCCFFFFFF), fontFamily: '.SF Pro Text'),
+            style: TextStyle(
+              fontSize: 13 * scale,
+              color: const Color(0xCCFFFFFF),
+              fontFamily: '.SF Pro Text',
+            ),
           ),
         ],
       ),

@@ -1040,6 +1040,54 @@ abstract class AppLocalizations {
   /// **'When there are updates on your orders, you\'ll see them here.'**
   String get notifEmptyBody;
 
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your notifications.'**
+  String get notifLoadError;
+
+  /// No description provided for @notifSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifSettingsTitle;
+
+  /// No description provided for @notifSettingsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications are enabled.'**
+  String get notifSettingsEnabled;
+
+  /// No description provided for @notifSettingsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications are disabled.'**
+  String get notifSettingsDisabled;
+
+  /// No description provided for @notifSettingsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'We haven\'t asked for notification permission yet.'**
+  String get notifSettingsUnknown;
+
+  /// No description provided for @notifSettingsEnableButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get notifSettingsEnableButton;
+
+  /// No description provided for @notifSettingsDeniedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To receive notifications, enable them for Feyam in your device\'s Settings app.'**
+  String get notifSettingsDeniedHint;
+
   /// No description provided for @ordDetailId.
   ///
   /// In en, this message translates to:

@@ -496,6 +496,33 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cuando haya novedades sobre tus pedidos, las verás acá.';
 
   @override
+  String get notifMarkAllRead => 'Marcar todo como leído';
+
+  @override
+  String get notifLoadError => 'No se pudieron cargar tus notificaciones.';
+
+  @override
+  String get notifSettingsTitle => 'Notificaciones';
+
+  @override
+  String get notifSettingsEnabled => 'Las notificaciones push están activadas.';
+
+  @override
+  String get notifSettingsDisabled =>
+      'Las notificaciones push están desactivadas.';
+
+  @override
+  String get notifSettingsUnknown =>
+      'Todavía no pedimos permiso de notificaciones.';
+
+  @override
+  String get notifSettingsEnableButton => 'Activar notificaciones';
+
+  @override
+  String get notifSettingsDeniedHint =>
+      'Para recibir notificaciones, activalas para Feyam desde la app de Configuración de tu dispositivo.';
+
+  @override
   String get ordDetailId => 'Nro. de pedido';
 
   @override
