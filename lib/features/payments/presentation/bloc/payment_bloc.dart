@@ -2,6 +2,7 @@ import 'package:feyam/core/payments/stripe_payment_service.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_session_entity.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
+import 'package:feyam/features/payments/domain/usecases/get_checkout_pricing.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
@@ -9,19 +10,46 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   PaymentBloc({
+    required GetCheckoutPricingUseCase getCheckoutPricingUseCase,
     required CreateCheckoutUseCase createCheckoutUseCase,
     required GetPaymentStatusUseCase getPaymentStatusUseCase,
     required StripePaymentService stripeService,
-  }) : _createCheckout = createCheckoutUseCase,
+  }) : _getCheckoutPricing = getCheckoutPricingUseCase,
+       _createCheckout = createCheckoutUseCase,
        _getPaymentStatus = getPaymentStatusUseCase,
        _stripeService = stripeService,
        super(const PaymentState()) {
+    on<PaymentPricingRequested>(_onPricingRequested);
     on<PaymentCheckoutRequested>(_onCheckoutRequested);
   }
 
+  final GetCheckoutPricingUseCase _getCheckoutPricing;
   final CreateCheckoutUseCase _createCheckout;
   final GetPaymentStatusUseCase _getPaymentStatus;
   final StripePaymentService _stripeService;
+
+  Future<void> _onPricingRequested(
+    PaymentPricingRequested event,
+    Emitter<PaymentState> emit,
+  ) async {
+    emit(state.copyWith(pricingStatus: CheckoutPricingStatus.loading));
+    try {
+      final pricing = await _getCheckoutPricing();
+      emit(
+        state.copyWith(
+          pricingStatus: CheckoutPricingStatus.loaded,
+          pricing: pricing,
+        ),
+      );
+    } on PaymentFailure catch (failure) {
+      emit(
+        state.copyWith(
+          pricingStatus: CheckoutPricingStatus.failure,
+          pricingFailure: failure,
+        ),
+      );
+    }
+  }
 
   /// Tiempo máximo de espera a que el webhook marque el pago como confirmado.
   static const _pollInterval = Duration(seconds: 2);

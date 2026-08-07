@@ -1,10 +1,12 @@
 import 'package:feyam/core/payments/stripe_payment_service.dart';
+import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_session_entity.dart';
 import 'package:feyam/features/payments/domain/entities/payment_status_entity.dart';
 import 'package:feyam/features/payments/domain/entities/price_adjustment_status_entity.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/domain/repositories/payment_repository.dart';
 import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
+import 'package:feyam/features/payments/domain/usecases/get_checkout_pricing.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
@@ -16,6 +18,7 @@ void main() {
   late _FakeStripeService stripe;
 
   PaymentBloc buildBloc() => PaymentBloc(
+    getCheckoutPricingUseCase: GetCheckoutPricingUseCase(repository),
     createCheckoutUseCase: CreateCheckoutUseCase(repository),
     getPaymentStatusUseCase: GetPaymentStatusUseCase(repository),
     stripeService: stripe,
@@ -176,7 +179,46 @@ void main() {
       ]),
     );
   });
+
+  test('loads the checkout pricing breakdown from the backend', () async {
+    repository.pricing = _pricing;
+
+    final bloc = buildBloc();
+    bloc.add(const PaymentPricingRequested());
+    final state = await bloc.stream.firstWhere(
+      (s) => s.pricingStatus == CheckoutPricingStatus.loaded,
+    );
+    await bloc.close();
+
+    // El total mostrado viene siempre del backend, nunca se recalcula en el cliente.
+    expect(state.pricing, _pricing);
+  });
+
+  test('surfaces a pricing failure without touching the checkout status', () async {
+    repository.pricingFailure = const PaymentFailure(
+      PaymentFailureCode.networkError,
+    );
+
+    final bloc = buildBloc();
+    bloc.add(const PaymentPricingRequested());
+    final state = await bloc.stream.firstWhere(
+      (s) => s.pricingStatus == CheckoutPricingStatus.failure,
+    );
+    await bloc.close();
+
+    expect(state.pricingFailure?.code, PaymentFailureCode.networkError);
+    expect(state.status, PaymentStatus.initial);
+  });
 }
+
+const _pricing = CheckoutPricingEntity(
+  productsAmount: 80.0,
+  feyamFee: 9.6,
+  estimatedLogistics: 18.5,
+  total: 108.1,
+  currencyCode: 'USD',
+  itemCount: 2,
+);
 
 const _session = CheckoutSessionEntity(
   paymentId: 'pay_1',
@@ -205,6 +247,16 @@ class _FakePaymentRepository implements PaymentRepository {
   PaymentFailure? statusFailure;
   List<PaymentStatusEntity> statuses = <PaymentStatusEntity>[];
   final List<String> requestedPaymentIds = <String>[];
+
+  CheckoutPricingEntity? pricing;
+  PaymentFailure? pricingFailure;
+
+  @override
+  Future<CheckoutPricingEntity> getCheckoutPricing() async {
+    final failure = pricingFailure;
+    if (failure != null) throw failure;
+    return pricing!;
+  }
 
   @override
   Future<CheckoutSessionEntity> createCheckout(String addressId) async {

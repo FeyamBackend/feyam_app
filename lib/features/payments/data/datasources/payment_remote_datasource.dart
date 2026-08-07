@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:feyam/features/payments/data/models/checkout_pricing_model.dart';
 import 'package:feyam/features/payments/data/models/checkout_session_model.dart';
 import 'package:feyam/features/payments/data/models/payment_status_model.dart';
 import 'package:feyam/features/payments/data/models/price_adjustment_status_model.dart';
@@ -24,6 +25,25 @@ class PaymentRemoteDataSource {
 
   final http.Client _client;
   final String _apiBaseUrl;
+
+  /// GET /api/payments/checkout/pricing — desglose autoritativo (productos + fee Feyam +
+  /// logística estimada = total) del carrito activo, sin crear ningún cobro. Es el mismo
+  /// cálculo que usa createCheckout, así que el total mostrado antes de pagar nunca difiere
+  /// del monto real cobrado.
+  Future<CheckoutPricingModel> getCheckoutPricing() async {
+    final uri = Uri.parse('$_apiBaseUrl/api/payments/checkout/pricing');
+
+    final response = await _client.get(uri);
+
+    if (response.statusCode == 401) throw const PaymentUnauthorizedException();
+    if (response.statusCode != 200) {
+      throw PaymentServerException(response.statusCode);
+    }
+
+    return CheckoutPricingModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 
   /// POST /api/payments/checkout — el carrito activo y el usuario se resuelven
   /// server-side desde el token; el body lleva la dirección de envío elegida.

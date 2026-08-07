@@ -1286,6 +1286,24 @@ abstract class AppLocalizations {
   /// **'Estimated total'**
   String get checkoutTotal;
 
+  /// No description provided for @checkoutPriceLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating final price…'**
+  String get checkoutPriceLoading;
+
+  /// No description provided for @checkoutPriceLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t calculate the final price.'**
+  String get checkoutPriceLoadError;
+
+  /// No description provided for @checkoutPriceRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get checkoutPriceRetry;
+
   /// No description provided for @checkoutChange.
   ///
   /// In en, this message translates to:

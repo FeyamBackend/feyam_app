@@ -27,6 +27,7 @@ import 'package:feyam/features/payments/data/datasources/payment_remote_datasour
 import 'package:feyam/features/payments/data/repositories/payment_repository_impl.dart';
 import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
 import 'package:feyam/features/payments/domain/usecases/create_price_adjustment_payment.dart';
+import 'package:feyam/features/payments/domain/usecases/get_checkout_pricing.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/domain/usecases/get_price_adjustment_payment_status.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
@@ -212,6 +213,10 @@ void configureDependencies({AppConfig? appConfig}) {
         PaymentRepositoryImpl(remoteDataSource: sl<PaymentRemoteDataSource>()),
   );
 
+  sl.registerFactory<GetCheckoutPricingUseCase>(
+    () => GetCheckoutPricingUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
   sl.registerFactory<CreateCheckoutUseCase>(
     () => CreateCheckoutUseCase(sl<PaymentRepositoryImpl>()),
   );
@@ -240,6 +245,7 @@ void configureDependencies({AppConfig? appConfig}) {
 
   sl.registerFactory<PaymentBloc>(
     () => PaymentBloc(
+      getCheckoutPricingUseCase: sl<GetCheckoutPricingUseCase>(),
       createCheckoutUseCase: sl<CreateCheckoutUseCase>(),
       getPaymentStatusUseCase: sl<GetPaymentStatusUseCase>(),
       stripeService: sl<StripePaymentService>(),

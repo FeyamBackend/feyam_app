@@ -4,6 +4,7 @@ import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:feyam/features/cart/presentation/screens/checkout_success_screen.dart';
+import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
@@ -17,8 +18,6 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-const double _kEstimatedShipping = 18.50;
 
 /// Backend AddressType for shipping addresses (only these are valid at checkout).
 const String _kShipmentType = 'Shipment';
@@ -56,6 +55,7 @@ class _CheckoutViewState extends State<_CheckoutView> {
   @override
   void initState() {
     super.initState();
+    context.read<PaymentBloc>().add(const PaymentPricingRequested());
     // El locale se lee tras el primer frame (Localizations no está en initState).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -184,12 +184,17 @@ class _CheckoutViewState extends State<_CheckoutView> {
 
             final busy = paymentState.status == PaymentStatus.processing ||
                 paymentState.status == PaymentStatus.verifying;
-            final canPay = !busy && _selectedAddressId != null;
+            final pricingReady =
+                paymentState.pricingStatus == CheckoutPricingStatus.loaded &&
+                paymentState.pricing != null;
+            final canPay = !busy && pricingReady && _selectedAddressId != null;
             final onPay = canPay
                 ? () => context
                     .read<PaymentBloc>()
                     .add(PaymentCheckoutRequested(_selectedAddressId!))
                 : null;
+            void onRetryPricing() =>
+                context.read<PaymentBloc>().add(const PaymentPricingRequested());
 
             final addressSection = _AddressSelection(
               status: addressState.status,
@@ -206,6 +211,9 @@ class _CheckoutViewState extends State<_CheckoutView> {
             if (AdaptivePlatform.isCupertino(context)) {
               return _CupertinoCheckoutContent(
                 cart: widget.cart,
+                pricingStatus: paymentState.pricingStatus,
+                pricing: paymentState.pricing,
+                onRetryPricing: onRetryPricing,
                 busy: busy,
                 verifying: paymentState.status == PaymentStatus.verifying,
                 onPay: onPay,
@@ -215,6 +223,9 @@ class _CheckoutViewState extends State<_CheckoutView> {
 
             return _MaterialCheckoutContent(
               cart: widget.cart,
+              pricingStatus: paymentState.pricingStatus,
+              pricing: paymentState.pricing,
+              onRetryPricing: onRetryPricing,
               busy: busy,
               verifying: paymentState.status == PaymentStatus.verifying,
               onPay: onPay,
@@ -448,6 +459,9 @@ class _AddressMessageCard extends StatelessWidget {
 class _MaterialCheckoutContent extends StatelessWidget {
   const _MaterialCheckoutContent({
     required this.cart,
+    required this.pricingStatus,
+    required this.pricing,
+    required this.onRetryPricing,
     required this.busy,
     required this.verifying,
     required this.onPay,
@@ -455,13 +469,13 @@ class _MaterialCheckoutContent extends StatelessWidget {
   });
 
   final CartEntity cart;
+  final CheckoutPricingStatus pricingStatus;
+  final CheckoutPricingEntity? pricing;
+  final VoidCallback onRetryPricing;
   final bool busy;
   final bool verifying;
   final VoidCallback? onPay;
   final Widget addressSection;
-
-  double get _subtotal => cart.total;
-  double get _total => _subtotal + _kEstimatedShipping;
 
   @override
   Widget build(BuildContext context) {
@@ -570,41 +584,11 @@ class _MaterialCheckoutContent extends StatelessWidget {
                           ),
                           child: Padding(
                             padding: EdgeInsets.all(14 * scale),
-                            child: Column(
-                              children: <Widget>[
-                                _PriceRow(scale: scale, k: l10n.checkoutSubtotal, v: _fmt(_subtotal)),
-                                _PriceRow(scale: scale, k: l10n.checkoutShipping, v: _fmt(_kEstimatedShipping)),
-                                Divider(height: 1 + 16 * scale, color: colors.outlineVariant),
-                                _PriceRow(
-                                  scale: scale,
-                                  k: l10n.checkoutTotal,
-                                  v: _fmt(_total),
-                                  strong: true,
-                                  accent: true,
-                                ),
-                                SizedBox(height: 10 * scale),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.info_outline_rounded,
-                                      size: 13 * scale,
-                                      color: colors.onSurfaceVariant,
-                                    ),
-                                    SizedBox(width: 5 * scale),
-                                    Expanded(
-                                      child: Text(
-                                        l10n.checkoutDisclaimer,
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colors.onSurfaceVariant,
-                                          fontSize: 11 * scale,
-                                          height: 1.45,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            child: _PriceBreakdown(
+                              scale: scale,
+                              status: pricingStatus,
+                              pricing: pricing,
+                              onRetry: onRetryPricing,
                             ),
                           ),
                         ),
@@ -623,7 +607,9 @@ class _MaterialCheckoutContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      if (onPay == null && !busy) ...[
+                      if (onPay == null &&
+                          !busy &&
+                          pricingStatus == CheckoutPricingStatus.loaded) ...[
                         Text(
                           l10n.checkoutSelectAddress,
                           style: textTheme.bodySmall?.copyWith(
@@ -644,7 +630,7 @@ class _MaterialCheckoutContent extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            _fmt(_total),
+                            pricing != null ? _fmt(pricing!.total) : '—',
                             style: textTheme.titleLarge?.copyWith(
                               color: colors.primary,
                               fontWeight: FontWeight.w700,
@@ -698,6 +684,107 @@ class _MaterialCheckoutContent extends StatelessWidget {
   }
 
   String _fmt(double v) => _formatCurrency(v);
+}
+
+/// Desglose de precio compartido por Material y Cupertino. Muestra loading/error/loaded
+/// según [status]; los montos vienen siempre de [pricing] (GET /api/payments/checkout/pricing)
+/// — nunca se calculan en el cliente, para que jamás difieran del monto que Stripe cobra.
+class _PriceBreakdown extends StatelessWidget {
+  const _PriceBreakdown({
+    required this.scale,
+    required this.status,
+    required this.pricing,
+    required this.onRetry,
+  });
+
+  final double scale;
+  final CheckoutPricingStatus status;
+  final CheckoutPricingEntity? pricing;
+  final VoidCallback onRetry;
+
+  String _fmt(double v) => _formatCurrency(v);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    if (status == CheckoutPricingStatus.failure) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            l10n.checkoutPriceLoadError,
+            style: textTheme.bodyMedium?.copyWith(color: colors.error),
+          ),
+          SizedBox(height: 10 * scale),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: onRetry,
+              child: Text(l10n.checkoutPriceRetry),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (status != CheckoutPricingStatus.loaded || pricing == null) {
+      return Row(
+        children: <Widget>[
+          SizedBox(
+            width: 16 * scale,
+            height: 16 * scale,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(width: 10 * scale),
+          Text(
+            l10n.checkoutPriceLoading,
+            style: textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+          ),
+        ],
+      );
+    }
+
+    final p = pricing!;
+    return Column(
+      children: <Widget>[
+        _PriceRow(scale: scale, k: l10n.checkoutSubtotal, v: _fmt(p.productsAmount)),
+        _PriceRow(scale: scale, k: l10n.checkoutService, v: _fmt(p.feyamFee)),
+        _PriceRow(scale: scale, k: l10n.checkoutShipping, v: _fmt(p.estimatedLogistics)),
+        Divider(height: 1 + 16 * scale, color: colors.outlineVariant),
+        _PriceRow(
+          scale: scale,
+          k: l10n.checkoutTotal,
+          v: _fmt(p.total),
+          strong: true,
+          accent: true,
+        ),
+        SizedBox(height: 10 * scale),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(Icons.info_outline_rounded, size: 13 * scale, color: colors.onSurfaceVariant),
+            SizedBox(width: 5 * scale),
+            Expanded(
+              child: Text(
+                l10n.checkoutDisclaimer,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 11 * scale,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _CoSection extends StatelessWidget {
@@ -867,6 +954,9 @@ class _PriceRow extends StatelessWidget {
 class _CupertinoCheckoutContent extends StatelessWidget {
   const _CupertinoCheckoutContent({
     required this.cart,
+    required this.pricingStatus,
+    required this.pricing,
+    required this.onRetryPricing,
     required this.busy,
     required this.verifying,
     required this.onPay,
@@ -874,13 +964,13 @@ class _CupertinoCheckoutContent extends StatelessWidget {
   });
 
   final CartEntity cart;
+  final CheckoutPricingStatus pricingStatus;
+  final CheckoutPricingEntity? pricing;
+  final VoidCallback onRetryPricing;
   final bool busy;
   final bool verifying;
   final VoidCallback? onPay;
   final Widget addressSection;
-
-  double get _subtotal => cart.total;
-  double get _total => _subtotal + _kEstimatedShipping;
 
   @override
   Widget build(BuildContext context) {
@@ -940,58 +1030,33 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                             ),
                         ],
                       ),
-                      FeyamListSection(
-                        header: l10n.checkoutEstPrice,
-                        children: <Widget>[
-                          FeyamListTile(
-                            title: Text(l10n.checkoutSubtotal),
-                            detail: Text(_formatCurrency(_subtotal)),
-                            chevron: false,
-                          ),
-                          FeyamListTile(
-                            title: Text(l10n.checkoutShipping),
-                            detail: Text(_formatCurrency(_kEstimatedShipping)),
-                            chevron: false,
-                          ),
-                          FeyamListTile(
-                            title: Text(
-                              l10n.checkoutTotal,
-                              style: const TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                            detail: Text(
-                              _formatCurrency(_total),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                                color: kFeyamTint,
-                              ),
-                            ),
-                            chevron: false,
-                            isLast: true,
-                          ),
-                        ],
+                      _CupertinoPriceSection(
+                        status: pricingStatus,
+                        pricing: pricing,
+                        onRetry: onRetryPricing,
                       ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(32 * scale, 4, 32 * scale, 16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            const Icon(CupertinoIcons.info_circle, size: 14, color: kFeyamLabelTer),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                l10n.checkoutDisclaimer,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: kFeyamLabelTer,
-                                  height: 1.4,
-                                  fontFamily: '.SF Pro Text',
+                      if (pricingStatus == CheckoutPricingStatus.loaded)
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(32 * scale, 4, 32 * scale, 16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Icon(CupertinoIcons.info_circle, size: 14, color: kFeyamLabelTer),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  l10n.checkoutDisclaimer,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: kFeyamLabelTer,
+                                    height: 1.4,
+                                    fontFamily: '.SF Pro Text',
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -1016,7 +1081,8 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          if (onPay == null) ...[
+                          if (onPay == null &&
+                              pricingStatus == CheckoutPricingStatus.loaded) ...[
                             Text(
                               l10n.checkoutSelectAddress,
                               textAlign: TextAlign.center,
@@ -1039,6 +1105,105 @@ class _CupertinoCheckoutContent extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Sección Cupertino del desglose de precio. Igual que `_PriceBreakdown` (Material): los
+/// montos siempre vienen de [pricing] (GET /api/payments/checkout/pricing), nunca se calculan
+/// en el cliente.
+class _CupertinoPriceSection extends StatelessWidget {
+  const _CupertinoPriceSection({
+    required this.status,
+    required this.pricing,
+    required this.onRetry,
+  });
+
+  final CheckoutPricingStatus status;
+  final CheckoutPricingEntity? pricing;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (status == CheckoutPricingStatus.failure) {
+      return FeyamListSection(
+        header: l10n.checkoutEstPrice,
+        children: <Widget>[
+          FeyamListTile(
+            title: Text(
+              l10n.checkoutPriceLoadError,
+              style: const TextStyle(color: CupertinoColors.destructiveRed),
+            ),
+            chevron: false,
+            isLast: false,
+          ),
+          FeyamListTile(
+            title: Text(l10n.checkoutPriceRetry, style: const TextStyle(color: kFeyamTint)),
+            chevron: false,
+            isLast: true,
+            onTap: onRetry,
+          ),
+        ],
+      );
+    }
+
+    if (status != CheckoutPricingStatus.loaded || pricing == null) {
+      return FeyamListSection(
+        header: l10n.checkoutEstPrice,
+        children: <Widget>[
+          FeyamListTile(
+            title: Row(
+              children: <Widget>[
+                const CupertinoActivityIndicator(radius: 8),
+                const SizedBox(width: 10),
+                Text(l10n.checkoutPriceLoading),
+              ],
+            ),
+            chevron: false,
+            isLast: true,
+          ),
+        ],
+      );
+    }
+
+    final p = pricing!;
+    return FeyamListSection(
+      header: l10n.checkoutEstPrice,
+      children: <Widget>[
+        FeyamListTile(
+          title: Text(l10n.checkoutSubtotal),
+          detail: Text(_formatCurrency(p.productsAmount)),
+          chevron: false,
+        ),
+        FeyamListTile(
+          title: Text(l10n.checkoutService),
+          detail: Text(_formatCurrency(p.feyamFee)),
+          chevron: false,
+        ),
+        FeyamListTile(
+          title: Text(l10n.checkoutShipping),
+          detail: Text(_formatCurrency(p.estimatedLogistics)),
+          chevron: false,
+        ),
+        FeyamListTile(
+          title: Text(
+            l10n.checkoutTotal,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          detail: Text(
+            _formatCurrency(p.total),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: kFeyamTint,
+            ),
+          ),
+          chevron: false,
+          isLast: true,
+        ),
+      ],
     );
   }
 }

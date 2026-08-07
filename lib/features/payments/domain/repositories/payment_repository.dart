@@ -1,8 +1,13 @@
+import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_session_entity.dart';
 import 'package:feyam/features/payments/domain/entities/payment_status_entity.dart';
 import 'package:feyam/features/payments/domain/entities/price_adjustment_status_entity.dart';
 
 abstract class PaymentRepository {
+  /// Desglose autoritativo del total del carrito activo (productos + fee +
+  /// logística estimada), previo a iniciar el checkout.
+  Future<CheckoutPricingEntity> getCheckoutPricing();
+
   /// Crea el pago/PaymentIntent del carrito activo del usuario, con envío a
   /// [addressId] (dirección de envío elegida).
   Future<CheckoutSessionEntity> createCheckout(String addressId);

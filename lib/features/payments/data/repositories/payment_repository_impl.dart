@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
+import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_session_entity.dart';
 import 'package:feyam/features/payments/domain/entities/payment_status_entity.dart';
 import 'package:feyam/features/payments/domain/entities/price_adjustment_status_entity.dart';
@@ -12,6 +13,11 @@ class PaymentRepositoryImpl implements PaymentRepository {
     : _remoteDataSource = remoteDataSource;
 
   final PaymentRemoteDataSource _remoteDataSource;
+
+  @override
+  Future<CheckoutPricingEntity> getCheckoutPricing() {
+    return _guard(() => _remoteDataSource.getCheckoutPricing());
+  }
 
   @override
   Future<CheckoutSessionEntity> createCheckout(String addressId) {

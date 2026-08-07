@@ -630,6 +630,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checkoutTotal => 'Total estimado';
 
   @override
+  String get checkoutPriceLoading => 'Calculando el precio final…';
+
+  @override
+  String get checkoutPriceLoadError => 'No pudimos calcular el precio final.';
+
+  @override
+  String get checkoutPriceRetry => 'Reintentar';
+
+  @override
   String get checkoutChange => 'Cambiar';
 
   @override
