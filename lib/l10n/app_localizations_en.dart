@@ -13,7 +13,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginDisclaimer =>
-      'You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.';
+      'Your data is protected with end-to-end encryption.';
+
+  @override
+  String get loginTaglinePrimary => 'We understand for you,';
+
+  @override
+  String get loginTaglineHighlight => 'we deliver for you.';
+
+  @override
+  String get loginSubtitle =>
+      'Shop at your favorite US stores and receive in Venezuela safely, quickly, and reliably.';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get orContinueWith => 'or continue with';
 
   @override
   String get navHome => 'Home';

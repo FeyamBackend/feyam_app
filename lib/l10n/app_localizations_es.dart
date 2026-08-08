@@ -13,7 +13,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get loginDisclaimer =>
-      'Serás redirigido a una página segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.';
+      'Tus datos están protegidos con encriptación de extremo a extremo.';
+
+  @override
+  String get loginTaglinePrimary => 'Entendemos por ti,';
+
+  @override
+  String get loginTaglineHighlight => 'entregamos por ti.';
+
+  @override
+  String get loginSubtitle =>
+      'Compra en tus tiendas favoritas de USA y recibe en Venezuela de forma segura, rápida y confiable.';
+
+  @override
+  String get createAccount => 'Crear cuenta';
+
+  @override
+  String get orContinueWith => 'o continúa con';
 
   @override
   String get navHome => 'Inicio';

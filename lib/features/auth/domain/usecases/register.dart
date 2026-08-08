@@ -1,0 +1,11 @@
+import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
+
+class RegisterUseCase {
+  const RegisterUseCase(this.repository);
+
+  final AuthRepository repository;
+
+  Future<void> call() {
+    return repository.register();
+  }
+}

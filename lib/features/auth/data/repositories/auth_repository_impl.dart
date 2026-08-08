@@ -18,6 +18,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> register() async {
+    try {
+      await keycloakDataSource.redirectToRegister();
+    } on UserCancelledAuthException {
+      throw const AuthFailure(AuthFailureCode.cancelled);
+    }
+  }
+
+  @override
   Future<bool> logout() {
     return keycloakDataSource.logout();
   }

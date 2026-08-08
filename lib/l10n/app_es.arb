@@ -1,6 +1,11 @@
 {
     "login": "Iniciar sesión",
-    "loginDisclaimer": "Serás redirigido a una página segura para iniciar sesión. Al finalizar, volverás automáticamente a la aplicación.",
+    "loginDisclaimer": "Tus datos están protegidos con encriptación de extremo a extremo.",
+    "loginTaglinePrimary": "Entendemos por ti,",
+    "loginTaglineHighlight": "entregamos por ti.",
+    "loginSubtitle": "Compra en tus tiendas favoritas de USA y recibe en Venezuela de forma segura, rápida y confiable.",
+    "createAccount": "Crear cuenta",
+    "orContinueWith": "o continúa con",
     "navHome": "Inicio",
     "navCart": "Carrito",
     "navOrders": "Pedidos",

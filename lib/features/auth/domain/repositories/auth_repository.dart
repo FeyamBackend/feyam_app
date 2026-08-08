@@ -15,6 +15,8 @@ class AuthTokenRefreshTransientException implements Exception {
 abstract class AuthRepository {
   Future<void> login();
 
+  Future<void> register();
+
   Future<bool> logout();
 
   Future<bool> isAuthenticated();
