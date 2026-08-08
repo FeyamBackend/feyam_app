@@ -107,8 +107,38 @@ abstract class AppLocalizations {
   /// Disclaimer shown to users before they are redirected to the sign-in page.
   ///
   /// In en, this message translates to:
-  /// **'You will be redirected to a secure page to sign in. Once completed, you will automatically return to the application.'**
+  /// **'Your data is protected with end-to-end encryption.'**
   String get loginDisclaimer;
+
+  /// First line of the welcome tagline on the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'We understand for you,'**
+  String get loginTaglinePrimary;
+
+  /// Second, highlighted line of the welcome tagline on the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'we deliver for you.'**
+  String get loginTaglineHighlight;
+
+  /// Subtitle describing the service shown under the tagline on the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop at your favorite US stores and receive in Venezuela safely, quickly, and reliably.'**
+  String get loginSubtitle;
+
+  /// Label for the button that starts account creation.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// Divider label shown above the social sign-in options on the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'or continue with'**
+  String get orContinueWith;
 
   /// No description provided for @navHome.
   ///

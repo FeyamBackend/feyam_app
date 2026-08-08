@@ -7,6 +7,7 @@ import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
+import 'package:feyam/features/auth/domain/usecases/register.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,6 +16,7 @@ void main() {
     final repository = _FakeAuthRepository();
     final bloc = AuthBloc(
       loginUseCase: LoginUseCase(repository),
+      registerUseCase: RegisterUseCase(repository),
       logoutUseCase: LogoutUseCase(repository),
       checkAuthSessionUseCase: CheckAuthSessionUseCase(repository),
       getCurrentUserUseCase: GetCurrentUserUseCase(repository),
@@ -53,6 +55,7 @@ void main() {
     final controller = StreamController<void>.broadcast();
     final bloc = AuthBloc(
       loginUseCase: LoginUseCase(repository),
+      registerUseCase: RegisterUseCase(repository),
       logoutUseCase: LogoutUseCase(repository),
       checkAuthSessionUseCase: CheckAuthSessionUseCase(repository),
       getCurrentUserUseCase: GetCurrentUserUseCase(repository),
@@ -90,6 +93,9 @@ class _FakeAuthRepository implements AuthRepository {
       throw const AuthFailure(AuthFailureCode.unknown);
     }
   }
+
+  @override
+  Future<void> register() async {}
 
   @override
   Future<bool> logout() async {

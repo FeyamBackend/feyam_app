@@ -1,3 +1,4 @@
+import 'package:feyam/core/theme/app_theme_palette.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -171,10 +172,26 @@ class _MethodCard extends StatelessWidget {
   final VoidCallback onTap;
 
   static const _meta = <_PmType, ({Color bg, Color fg, IconData icon})>{
-    _PmType.nequi: (bg: Color(0xFFCEE6FD), fg: Color(0xFF000917), icon: Icons.phone_android_rounded),
-    _PmType.bank: (bg: Color(0xFFD6E8D4), fg: Color(0xFF000D00), icon: Icons.account_balance_rounded),
-    _PmType.efecty: (bg: Color(0xFFEAE3C8), fg: Color(0xFF0C0800), icon: Icons.payments_rounded),
-    _PmType.card: (bg: Color(0xFFE1E2E4), fg: Color(0xFF08090A), icon: Icons.credit_card_rounded),
+    _PmType.nequi: (
+      bg: ConciergeProPalette.primaryContainer,
+      fg: ConciergeProPalette.onPrimaryContainer,
+      icon: Icons.phone_android_rounded,
+    ),
+    _PmType.bank: (
+      bg: ConciergeProPalette.secondaryContainer,
+      fg: ConciergeProPalette.onSecondaryContainer,
+      icon: Icons.account_balance_rounded,
+    ),
+    _PmType.efecty: (
+      bg: ConciergeProPalette.tertiaryContainer,
+      fg: ConciergeProPalette.onTertiaryContainer,
+      icon: Icons.payments_rounded,
+    ),
+    _PmType.card: (
+      bg: ConciergeProPalette.surfaceContainerHighest,
+      fg: ConciergeProPalette.onSurface,
+      icon: Icons.credit_card_rounded,
+    ),
   };
 
   @override

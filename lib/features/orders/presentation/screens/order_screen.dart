@@ -11,6 +11,7 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Number of orders requested for the full history screen.
 const int _ordersTake = 20;
@@ -561,12 +562,10 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                           padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
                           child: Text(
                             l10n.navOrders,
-                            style: TextStyle(
-                              fontSize: 34 * scale,
+                            style: GoogleFonts.poppins(
+                              fontSize: 28 * scale,
                               fontWeight: FontWeight.w700,
                               color: kFeyamLabel,
-                              letterSpacing: 0.37,
-                              fontFamily: '.SF Pro Display',
                             ),
                           ),
                         ),

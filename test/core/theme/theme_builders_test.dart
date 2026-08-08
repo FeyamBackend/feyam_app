@@ -10,15 +10,15 @@ void main() {
       final theme = buildMaterialTheme();
 
       expect(theme.useMaterial3, isTrue);
-      expect(theme.colorScheme.primary, const Color(0xFF0058BC));
-      expect(theme.scaffoldBackgroundColor, const Color(0xFFF9F9FE));
+      expect(theme.colorScheme.primary, const Color(0xFF0D3B66));
+      expect(theme.scaffoldBackgroundColor, const Color(0xFFFCFCFD));
     });
 
-    test('applies Inter text theme', () {
+    test('applies Poppins text theme', () {
       final theme = buildMaterialTheme();
 
       expect(theme.textTheme.bodyLarge?.fontFamily, isNotNull);
-      expect(theme.textTheme.bodyLarge!.fontFamily!, contains('Inter'));
+      expect(theme.textTheme.bodyLarge!.fontFamily!, contains('Poppins'));
     });
 
     test('exposes AppThemeTokens extension', () {
@@ -34,8 +34,8 @@ void main() {
     test('returns Cupertino theme with configured base colors', () {
       final theme = buildCupertinoTheme();
 
-      expect(theme.primaryColor, const Color(0xFF0058BC));
-      expect(theme.scaffoldBackgroundColor, const Color(0xFFFAF9FE));
+      expect(theme.primaryColor, const Color(0xFF0D3B66));
+      expect(theme.scaffoldBackgroundColor, const Color(0xFFFCFCFD));
     });
 
     test('does not force Inter for Cupertino text', () {

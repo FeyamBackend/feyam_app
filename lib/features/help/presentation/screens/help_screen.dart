@@ -3,6 +3,7 @@ import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -271,12 +272,10 @@ class _CupertinoHelpContent extends StatelessWidget {
                   padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
                   child: Text(
                     l10n.navHelp,
-                    style: TextStyle(
-                      fontSize: 34 * scale,
+                    style: GoogleFonts.poppins(
+                      fontSize: 28 * scale,
                       fontWeight: FontWeight.w700,
                       color: kFeyamLabel,
-                      letterSpacing: 0.37,
-                      fontFamily: '.SF Pro Display',
                     ),
                   ),
                 ),
@@ -293,7 +292,7 @@ class _CupertinoHelpContent extends StatelessWidget {
                         children: <Widget>[
                           _CupertinoFaqTile(
                             icon: CupertinoIcons.link,
-                            iconColor: const Color(0xFF1B6DE0),
+                            iconColor: kFeyamTint,
                             question: l10n.helpFaq1Question,
                             answer: l10n.helpFaq1Answer,
                           ),
@@ -394,13 +393,13 @@ class _CupertinoFaqTileState extends State<_CupertinoFaqTile> {
                               children: <Widget>[
                                 Text(
                                   widget.question,
-                                  style: const TextStyle(fontSize: 17, color: kFeyamLabel, letterSpacing: -0.41, fontFamily: '.SF Pro Text'),
+                                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: kFeyamLabel),
                                 ),
                                 if (_open) ...[
                                   const SizedBox(height: 6),
                                   Text(
                                     widget.answer,
-                                    style: const TextStyle(fontSize: 15, color: kFeyamLabelSec, height: 1.33, letterSpacing: -0.24, fontFamily: '.SF Pro Text'),
+                                    style: GoogleFonts.poppins(fontSize: 13, color: kFeyamLabelSec, height: 1.33),
                                   ),
                                 ],
                               ],

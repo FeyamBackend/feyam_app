@@ -12,6 +12,7 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class StoresScreen extends StatefulWidget {
   const StoresScreen({super.key});
@@ -285,13 +286,13 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
                   StoresStatus.initial ||
                   StoresStatus.loading =>
                     const Center(child: CupertinoActivityIndicator()),
-                  StoresStatus.failure => const Center(
+                  StoresStatus.failure => Center(
                       child: Text(
                         'No se pudieron cargar las tiendas.',
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: kFeyamLabelSec,
-                            fontFamily: '.SF Pro Text'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: kFeyamLabelSec,
+                        ),
                       ),
                     ),
                   StoresStatus.loaded => SingleChildScrollView(
@@ -299,15 +300,15 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(32, 12, 32, 4),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(32, 12, 32, 4),
                             child: Text(
                               'Tocá una tienda para buscar productos ahí. Usá el ícono para abrirla en tu navegador.',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  color: kFeyamLabelSec,
-                                  height: 1.4,
-                                  fontFamily: '.SF Pro Text'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: kFeyamLabelSec,
+                                height: 1.4,
+                              ),
                             ),
                           ),
                           FeyamListSection(
@@ -346,16 +347,16 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
                                 ),
                             ],
                           ),
-                          const Padding(
+                          Padding(
                             padding:
-                                EdgeInsets.symmetric(horizontal: 32),
+                                const EdgeInsets.symmetric(horizontal: 32),
                             child: Text(
                               '¿No encontrás tu tienda? Contactanos por Ayuda',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: kFeyamLabelTer,
-                                  fontFamily: '.SF Pro Text'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: kFeyamLabelTer,
+                              ),
                             ),
                           ),
                         ],

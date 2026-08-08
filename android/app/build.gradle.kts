@@ -8,7 +8,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     // Uncomment once a real google-services.json has been added under
     // android/app/src/<flavor>/ for every flavor (local/dev/stg/prod) — this plugin hard-fails
-    // the build if the file is missing for the active variant, so it stays off until then.
+    // the build if the file is missing OR if its package_name doesn't match the flavor's
+    // applicationId (verified: reusing one flavor's file for another breaks the build, it
+    // doesn't just warn). Firebase itself doesn't need this plugin though — bootstrap.dart
+    // calls Firebase.initializeApp(options: firebaseOptionsFor(flavor)) with explicit Dart
+    // options, so this plugin is opt-in polish (native auto-config, Crashlytics, etc.), not a
+    // requirement for FCM to work.
     // id("com.google.gms.google-services")
 }
 

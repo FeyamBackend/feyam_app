@@ -62,7 +62,10 @@ void main() {
         matching: find.byType(NavigationBarTheme),
       ),
     );
-    expect(theme.data.indicatorColor, selectedColor.withValues(alpha: 0.14));
+    final colors = Theme.of(
+      tester.element(find.byType(NavigationBar)),
+    ).colorScheme;
+    expect(theme.data.indicatorColor, colors.secondaryContainer);
   });
 
   testWidgets('emits the tapped destination index on Material', (tester) async {

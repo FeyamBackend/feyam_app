@@ -222,9 +222,9 @@ class _TermsScreenState extends State<TermsScreen> {
                           child: FilledButton(
                             onPressed: _accepted ? widget.onAccept : null,
                             style: FilledButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12 * scale),
-                              ),
+                              backgroundColor: colors.secondary,
+                              foregroundColor: colors.onSecondary,
+                              shape: const StadiumBorder(),
                               textStyle: textTheme.labelLarge?.copyWith(
                                 fontSize: 16 * scale,
                                 fontWeight: FontWeight.w600,

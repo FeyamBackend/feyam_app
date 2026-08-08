@@ -18,6 +18,7 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Backend AddressType for shipping addresses (only these are valid at checkout).
 const String _kShipmentType = 'Shipment';
@@ -650,7 +651,7 @@ class _MaterialCheckoutContent extends StatelessWidget {
                                   height: 18 * scale,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: colors.onPrimary,
+                                    color: colors.onSecondary,
                                   ),
                                 )
                               : const Icon(Icons.lock_rounded),
@@ -662,13 +663,13 @@ class _MaterialCheckoutContent extends StatelessWidget {
                                 : l10n.checkoutPayButton,
                           ),
                           style: FilledButton.styleFrom(
+                            backgroundColor: colors.secondary,
+                            foregroundColor: colors.onSecondary,
                             textStyle: textTheme.labelLarge?.copyWith(
                               fontSize: 16 * scale,
                               fontWeight: FontWeight.w600,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12 * scale),
-                            ),
+                            shape: const StadiumBorder(),
                           ),
                         ),
                       ),
@@ -1046,11 +1047,10 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   l10n.checkoutDisclaimer,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 12,
                                     color: kFeyamLabelTer,
                                     height: 1.4,
-                                    fontFamily: '.SF Pro Text',
                                   ),
                                 ),
                               ),
@@ -1095,6 +1095,7 @@ class _CupertinoCheckoutContent extends StatelessWidget {
                             child: FeyamButton(
                               label: l10n.checkoutPayButton,
                               icon: CupertinoIcons.lock_fill,
+                              variant: FeyamButtonVariant.secondary,
                               onPressed: onPay ?? () {},
                             ),
                           ),

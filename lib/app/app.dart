@@ -22,6 +22,12 @@ class FeyamApp extends StatelessWidget {
               theme: buildCupertinoTheme(),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
+              // Some screens use Material widgets / Theme.of(context) even on
+              // the Cupertino path. Without a Theme ancestor here they'd fall
+              // back to Flutter's stock Material palette instead of the
+              // Feyam brand, so we thread buildMaterialTheme() through.
+              builder: (context, child) =>
+                  Theme(data: buildMaterialTheme(), child: child!),
               home: const LoginScreen(),
             )
           : MaterialApp(

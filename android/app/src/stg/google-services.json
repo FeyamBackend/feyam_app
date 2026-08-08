@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "672435011519",
+    "project_id": "feyam-test",
+    "storage_bucket": "feyam-test.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672435011519:android:79f099acc7e26906dceb0a",
+        "android_client_info": {
+          "package_name": "com.feyamuniversellc.feyam.stg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr2ttbMbfy39A11phq20nJYKQS2leXCbg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,6 +7,7 @@ import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
+import 'package:feyam/features/auth/domain/usecases/register.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'auth_event.dart';
@@ -15,16 +16,19 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required LoginUseCase loginUseCase,
+    required RegisterUseCase registerUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckAuthSessionUseCase checkAuthSessionUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
     Stream<void>? sessionExpiredStream,
   }) : _loginUseCase = loginUseCase,
+       _registerUseCase = registerUseCase,
        _logoutUseCase = logoutUseCase,
        _checkAuthSessionUseCase = checkAuthSessionUseCase,
        _getCurrentUserUseCase = getCurrentUserUseCase,
        super(const AuthState()) {
     on<SignInPressed>(_onSignInPressed);
+    on<SignUpPressed>(_onSignUpPressed);
     on<SignOutPressed>(_onSignOutPressed);
     on<AuthSessionChecked>(_onAuthSessionChecked);
     on<SessionExpired>(_onSessionExpired);
@@ -38,6 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   final LoginUseCase _loginUseCase;
+  final RegisterUseCase _registerUseCase;
   final LogoutUseCase _logoutUseCase;
   final CheckAuthSessionUseCase _checkAuthSessionUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
@@ -52,6 +57,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onSignInPressed(
     SignInPressed event,
     Emitter<AuthState> emit,
+  ) {
+    return _authenticate(_loginUseCase.call, emit);
+  }
+
+  Future<void> _onSignUpPressed(
+    SignUpPressed event,
+    Emitter<AuthState> emit,
+  ) {
+    return _authenticate(_registerUseCase.call, emit);
+  }
+
+  /// Shared by [_onSignInPressed] and [_onSignUpPressed]: both open the same
+  /// Keycloak-hosted browser flow (login form vs. registration form) and, on
+  /// success, come back through the same code-exchange/session path.
+  Future<void> _authenticate(
+    Future<void> Function() action,
+    Emitter<AuthState> emit,
   ) async {
     if (state.status == AuthStatus.loading) {
       return;
@@ -60,7 +82,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading, clearErrorMessage: true));
 
     try {
-      await _loginUseCase();
+      await action();
       final user = await _getCurrentUserUseCase();
       emit(
         state.copyWith(

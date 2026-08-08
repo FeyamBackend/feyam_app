@@ -42,7 +42,28 @@ class KeycloakDataSource {
        _clientId = clientId,
        _redirectUri = redirectUri;
 
-  Future<void> redirectToLogin() async {
+  Future<void> redirectToLogin() {
+    return _authorizeAndExchange(
+      authorizationEndpoint:
+          '$_baseUrl/realms/$_realm/protocol/openid-connect/auth',
+    );
+  }
+
+  /// Sends the user straight to Keycloak's registration form instead of the
+  /// login form. Keycloak's `registrations` endpoint accepts the same
+  /// authorization-request parameters as `auth` and, on success, redirects
+  /// back the same way — so the rest of the OAuth flow (code exchange, token
+  /// storage) is identical to [redirectToLogin].
+  Future<void> redirectToRegister() {
+    return _authorizeAndExchange(
+      authorizationEndpoint:
+          '$_baseUrl/realms/$_realm/protocol/openid-connect/registrations',
+    );
+  }
+
+  Future<void> _authorizeAndExchange({
+    required String authorizationEndpoint,
+  }) async {
     try {
       final AuthorizationTokenResponse result = await _appAuth
           .authorizeAndExchangeCode(
@@ -51,8 +72,7 @@ class KeycloakDataSource {
               _redirectUri,
               issuer: '$_baseUrl/realms/$_realm',
               serviceConfiguration: AuthorizationServiceConfiguration(
-                authorizationEndpoint:
-                    '$_baseUrl/realms/$_realm/protocol/openid-connect/auth',
+                authorizationEndpoint: authorizationEndpoint,
                 tokenEndpoint:
                     '$_baseUrl/realms/$_realm/protocol/openid-connect/token',
               ),
