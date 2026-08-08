@@ -19,6 +19,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -488,12 +489,10 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                   ),
                   child: Text(
                     l10n.navProfile,
-                    style: TextStyle(
-                      fontSize: 34 * scale,
+                    style: GoogleFonts.poppins(
+                      fontSize: 28 * scale,
                       fontWeight: FontWeight.w700,
                       color: kFeyamLabel,
-                      letterSpacing: 0.37,
-                      fontFamily: '.SF Pro Display',
                     ),
                   ),
                 ),
@@ -649,10 +648,9 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                         child: Text(
                           'Feyam v2.0.0 (Cupertino)',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: kFeyamLabelTer,
-                            fontFamily: '.SF Pro Text',
                           ),
                         ),
                       ),
@@ -1037,11 +1035,7 @@ class _SheetField extends StatelessWidget {
       children: <Widget>[
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 13,
-            color: kFeyamLabelSec,
-            fontFamily: '.SF Pro Text',
-          ),
+          style: GoogleFonts.poppins(fontSize: 13, color: kFeyamLabelSec),
         ),
         const SizedBox(height: 4),
         Container(

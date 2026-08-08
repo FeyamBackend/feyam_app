@@ -20,7 +20,7 @@ const AppThemeTokens materialThemeTokens = AppThemeTokens(
   radiusDefault: 8,
   radiusMd: 12,
   radiusLg: 16,
-  radiusXl: 24,
+  radiusXl: 28,
   radiusFull: 9999,
   spaceXs: 4,
   spaceSm: 8,
@@ -83,8 +83,8 @@ ThemeData buildMaterialTheme() {
   );
 
   final baseTextTheme = _isRunningWidgetTest()
-      ? baseTheme.textTheme.apply(fontFamily: 'Lato')
-      : GoogleFonts.latoTextTheme(baseTheme.textTheme);
+      ? baseTheme.textTheme.apply(fontFamily: 'Poppins')
+      : GoogleFonts.poppinsTextTheme(baseTheme.textTheme);
 
   final textTheme = baseTextTheme.copyWith(
     displayLarge: baseTextTheme.displayLarge?.copyWith(
@@ -97,7 +97,7 @@ ThemeData buildMaterialTheme() {
     headlineMedium: baseTextTheme.headlineMedium?.copyWith(
       fontSize: 28,
       height: 36 / 28,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w700,
       letterSpacing: 0,
       fontFeatures: const [FontFeature.tabularFigures()],
     ),

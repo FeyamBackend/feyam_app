@@ -21,6 +21,7 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -1122,13 +1123,11 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                 ),
                 child: Text(
                   '${l10n.homeGreetingPrefix} ${displayName.split(' ').first}',
-                  style: TextStyle(
-                    fontSize: 34 * scale,
+                  style: GoogleFonts.poppins(
+                    fontSize: 30 * scale,
                     fontWeight: FontWeight.w700,
                     color: kFeyamLabel,
-                    letterSpacing: 0.37,
                     height: 1.21,
-                    fontFamily: '.SF Pro Display',
                   ),
                 ),
               ),
@@ -1165,11 +1164,9 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                         SizedBox(width: 7 * scale),
                         Text(
                           l10n.homeSearchHint,
-                          style: TextStyle(
-                            fontSize: 17 * scale,
+                          style: GoogleFonts.poppins(
+                            fontSize: 15 * scale,
                             color: kFeyamLabelTer,
-                            letterSpacing: -0.41,
-                            fontFamily: '.SF Pro Text',
                           ),
                         ),
                       ],
@@ -1215,31 +1212,27 @@ class _CupertinoSummaryCard extends StatelessWidget {
         children: <Widget>[
           Text(
             'Precio estimado a pagar',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 13 * scale,
-              color: const Color(0xBFFFFFFF),
-              fontFamily: '.SF Pro Text',
+              color: const Color(0xC7FFFFFF),
             ),
           ),
           SizedBox(height: 4 * scale),
           Text(
             _formatPrice(total),
-            style: TextStyle(
-              fontSize: 30 * scale,
-              fontWeight: FontWeight.w700,
+            style: GoogleFonts.poppins(
+              fontSize: 28 * scale,
+              fontWeight: FontWeight.w800,
               color: CupertinoColors.white,
-              letterSpacing: -0.5,
               height: 1,
-              fontFamily: '.SF Pro Display',
             ),
           ),
           SizedBox(height: 6 * scale),
           Text(
             '$activeCount pedido${activeCount == 1 ? ' activo' : 's activos'}',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 13 * scale,
-              color: const Color(0xCCFFFFFF),
-              fontFamily: '.SF Pro Text',
+              color: const Color(0xC7FFFFFF),
             ),
           ),
         ],

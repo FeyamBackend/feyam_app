@@ -1,21 +1,48 @@
+import 'package:feyam/core/theme/app_theme_palette.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-// ── Color tokens ──────────────────────────────────────────────────────────────
+// ── Color tokens — Feyam brand (navy / green / lime) ───────────────────────
 
-const kFeyamTint = Color(0xFF1B6DE0);
-const kFeyamTintBg = Color(0x1F1B6DE0);
-const kFeyamBg = Color(0xFFF2F2F7);
+const kFeyamTint = ConciergeProPalette.primary; // #0D3B66 navy
+const kFeyamTintPressed = Color(0xFF0A2E52);
+const kFeyamTintBg = Color(0x1F0D3B66);
+const kFeyamSecondary =
+    ConciergeProPalette.secondary; // #4CAF50 green — CTAs, success
+const kFeyamSecondaryPressed = Color(0xFF3D8B40);
+const kFeyamSecondaryBg = Color(0x1F4CAF50);
+const kFeyamTertiary =
+    ConciergeProPalette.tertiary; // dark-olive lime accent (accessible on white)
+const kFeyamBg = Color(0xFFF5F6F8);
 const kFeyamCard = Color(0xFFFFFFFF);
-const kFeyamLabel = Color(0xFF000000);
-const kFeyamLabelSec = Color(0x993C3C43);
-const kFeyamLabelTer = Color(0x4D3C3C43);
-const kFeyamSepLight = Color(0x1F3C3C43);
-const kFeyamFillTer = Color(0x1F787880);
-const kFeyamFillQuat = Color(0x14787880);
-const kFeyamRed = Color(0xFFFF3B30);
-const kFeyamOrange = Color(0xFFFF9500);
-const kFeyamGreen = Color(0xFF34C759);
-const kFeyamTeal = Color(0xFF30B0C7);
+const kFeyamLabel = Color(0xFF1A1D21);
+const kFeyamLabelSec = Color(0xFF6B7280);
+const kFeyamLabelTer = Color(0xFF9AA0A6);
+const kFeyamSepLight = Color(0xFFEEF0F2);
+const kFeyamFillTer = Color(0xFFF5F6F8);
+const kFeyamFillQuat = Color(0xFFEEF0F2);
+const kFeyamRed = ConciergeProPalette.error;
+const kFeyamOrange = Color(0xFFA8710F);
+const kFeyamGreen = ConciergeProPalette.secondary;
+const kFeyamTeal = Color(0xFF1A5FC4);
+
+/// Shared Poppins text-style helper for this kit — keeps every label on the
+/// brand typeface without repeating the GoogleFonts call at each site.
+TextStyle _feyamText({
+  required double fontSize,
+  FontWeight fontWeight = FontWeight.w400,
+  required Color color,
+  double letterSpacing = 0,
+  double? height,
+}) {
+  return GoogleFonts.poppins(
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    color: color,
+    letterSpacing: letterSpacing,
+    height: height,
+  );
+}
 
 // ── FeyamListSection ── inset grouped section ─────────────────────────────────
 
@@ -43,11 +70,11 @@ class FeyamListSection extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(32, 0, 32, 6),
               child: Text(
                 header!.toUpperCase(),
-                style: const TextStyle(
+                style: _feyamText(
                   fontSize: 13,
+                  fontWeight: FontWeight.w600,
                   color: kFeyamLabelSec,
                   letterSpacing: -0.08,
-                  fontFamily: '.SF Pro Text',
                 ),
               ),
             ),
@@ -55,7 +82,19 @@ class FeyamListSection extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: kFeyamCard,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0F14192E),
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
+                ),
+                BoxShadow(
+                  color: Color(0x0F14192E),
+                  blurRadius: 14,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             clipBehavior: Clip.hardEdge,
             child: Column(
@@ -69,11 +108,10 @@ class FeyamListSection extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
               child: Text(
                 footer!,
-                style: const TextStyle(
+                style: _feyamText(
                   fontSize: 13,
                   color: kFeyamLabelSec,
                   height: 1.4,
-                  fontFamily: '.SF Pro Text',
                 ),
               ),
             ),
@@ -162,25 +200,23 @@ class _FeyamListTileState extends State<FeyamListTile> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             DefaultTextStyle(
-                              style: TextStyle(
-                                fontSize: 17,
-                                letterSpacing: -0.41,
+                              style: _feyamText(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0,
                                 color: widget.destructive
                                     ? kFeyamRed
                                     : kFeyamLabel,
-                                fontFamily: '.SF Pro Text',
                               ),
                               child: widget.title,
                             ),
                             if (widget.subtitle != null) ...[
                               const SizedBox(height: 1),
                               DefaultTextStyle(
-                                style: const TextStyle(
-                                  fontSize: 15,
+                                style: _feyamText(
+                                  fontSize: 13,
                                   color: kFeyamLabelSec,
-                                  letterSpacing: -0.24,
                                   height: 1.33,
-                                  fontFamily: '.SF Pro Text',
                                 ),
                                 child: widget.subtitle!,
                               ),
@@ -204,20 +240,18 @@ class _FeyamListTileState extends State<FeyamListTile> {
                               ),
                               child: Text(
                                 widget.badge!,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                style: _feyamText(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
                                   color: CupertinoColors.white,
                                 ),
                               ),
                             ),
                           if (widget.detail != null)
                             DefaultTextStyle(
-                              style: const TextStyle(
-                                fontSize: 17,
+                              style: _feyamText(
+                                fontSize: 15,
                                 color: kFeyamLabelSec,
-                                letterSpacing: -0.41,
-                                fontFamily: '.SF Pro Text',
                               ),
                               child: widget.detail!,
                             ),
@@ -227,7 +261,7 @@ class _FeyamListTileState extends State<FeyamListTile> {
                               padding: EdgeInsets.only(left: 6, right: 16),
                               child: Icon(
                                 CupertinoIcons.chevron_forward,
-                                size: 14,
+                                size: 16,
                                 color: kFeyamLabelTer,
                               ),
                             )
@@ -269,28 +303,29 @@ class FeyamStatusBadge extends StatelessWidget {
 
   final FeyamOrderStatus status;
 
+  // Colors match the STATUS table in the Feyam MD3 Design System (md3.jsx).
   static const _map = {
     FeyamOrderStatus.enRevision: (
-      bg: Color(0x1FFF9500),
-      fg: Color(0xFFC77700),
+      bg: Color(0xFFFDF1E0),
+      fg: Color(0xFFA8710F),
       icon: CupertinoIcons.clock_fill,
       label: 'En revisión',
     ),
     FeyamOrderStatus.porPagar: (
-      bg: kFeyamTintBg,
-      fg: kFeyamTint,
+      bg: Color(0xFFDEE8C3),
+      fg: Color(0xFF5C6600),
       icon: CupertinoIcons.creditcard_fill,
       label: 'Por pagar',
     ),
     FeyamOrderStatus.enCamino: (
-      bg: Color(0x1F30B0C7),
-      fg: Color(0xFF1E8FA6),
+      bg: Color(0xFFDBE8FB),
+      fg: kFeyamTeal,
       icon: CupertinoIcons.airplane,
       label: 'En camino',
     ),
     FeyamOrderStatus.entregado: (
-      bg: Color(0x1F34C759),
-      fg: Color(0xFF248A3D),
+      bg: Color(0xFFD2EAD1),
+      fg: Color(0xFF1F6B26),
       icon: CupertinoIcons.checkmark_circle_fill,
       label: 'Entregado',
     ),
@@ -300,10 +335,10 @@ class FeyamStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = _map[status]!;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         color: s.bg,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -312,12 +347,10 @@ class FeyamStatusBadge extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             s.label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.08,
+            style: _feyamText(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
               color: s.fg,
-              fontFamily: '.SF Pro Text',
             ),
           ),
         ],
@@ -341,7 +374,7 @@ class FeyamIconTile extends StatelessWidget {
       height: 29,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, size: 17, color: CupertinoColors.white),
     );
@@ -372,17 +405,23 @@ class FeyamEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(icon, size: 56, color: kFeyamLabelTer),
+            Container(
+              width: 84,
+              height: 84,
+              decoration: const BoxDecoration(
+                color: ConciergeProPalette.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 38, color: kFeyamTint),
+            ),
             const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.41,
+              style: _feyamText(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
                 color: kFeyamLabel,
-                fontFamily: '.SF Pro Display',
               ),
             ),
             if (subtitle != null) ...[
@@ -390,12 +429,10 @@ class FeyamEmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 15,
+                style: _feyamText(
+                  fontSize: 14,
                   color: kFeyamLabelSec,
-                  letterSpacing: -0.24,
-                  height: 1.33,
-                  fontFamily: '.SF Pro Text',
+                  height: 1.4,
                 ),
               ),
             ],
@@ -433,6 +470,10 @@ class FeyamNavBar extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return CupertinoNavigationBar(
+      backgroundColor: kFeyamCard,
+      border: const Border(
+        bottom: BorderSide(color: kFeyamSepLight, width: 1),
+      ),
       leading: backLabel != null
           ? CupertinoButton(
               padding: EdgeInsets.zero,
@@ -440,14 +481,28 @@ class FeyamNavBar extends StatelessWidget
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Icon(CupertinoIcons.chevron_back, size: 18),
+                  const Icon(
+                    CupertinoIcons.chevron_back,
+                    size: 18,
+                    color: kFeyamLabel,
+                  ),
                   const SizedBox(width: 2),
-                  Text(backLabel!, style: const TextStyle(fontSize: 17)),
+                  Text(
+                    backLabel!,
+                    style: _feyamText(fontSize: 15, color: kFeyamLabel),
+                  ),
                 ],
               ),
             )
           : null,
-      middle: Text(title),
+      middle: Text(
+        title,
+        style: _feyamText(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: kFeyamLabel,
+        ),
+      ),
       trailing: trailing,
     );
   }
@@ -483,7 +538,7 @@ class FeyamCartButton extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$count',
-                    style: const TextStyle(
+                    style: _feyamText(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: CupertinoColors.white,
@@ -532,7 +587,7 @@ class FeyamNotificationsButton extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$count',
-                    style: const TextStyle(
+                    style: _feyamText(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: CupertinoColors.white,
@@ -596,12 +651,10 @@ class FeyamSegmented<T> extends StatelessWidget {
                 child: Center(
                   child: Text(
                     opt.label,
-                    style: TextStyle(
+                    style: _feyamText(
                       fontSize: 13,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                       color: active ? kFeyamLabel : kFeyamLabelSec,
-                      letterSpacing: -0.08,
-                      fontFamily: '.SF Pro Text',
                     ),
                   ),
                 ),
@@ -616,7 +669,13 @@ class FeyamSegmented<T> extends StatelessWidget {
 
 // ── FeyamButton ───────────────────────────────────────────────────────────────
 
-enum FeyamButtonVariant { filled, tinted, plain, destructivePlain }
+enum FeyamButtonVariant {
+  filled,
+  secondary,
+  tinted,
+  plain,
+  destructivePlain,
+}
 
 class FeyamButton extends StatefulWidget {
   const FeyamButton({
@@ -647,9 +706,11 @@ class _FeyamButtonState extends State<FeyamButton> {
     if (widget.disabled) return kFeyamFillTer;
     switch (widget.variant) {
       case FeyamButtonVariant.filled:
-        return _pressed ? const Color(0xFF155BBD) : kFeyamTint;
+        return _pressed ? kFeyamTintPressed : kFeyamTint;
+      case FeyamButtonVariant.secondary:
+        return _pressed ? kFeyamSecondaryPressed : kFeyamSecondary;
       case FeyamButtonVariant.tinted:
-        return _pressed ? const Color(0x381B6DE0) : kFeyamTintBg;
+        return _pressed ? const Color(0x380D3B66) : kFeyamTintBg;
       case FeyamButtonVariant.plain:
         return CupertinoColors.transparent;
       case FeyamButtonVariant.destructivePlain:
@@ -661,6 +722,7 @@ class _FeyamButtonState extends State<FeyamButton> {
     if (widget.disabled) return kFeyamLabelTer;
     switch (widget.variant) {
       case FeyamButtonVariant.filled:
+      case FeyamButtonVariant.secondary:
         return CupertinoColors.white;
       case FeyamButtonVariant.tinted:
         return kFeyamTint;
@@ -692,12 +754,12 @@ class _FeyamButtonState extends State<FeyamButton> {
             : 1.0,
         child: Container(
           padding: EdgeInsets.symmetric(
-            horizontal: 20,
+            horizontal: 24,
             vertical: widget.small ? 9 : 14,
           ),
           decoration: BoxDecoration(
             color: _bg,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(999),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -705,16 +767,14 @@ class _FeyamButtonState extends State<FeyamButton> {
             children: <Widget>[
               if (widget.icon != null) ...[
                 Icon(widget.icon, size: widget.small ? 16 : 18, color: _fg),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
               ],
               Text(
                 widget.label,
-                style: TextStyle(
-                  fontSize: widget.small ? 15 : 17,
+                style: _feyamText(
+                  fontSize: widget.small ? 14 : 15,
                   fontWeight: FontWeight.w600,
-                  letterSpacing: -0.41,
                   color: _fg,
-                  fontFamily: '.SF Pro Text',
                 ),
               ),
             ],

@@ -1,3 +1,4 @@
+import 'package:feyam/core/theme/app_theme_palette.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
@@ -28,14 +29,14 @@ class CartScreen extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Feyam MD3 light tokens (derived from the brand seed palette) ──────────────
-const _mSurface = Color(0xFFF7F8FB);
-const _mCard = Color(0xFFFFFFFF);
-const _mPrimary = Color(0xFF005997);
-const _mPrimaryTint = Color(0x14005997);
-const _mOnSurface = Color(0xFF1A1C1E);
-const _mOnSurfaceVar = Color(0xFF5A5F66);
-const _mOutline = Color(0xFFDDE1EA);
-const _mError = Color(0xFFBA1A1A);
+const _mSurface = ConciergeProPalette.surface;
+const _mCard = ConciergeProPalette.surfaceContainerLowest;
+const _mPrimary = ConciergeProPalette.primary;
+const _mPrimaryTint = Color(0x140D3B66);
+const _mOnSurface = Color(0xFF1A1D21);
+const _mOnSurfaceVar = Color(0xFF6B7280);
+const _mOutline = Color(0xFFEEF0F2);
+const _mError = ConciergeProPalette.error;
 
 class _MaterialCartContent extends StatefulWidget {
   const _MaterialCartContent();
@@ -561,11 +562,9 @@ class _MaterialCheckoutBar extends StatelessWidget {
                     );
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: _mPrimary,
+                    backgroundColor: ConciergeProPalette.secondary,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16 * scale),
-                    ),
+                    shape: const StadiumBorder(),
                     textStyle: TextStyle(
                       fontSize: 16 * scale,
                       fontWeight: FontWeight.w700,
@@ -646,11 +645,9 @@ class _MaterialCartEmpty extends StatelessWidget {
               icon: Icon(Icons.link, size: 18 * scale),
               label: Text(l10n.cartEmptyAction),
               style: FilledButton.styleFrom(
-                backgroundColor: _mPrimaryTint,
-                foregroundColor: _mPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                ),
+                backgroundColor: ConciergeProPalette.secondary,
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
                 padding: EdgeInsets.symmetric(
                   horizontal: 20 * scale,
                   vertical: 12 * scale,

@@ -3,6 +3,7 @@ import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CheckoutSuccessScreen extends StatelessWidget {
   const CheckoutSuccessScreen({this.pending = false, super.key});
@@ -82,9 +83,7 @@ class CheckoutSuccessScreen extends StatelessWidget {
                           Navigator.of(context).popUntil((r) => r.isFirst);
                         },
                         style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12 * scale),
-                          ),
+                          shape: const StadiumBorder(),
                           textStyle: textTheme.labelLarge?.copyWith(
                             fontSize: 16 * scale,
                             fontWeight: FontWeight.w600,
@@ -142,23 +141,20 @@ class _CupertinoSuccessContent extends StatelessWidget {
                 Text(
                   pending ? l10n.paymentPendingTitle : l10n.paymentSuccessTitle,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 28,
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: kFeyamLabel,
-                    letterSpacing: 0.36,
-                    fontFamily: '.SF Pro Display',
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   pending ? l10n.paymentPendingBody : l10n.paymentSuccessBody,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 15,
                     color: kFeyamLabelSec,
                     height: 1.47,
-                    fontFamily: '.SF Pro Text',
                   ),
                 ),
                 const SizedBox(height: 32),

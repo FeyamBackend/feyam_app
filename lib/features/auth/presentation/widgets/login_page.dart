@@ -41,7 +41,7 @@ class LoginPage extends StatelessWidget {
                   child: Align(
                     alignment: const Alignment(0, -0.48),
                     child: Image.asset(
-                      'assets/branding/logo.png',
+                      'assets/branding/logo_white.png',
                       width: logoWidth,
                       fit: BoxFit.contain,
                     ),
@@ -94,7 +94,10 @@ class LoginPage extends StatelessWidget {
                                                 );
                                               },
                                         height: 72,
-                                        borderRadius: BorderRadius.circular(28),
+                                        backgroundColor: colorScheme.secondary,
+                                        foregroundColor:
+                                            colorScheme.onSecondary,
+                                        borderRadius: BorderRadius.circular(36),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 24,
                                         ),

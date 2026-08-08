@@ -5,17 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Theme palettes', () {
     test('maps critical Material colors', () {
-      expect(ConciergeProPalette.primary, const Color(0xFF0058BC));
-      expect(ConciergeProPalette.secondary, const Color(0xFF006E28));
-      expect(ConciergeProPalette.surface, const Color(0xFFF9F9FE));
-      expect(ConciergeProPalette.error, const Color(0xFFBA1A1A));
+      expect(ConciergeProPalette.primary, const Color(0xFF0D3B66));
+      expect(ConciergeProPalette.secondary, const Color(0xFF4CAF50));
+      expect(ConciergeProPalette.surface, const Color(0xFFF9F9FA));
+      expect(ConciergeProPalette.error, const Color(0xFFA30F15));
     });
 
     test('maps critical Cupertino colors', () {
-      expect(CupertinoGlassVisionPalette.primary, const Color(0xFF0058BC));
-      expect(CupertinoGlassVisionPalette.secondary, const Color(0xFF006E28));
-      expect(CupertinoGlassVisionPalette.surface, const Color(0xFFFAF9FE));
-      expect(CupertinoGlassVisionPalette.error, const Color(0xFFBA1A1A));
+      expect(CupertinoGlassVisionPalette.primary, const Color(0xFF0D3B66));
+      expect(CupertinoGlassVisionPalette.secondary, const Color(0xFF4CAF50));
+      expect(CupertinoGlassVisionPalette.surface, const Color(0xFFF9F9FA));
+      expect(CupertinoGlassVisionPalette.error, const Color(0xFFA30F15));
     });
   });
 
@@ -25,7 +25,7 @@ void main() {
       expect(materialThemeTokens.radiusDefault, 8);
       expect(materialThemeTokens.radiusMd, 12);
       expect(materialThemeTokens.radiusLg, 16);
-      expect(materialThemeTokens.radiusXl, 24);
+      expect(materialThemeTokens.radiusXl, 28);
       expect(materialThemeTokens.radiusFull, 9999);
 
       expect(materialThemeTokens.spaceXs, 4);
@@ -42,7 +42,7 @@ void main() {
       expect(cupertinoThemeTokens.radiusDefault, 8);
       expect(cupertinoThemeTokens.radiusMd, 12);
       expect(cupertinoThemeTokens.radiusLg, 16);
-      expect(cupertinoThemeTokens.radiusXl, 24);
+      expect(cupertinoThemeTokens.radiusXl, 28);
       expect(cupertinoThemeTokens.radiusFull, 9999);
 
       expect(cupertinoThemeTokens.spaceXs, 4);

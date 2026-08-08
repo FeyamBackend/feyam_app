@@ -4,6 +4,7 @@ import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Zinc only covers a subset of retailers/products — this keeps today's
 /// manual paste-link flow one tap away instead of removing it.
@@ -34,11 +35,7 @@ class PasteLinkFallbackCard extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               l10n.productSearchPasteLinkCta,
-              style: const TextStyle(
-                fontSize: 15,
-                color: kFeyamTint,
-                fontFamily: '.SF Pro Text',
-              ),
+              style: GoogleFonts.poppins(fontSize: 15, color: kFeyamTint),
             ),
           ],
         ),

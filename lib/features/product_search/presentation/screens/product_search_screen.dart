@@ -14,6 +14,7 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Real product search backed by Zinc, replacing the home screen's previous
 /// paste-link-only entry point. Pass [initialRetailer] to open pre-filtered
@@ -388,10 +389,9 @@ class _CupertinoProductSearch extends StatelessWidget {
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                               child: Text(
                                 l10n.productSearchPartialBanner,
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: kFeyamLabelSec,
-                                  fontFamily: '.SF Pro Text',
                                 ),
                               ),
                             ),

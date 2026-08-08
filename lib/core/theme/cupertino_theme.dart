@@ -122,7 +122,7 @@ const AppThemeTokens cupertinoThemeTokens = AppThemeTokens(
   radiusDefault: 8,
   radiusMd: 12,
   radiusLg: 16,
-  radiusXl: 24,
+  radiusXl: 28,
   radiusFull: 9999,
   spaceXs: 4,
   spaceSm: 8,

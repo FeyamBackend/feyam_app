@@ -4,6 +4,7 @@ import 'package:feyam/features/stores/domain/entities/store_entity.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Builds the retailer filter options from Feyam's own store catalog (the
 /// same one behind GET /api/stores and the "Tiendas soportadas" screen),
@@ -105,11 +106,10 @@ class CupertinoRetailerChips extends StatelessWidget {
               ),
               child: Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                   color: selected ? CupertinoColors.white : kFeyamLabelSec,
-                  fontFamily: '.SF Pro Text',
                 ),
               ),
             ),

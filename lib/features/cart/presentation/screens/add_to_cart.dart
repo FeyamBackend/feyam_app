@@ -1,4 +1,5 @@
 import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/theme/app_theme_palette.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
@@ -11,18 +12,19 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // ── MD3 design tokens ────────────────────────────────────────────────────────
-const _kSurface = Color(0xFFF7F8FB);
-const _kCard = Color(0xFFFFFFFF);
-const _kPrimary = Color(0xFF005997);
-const _kPrimaryTint = Color(0x14005997);
-const _kOnSurface = Color(0xFF1A1C1E);
-const _kOnSurfaceVar = Color(0xFF5A5F66);
-const _kOutline = Color(0xFFDDE1EA);
-const _kGreen = Color(0xFF3E7A18);
-const _kGreenTint = Color(0x1F5FA121);
+const _kSurface = ConciergeProPalette.surface;
+const _kCard = ConciergeProPalette.surfaceContainerLowest;
+const _kPrimary = ConciergeProPalette.primary;
+const _kPrimaryTint = Color(0x140D3B66);
+const _kOnSurface = Color(0xFF1A1D21);
+const _kOnSurfaceVar = Color(0xFF6B7280);
+const _kOutline = Color(0xFFEEF0F2);
+const _kGreen = ConciergeProPalette.secondary;
+const _kGreenTint = Color(0x1F4CAF50);
 
 String _storeNameFromUrl(String url) {
   try {
@@ -1145,10 +1147,9 @@ class _CupertinoProductFormContentState
                                       : 'https://www.amazon.com/dp/B09XS7JWHH',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 13 * scale,
                                     color: kFeyamTint,
-                                    fontFamily: '.SF Pro Text',
                                   ),
                                 ),
                               ),
@@ -1205,10 +1206,9 @@ class _CupertinoProductFormContentState
                                     children: <Widget>[
                                       Text(
                                         'Cantidad',
-                                        style: TextStyle(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 13 * scale,
                                           color: kFeyamLabelSec,
-                                          fontFamily: '.SF Pro Text',
                                         ),
                                       ),
                                       SizedBox(height: 4 * scale),
@@ -1242,11 +1242,10 @@ class _CupertinoProductFormContentState
                                             ),
                                             Text(
                                               '$_qty',
-                                              style: TextStyle(
+                                              style: GoogleFonts.poppins(
                                                 fontSize: 17 * scale,
                                                 fontWeight: FontWeight.w600,
                                                 color: kFeyamLabel,
-                                                fontFamily: '.SF Pro Text',
                                               ),
                                             ),
                                             GestureDetector(
@@ -1339,6 +1338,7 @@ class _CupertinoProductFormContentState
                           FeyamButton(
                             label: l10n.addToCartButtonCheckout,
                             icon: CupertinoIcons.cart_badge_plus,
+                            variant: FeyamButtonVariant.secondary,
                             onPressed: () => _handleCheckout(l10n),
                           ),
                           SizedBox(height: 10 * scale),
@@ -1411,11 +1411,7 @@ class _CupertinoVariantField extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 notApplicableLabel,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: kFeyamLabelSec,
-                  fontFamily: '.SF Pro Text',
-                ),
+                style: GoogleFonts.poppins(fontSize: 13, color: kFeyamLabelSec),
               ),
             ],
           ),
@@ -1424,10 +1420,9 @@ class _CupertinoVariantField extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             errorText!,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 12,
               color: CupertinoColors.systemRed,
-              fontFamily: '.SF Pro Text',
             ),
           ),
         ],
@@ -1468,11 +1463,7 @@ class _CupertinoFieldState extends State<_CupertinoField> {
         if (widget.label != null) ...<Widget>[
           Text(
             widget.label!,
-            style: const TextStyle(
-              fontSize: 13,
-              color: kFeyamLabelSec,
-              fontFamily: '.SF Pro Text',
-            ),
+            style: GoogleFonts.poppins(fontSize: 13, color: kFeyamLabelSec),
           ),
           const SizedBox(height: 4),
         ],
@@ -1504,11 +1495,7 @@ class _CupertinoFieldState extends State<_CupertinoField> {
           const SizedBox(height: 4),
           Text(
             widget.helper!,
-            style: const TextStyle(
-              fontSize: 13,
-              color: kFeyamLabelTer,
-              fontFamily: '.SF Pro Text',
-            ),
+            style: GoogleFonts.poppins(fontSize: 13, color: kFeyamLabelTer),
           ),
         ],
       ],
