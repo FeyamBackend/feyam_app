@@ -132,6 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                           return Column(
                             mainAxisSize: MainAxisSize.max,
                             children: <Widget>[
+                              const Expanded(child: SizedBox()),
                               AdaptiveAppButton(
                                 text: l10n.login,
                                 icon: const Icon(Icons.person_outline),
@@ -166,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                 ),
                               ],
-                              const Expanded(child: SizedBox(height: 10)),
+                              const SizedBox(height: 16),
                               Row(
                                 children: <Widget>[
                                   const Expanded(
