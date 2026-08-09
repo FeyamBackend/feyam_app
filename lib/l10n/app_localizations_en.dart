@@ -631,7 +631,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutTitle => 'Checkout';
 
   @override
-  String get checkoutAddress => 'Shipping address';
+  String get checkoutHeroTitle => 'Complete your purchase';
+
+  @override
+  String get checkoutHeroSubtitle =>
+      'Review the details and confirm your order';
+
+  @override
+  String get checkoutAddress => 'Delivery address';
 
   @override
   String get checkoutSelectAddress => 'Select a shipping address to continue';
@@ -641,14 +648,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'You don\'t have a shipping address. Add one to continue.';
 
   @override
-  String get checkoutSummary => 'Order summary';
+  String get checkoutEdit => 'Edit';
+
+  @override
+  String get checkoutSummary => 'Item summary';
+
+  @override
+  String get checkoutProductsUnit => 'items';
+
+  @override
+  String get checkoutGenericStore => 'Store';
 
   @override
   String get checkoutPayMethod => 'Payment';
 
   @override
+  String get checkoutPayMethodDesc =>
+      'Payments are securely processed by card.';
+
+  @override
   String get checkoutPayInfo =>
       'We\'ll contact you to coordinate payment once we review your order.';
+
+  @override
+  String get checkoutShippingMethodTitle => 'Shipping method';
+
+  @override
+  String get checkoutShippingStandardLabel => 'Standard shipping';
+
+  @override
+  String get checkoutCouponTitle => 'Have a coupon or note?';
+
+  @override
+  String get checkoutCouponSoon => 'Coming soon';
 
   @override
   String get checkoutEstPrice => 'Estimated price';
@@ -686,7 +718,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkoutDisclaimer =>
-      'Final price may vary based on customs duties and exchange rates.';
+      'Prices and shipping times are estimated and may vary.';
 
   @override
   String get checkoutConfirm => 'Confirm order';

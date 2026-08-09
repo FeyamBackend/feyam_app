@@ -24,6 +24,17 @@
       ]
     },
     {
+      "name": "Feyam Stg",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_stg.dart",
+      "args": [
+        "--flavor",
+        "stg",
+        "--dart-define-from-file=env/stg.json"
+      ]
+    },
+    {
       "name": "Feyam Prod",
       "request": "launch",
       "type": "dart",

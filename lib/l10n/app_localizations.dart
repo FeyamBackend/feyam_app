@@ -1298,10 +1298,22 @@ abstract class AppLocalizations {
   /// **'Checkout'**
   String get checkoutTitle;
 
+  /// No description provided for @checkoutHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your purchase'**
+  String get checkoutHeroTitle;
+
+  /// No description provided for @checkoutHeroSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the details and confirm your order'**
+  String get checkoutHeroSubtitle;
+
   /// No description provided for @checkoutAddress.
   ///
   /// In en, this message translates to:
-  /// **'Shipping address'**
+  /// **'Delivery address'**
   String get checkoutAddress;
 
   /// No description provided for @checkoutSelectAddress.
@@ -1316,11 +1328,29 @@ abstract class AppLocalizations {
   /// **'You don\'t have a shipping address. Add one to continue.'**
   String get checkoutNoShippingAddress;
 
+  /// No description provided for @checkoutEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get checkoutEdit;
+
   /// No description provided for @checkoutSummary.
   ///
   /// In en, this message translates to:
-  /// **'Order summary'**
+  /// **'Item summary'**
   String get checkoutSummary;
+
+  /// No description provided for @checkoutProductsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get checkoutProductsUnit;
+
+  /// No description provided for @checkoutGenericStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get checkoutGenericStore;
 
   /// No description provided for @checkoutPayMethod.
   ///
@@ -1328,11 +1358,41 @@ abstract class AppLocalizations {
   /// **'Payment'**
   String get checkoutPayMethod;
 
+  /// No description provided for @checkoutPayMethodDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments are securely processed by card.'**
+  String get checkoutPayMethodDesc;
+
   /// No description provided for @checkoutPayInfo.
   ///
   /// In en, this message translates to:
   /// **'We\'ll contact you to coordinate payment once we review your order.'**
   String get checkoutPayInfo;
+
+  /// No description provided for @checkoutShippingMethodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping method'**
+  String get checkoutShippingMethodTitle;
+
+  /// No description provided for @checkoutShippingStandardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard shipping'**
+  String get checkoutShippingStandardLabel;
+
+  /// No description provided for @checkoutCouponTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a coupon or note?'**
+  String get checkoutCouponTitle;
+
+  /// No description provided for @checkoutCouponSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get checkoutCouponSoon;
 
   /// No description provided for @checkoutEstPrice.
   ///
@@ -1403,7 +1463,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'Final price may vary based on customs duties and exchange rates.'**
+  /// **'Prices and shipping times are estimated and may vary.'**
   String get checkoutDisclaimer;
 
   /// No description provided for @checkoutConfirm.

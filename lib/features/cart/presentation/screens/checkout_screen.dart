@@ -1,9 +1,9 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
-import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:feyam/features/cart/presentation/screens/checkout_success_screen.dart';
+import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
@@ -15,10 +15,8 @@ import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_state.dart';
 import 'package:feyam/features/profile/presentation/screens/addresses_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Backend AddressType for shipping addresses (only these are valid at checkout).
 const String _kShipmentType = 'Shipment';
@@ -98,6 +96,59 @@ class _CheckoutViewState extends State<_CheckoutView> {
     // Al volver, recargamos para reflejar lo que el usuario haya creado.
     final lang = Localizations.localeOf(context).languageCode;
     context.read<AddressesBloc>().add(AddressesLoadRequested(lang));
+  }
+
+  /// Bottom sheet con las direcciones de envío disponibles para elegir.
+  Future<void> _showAddressPicker(List<AddressEntity> shipments) async {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: colors.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                l10n.checkoutAddress,
+                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+              for (final a in shipments)
+                _AddressOption(
+                  address: a,
+                  selected: a.id == _selectedAddressId,
+                  onTap: () {
+                    setState(() => _selectedAddressId = a.id);
+                    Navigator.pop(sheetContext);
+                  },
+                ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    _addAddress();
+                  },
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(l10n.addressAdd),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _onState(BuildContext context, PaymentState state) {
@@ -197,11 +248,11 @@ class _CheckoutViewState extends State<_CheckoutView> {
             void onRetryPricing() =>
                 context.read<PaymentBloc>().add(const PaymentPricingRequested());
 
-            final addressSection = _AddressSelection(
+            final addressSection = _AddressSummaryCard(
               status: addressState.status,
               shipments: shipments,
               selectedAddressId: _selectedAddressId,
-              onSelect: (id) => setState(() => _selectedAddressId = id),
+              onEdit: () => _showAddressPicker(shipments),
               onAdd: _addAddress,
               onRetry: () {
                 final lang = Localizations.localeOf(context).languageCode;
@@ -209,20 +260,7 @@ class _CheckoutViewState extends State<_CheckoutView> {
               },
             );
 
-            if (AdaptivePlatform.isCupertino(context)) {
-              return _CupertinoCheckoutContent(
-                cart: widget.cart,
-                pricingStatus: paymentState.pricingStatus,
-                pricing: paymentState.pricing,
-                onRetryPricing: onRetryPricing,
-                busy: busy,
-                verifying: paymentState.status == PaymentStatus.verifying,
-                onPay: onPay,
-                addressSection: addressSection,
-              );
-            }
-
-            return _MaterialCheckoutContent(
+            return _CheckoutContent(
               cart: widget.cart,
               pricingStatus: paymentState.pricingStatus,
               pricing: paymentState.pricing,
@@ -239,7 +277,7 @@ class _CheckoutViewState extends State<_CheckoutView> {
   }
 }
 
-// ── Shipping address selection (adaptive) ──────────────────────────────────────
+// ── Shipping address selection ────────────────────────────────────────────────
 
 String _addressTitle(AddressEntity a) =>
     (a.recipient != null && a.recipient!.isNotEmpty) ? a.recipient! : a.lines.first;
@@ -257,84 +295,11 @@ String _addressSubtitle(AddressEntity a) {
   return parts.join(', ');
 }
 
-/// Selector adaptive de dirección de envío. Bloquea el pago cuando no hay
-/// ninguna seleccionada (la responsabilidad de deshabilitar el botón vive en
-/// el padre, que pone onPay = null sin selección).
-class _AddressSelection extends StatelessWidget {
-  const _AddressSelection({
-    required this.status,
-    required this.shipments,
-    required this.selectedAddressId,
-    required this.onSelect,
-    required this.onAdd,
-    required this.onRetry,
-  });
-
-  final AddressesStatus status;
-  final List<AddressEntity> shipments;
-  final String? selectedAddressId;
-  final ValueChanged<String> onSelect;
-  final VoidCallback onAdd;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final cupertino = AdaptivePlatform.isCupertino(context);
-
-    if (status == AddressesStatus.loading && shipments.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Center(
-          child: cupertino
-              ? const CupertinoActivityIndicator()
-              : const CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (status == AddressesStatus.failure && shipments.isEmpty) {
-      return _AddressMessageCard(
-        message: l10n.addressLoadError,
-        actionLabel: l10n.addressRetry,
-        onAction: onRetry,
-      );
-    }
-
-    if (shipments.isEmpty) {
-      return _AddressMessageCard(
-        message: l10n.checkoutNoShippingAddress,
-        actionLabel: l10n.addressAdd,
-        onAction: onAdd,
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        for (final a in shipments)
-          _AddressOption(
-            address: a,
-            selected: a.id == selectedAddressId,
-            onTap: () => onSelect(a.id),
-          ),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: cupertino
-              ? CupertinoButton(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  onPressed: onAdd,
-                  child: Text(l10n.addressAdd),
-                )
-              : TextButton.icon(
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text(l10n.addressAdd),
-                ),
-        ),
-      ],
-    );
+AddressEntity? _selectedOf(List<AddressEntity> shipments, String? id) {
+  for (final a in shipments) {
+    if (a.id == id) return a;
   }
+  return null;
 }
 
 class _AddressOption extends StatelessWidget {
@@ -405,60 +370,340 @@ class _AddressOption extends StatelessWidget {
   }
 }
 
-class _AddressMessageCard extends StatelessWidget {
-  const _AddressMessageCard({
-    required this.message,
-    required this.actionLabel,
-    required this.onAction,
+/// Card que resume la dirección de envío seleccionada, con acceso a un
+/// selector (bottom sheet) cuando hay más de una guardada.
+class _AddressSummaryCard extends StatelessWidget {
+  const _AddressSummaryCard({
+    required this.status,
+    required this.shipments,
+    required this.selectedAddressId,
+    required this.onEdit,
+    required this.onAdd,
+    required this.onRetry,
   });
 
-  final String message;
-  final String actionLabel;
-  final VoidCallback onAction;
+  final AddressesStatus status;
+  final List<AddressEntity> shipments;
+  final String? selectedAddressId;
+  final VoidCallback onEdit;
+  final VoidCallback onAdd;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget body;
+    Widget? action;
+
+    if (status == AddressesStatus.loading && shipments.isEmpty) {
+      body = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+          ),
+        ),
+      );
+    } else if (status == AddressesStatus.failure && shipments.isEmpty) {
+      body = Text(
+        l10n.addressLoadError,
+        style: textTheme.bodySmall?.copyWith(color: colors.error, height: 1.4),
+      );
+      action = TextButton(
+        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+        onPressed: onRetry,
+        child: Text(l10n.addressRetry),
+      );
+    } else if (shipments.isEmpty) {
+      body = Text(
+        l10n.checkoutNoShippingAddress,
+        style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant, height: 1.4),
+      );
+      action = TextButton.icon(
+        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+        onPressed: onAdd,
+        icon: const Icon(Icons.add_location_alt_rounded, size: 16),
+        label: Text(l10n.addressAdd),
+      );
+    } else {
+      final selected = _selectedOf(shipments, selectedAddressId) ?? shipments.first;
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            _addressTitle(selected),
+            style: textTheme.bodyMedium?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            _addressSubtitle(selected),
+            style: textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              height: 1.4,
+              fontSize: 12.5,
+            ),
+          ),
+        ],
+      );
+      action = TextButton(
+        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+        onPressed: onEdit,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              l10n.checkoutEdit,
+              style: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 16, color: colors.primary),
+          ],
+        ),
+      );
+    }
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _InfoCardHeader(
+            icon: Icons.location_on_rounded,
+            iconColor: colors.secondary,
+            iconBg: colors.secondaryContainer,
+            title: l10n.checkoutAddress,
+            action: action,
+          ),
+          const SizedBox(height: 10),
+          body,
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shared card chrome ────────────────────────────────────────────────────────
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: padding ?? const EdgeInsets.all(16),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _InfoCardHeader extends StatelessWidget {
+  const _InfoCardHeader({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    this.action,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBg;
+  final String title;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return DecoratedBox(
+    return Row(
+      children: <Widget>[
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+          child: Icon(icon, size: 18, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: textTheme.bodyLarge?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
+        ),
+        ?action,
+      ],
+    );
+  }
+}
+
+// ── Retailer badge (derivado de la URL del producto) ──────────────────────────
+
+({String name, Color color}) _storeInfoFromUrl(String url, String fallback) {
+  String host;
+  try {
+    host = Uri.parse(url).host.toLowerCase().replaceFirst('www.', '');
+  } catch (_) {
+    return (name: fallback, color: const Color(0xFF6B7280));
+  }
+  if (host.isEmpty) return (name: fallback, color: const Color(0xFF6B7280));
+  if (host.contains('amazon')) return (name: 'Amazon', color: const Color(0xFFFF9900));
+  if (host.contains('ebay')) return (name: 'eBay', color: const Color(0xFFE53238));
+  if (host.contains('walmart')) return (name: 'Walmart', color: const Color(0xFF0071DC));
+  if (host.contains('bestbuy')) return (name: 'Best Buy', color: const Color(0xFF0A4ABF));
+  if (host.contains('target')) return (name: 'Target', color: const Color(0xFFCC0000));
+  if (host.contains('aliexpress')) {
+    return (name: 'AliExpress', color: const Color(0xFFE62E04));
+  }
+  final base = host.split('.').first;
+  if (base.isEmpty) return (name: fallback, color: const Color(0xFF6B7280));
+  final name = '${base[0].toUpperCase()}${base.substring(1)}';
+  return (name: name, color: const Color(0xFF6B7280));
+}
+
+class _StoreBadge extends StatelessWidget {
+  const _StoreBadge({required this.name, required this.color});
+
+  final String name;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.outlineVariant),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              message,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: FilledButton.tonalIcon(
-                onPressed: onAction,
-                icon: const Icon(Icons.add_location_alt_rounded, size: 18),
-                label: Text(actionLabel),
-              ),
-            ),
-          ],
+      child: Text(
+        name,
+        style: TextStyle(
+          color: color,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 }
 
-// ── Material ──────────────────────────────────────────────────────────────────
+// ── Hero header ────────────────────────────────────────────────────────────────
 
-class _MaterialCheckoutContent extends StatelessWidget {
-  const _MaterialCheckoutContent({
+class _CheckoutHeroHeader extends StatelessWidget {
+  const _CheckoutHeroHeader({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(12 * scale, 6 * scale, 16 * scale, 20 * scale),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                  Image.asset('assets/branding/logo_white.png', height: 22 * scale),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      AdaptivePlatform.pageRoute<void>(
+                        context: context,
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    ),
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
+                l10n.checkoutHeroTitle,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 26 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 4 * scale),
+              Text(
+                l10n.checkoutHeroSubtitle,
+                style: TextStyle(
+                  color: colors.onPrimary.withValues(alpha: 0.85),
+                  fontSize: 14 * scale,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Checkout content ──────────────────────────────────────────────────────────
+
+class _CheckoutContent extends StatelessWidget {
+  const _CheckoutContent({
     required this.cart,
     required this.pricingStatus,
     required this.pricing,
@@ -489,111 +734,38 @@ class _MaterialCheckoutContent extends StatelessWidget {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return Scaffold(
-          backgroundColor: colors.surfaceContainerLowest,
-          appBar: AppBar(
-            backgroundColor: colors.surfaceContainer,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.arrow_back_rounded, size: 24 * scale),
-            ),
-            title: Text(
-              l10n.checkoutTitle,
-              style: textTheme.titleLarge?.copyWith(
-                color: colors.onSurface,
-                fontSize: 22 * scale,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+          backgroundColor: colors.surface,
           body: Column(
             children: <Widget>[
+              _CheckoutHeroHeader(scale: scale),
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(
                     16 * scale,
-                    14 * scale,
+                    16 * scale,
                     16 * scale,
                     24 * scale,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      _CoSection(
-                        scale: scale,
-                        label: l10n.checkoutAddress,
-                        child: addressSection,
-                      ),
-                      SizedBox(height: 20 * scale),
-                      _CoSection(
-                        scale: scale,
-                        label: l10n.checkoutSummary,
-                        child: Column(
-                          children: cart.items
-                              .map((it) => Padding(
-                                    padding: EdgeInsets.only(bottom: 8 * scale),
-                                    child: _ItemRow(scale: scale, item: it),
-                                  ))
-                              .toList(),
+                      addressSection,
+                      SizedBox(height: 14 * scale),
+                      _PayMethodCard(l10n: l10n),
+                      SizedBox(height: 14 * scale),
+                      _ShippingMethodCard(l10n: l10n),
+                      SizedBox(height: 14 * scale),
+                      _ItemsSummaryCard(l10n: l10n, cart: cart),
+                      SizedBox(height: 14 * scale),
+                      _InfoCard(
+                        child: _PriceBreakdown(
+                          status: pricingStatus,
+                          pricing: pricing,
+                          onRetry: onRetryPricing,
                         ),
                       ),
-                      SizedBox(height: 20 * scale),
-                      _CoSection(
-                        scale: scale,
-                        label: l10n.checkoutPayMethod,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: colors.tertiaryContainer,
-                            borderRadius: BorderRadius.circular(12 * scale),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(14 * scale),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Icon(
-                                  Icons.credit_card_rounded,
-                                  size: 20 * scale,
-                                  color: colors.onTertiaryContainer,
-                                ),
-                                SizedBox(width: 12 * scale),
-                                Expanded(
-                                  child: Text(
-                                    l10n.cartSecurePayment,
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: colors.onTertiaryContainer,
-                                      fontSize: 13 * scale,
-                                      height: 1.45,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20 * scale),
-                      _CoSection(
-                        scale: scale,
-                        label: l10n.checkoutEstPrice,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: colors.surface,
-                            borderRadius: BorderRadius.circular(12 * scale),
-                            border: Border.all(color: colors.outlineVariant),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(14 * scale),
-                            child: _PriceBreakdown(
-                              scale: scale,
-                              status: pricingStatus,
-                              pricing: pricing,
-                              onRetry: onRetryPricing,
-                            ),
-                          ),
-                        ),
-                      ),
+                      SizedBox(height: 14 * scale),
+                      _CouponRow(l10n: l10n),
                     ],
                   ),
                 ),
@@ -631,9 +803,9 @@ class _MaterialCheckoutContent extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            pricing != null ? _fmt(pricing!.total) : '—',
+                            pricing != null ? _formatCurrency(pricing!.total) : '—',
                             style: textTheme.titleLarge?.copyWith(
-                              color: colors.primary,
+                              color: colors.secondary,
                               fontWeight: FontWeight.w700,
                               fontSize: 18 * scale,
                             ),
@@ -649,9 +821,9 @@ class _MaterialCheckoutContent extends StatelessWidget {
                               ? SizedBox(
                                   width: 18 * scale,
                                   height: 18 * scale,
-                                  child: CircularProgressIndicator(
+                                  child: CircularProgressIndicator.adaptive(
+                                    valueColor: AlwaysStoppedAnimation(colors.onSecondary),
                                     strokeWidth: 2,
-                                    color: colors.onSecondary,
                                   ),
                                 )
                               : const Icon(Icons.lock_rounded),
@@ -660,7 +832,7 @@ class _MaterialCheckoutContent extends StatelessWidget {
                                 ? (verifying
                                     ? l10n.checkoutVerifying
                                     : l10n.checkoutProcessing)
-                                : l10n.checkoutPayButton,
+                                : l10n.checkoutConfirm,
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.secondary,
@@ -683,27 +855,222 @@ class _MaterialCheckoutContent extends StatelessWidget {
       },
     );
   }
-
-  String _fmt(double v) => _formatCurrency(v);
 }
 
-/// Desglose de precio compartido por Material y Cupertino. Muestra loading/error/loaded
-/// según [status]; los montos vienen siempre de [pricing] (GET /api/payments/checkout/pricing)
-/// — nunca se calculan en el cliente, para que jamás difieran del monto que Stripe cobra.
+/// Card estática con información sobre cómo se procesa el pago. La app no
+/// guarda tarjetas: Stripe gestiona la selección/entrada de la tarjeta en su
+/// propio sheet nativo al confirmar el pedido.
+class _PayMethodCard extends StatelessWidget {
+  const _PayMethodCard({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _InfoCardHeader(
+            icon: Icons.credit_card_rounded,
+            iconColor: colors.primary,
+            iconBg: colors.primaryContainer,
+            title: l10n.checkoutPayMethod,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.checkoutPayMethodDesc,
+            style: textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              height: 1.4,
+              fontSize: 12.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card estática con el único método de envío que ofrece Feyam hoy. No hay
+/// selector porque no existen otras opciones de envío en el backend.
+class _ShippingMethodCard extends StatelessWidget {
+  const _ShippingMethodCard({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _InfoCardHeader(
+            icon: Icons.local_shipping_rounded,
+            iconColor: colors.secondary,
+            iconBg: colors.secondaryContainer,
+            title: l10n.checkoutShippingMethodTitle,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.checkoutShippingStandardLabel,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${l10n.checkoutDelivery}: ${l10n.checkoutDeliveryTime}',
+            style: textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontSize: 12.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemsSummaryCard extends StatelessWidget {
+  const _ItemsSummaryCard({required this.l10n, required this.cart});
+
+  final AppLocalizations l10n;
+  final CartEntity cart;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _InfoCardHeader(
+            icon: Icons.shopping_bag_rounded,
+            iconColor: colors.primary,
+            iconBg: colors.primaryContainer,
+            title: '${l10n.checkoutSummary} '
+                '(${cart.items.length} ${l10n.checkoutProductsUnit})',
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < cart.items.length; i++) ...<Widget>[
+            _ItemRow(l10n: l10n, item: cart.items[i]),
+            if (i != cart.items.length - 1) ...<Widget>[
+              const SizedBox(height: 10),
+              Divider(height: 1, color: colors.outlineVariant),
+              const SizedBox(height: 10),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemRow extends StatelessWidget {
+  const _ItemRow({required this.l10n, required this.item});
+
+  final AppLocalizations l10n;
+  final CartItemEntity item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final store = _storeInfoFromUrl(item.productUrl, l10n.checkoutGenericStore);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: colors.surfaceContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: item.productImageUrl != null
+              ? Image.network(
+                  item.productImageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Icon(
+                    Icons.inventory_2_rounded,
+                    size: 24,
+                    color: colors.onSurfaceVariant,
+                  ),
+                )
+              : Icon(
+                  Icons.inventory_2_rounded,
+                  size: 24,
+                  color: colors.onSurfaceVariant,
+                ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _StoreBadge(name: store.name, color: store.color),
+              const SizedBox(height: 4),
+              Text(
+                item.productName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13.5,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${l10n.addToCartQuantityLabel}: ${item.quantity}',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _formatCurrency(item.totalPrice),
+          style: textTheme.bodyLarge?.copyWith(
+            color: colors.onSurface,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Desglose de precio. Los montos vienen siempre de [pricing]
+/// (GET /api/payments/checkout/pricing) — nunca se calculan en el cliente,
+/// para que jamás difieran del monto que Stripe cobra.
 class _PriceBreakdown extends StatelessWidget {
   const _PriceBreakdown({
-    required this.scale,
     required this.status,
     required this.pricing,
     required this.onRetry,
   });
 
-  final double scale;
   final CheckoutPricingStatus status;
   final CheckoutPricingEntity? pricing;
   final VoidCallback onRetry;
-
-  String _fmt(double v) => _formatCurrency(v);
 
   @override
   Widget build(BuildContext context) {
@@ -719,7 +1086,7 @@ class _PriceBreakdown extends StatelessWidget {
             l10n.checkoutPriceLoadError,
             style: textTheme.bodyMedium?.copyWith(color: colors.error),
           ),
-          SizedBox(height: 10 * scale),
+          const SizedBox(height: 10),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton(
@@ -735,14 +1102,14 @@ class _PriceBreakdown extends StatelessWidget {
       return Row(
         children: <Widget>[
           SizedBox(
-            width: 16 * scale,
-            height: 16 * scale,
-            child: CircularProgressIndicator(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator.adaptive(
               strokeWidth: 2,
-              color: colors.onSurfaceVariant,
+              valueColor: AlwaysStoppedAnimation(colors.onSurfaceVariant),
             ),
           ),
-          SizedBox(width: 10 * scale),
+          const SizedBox(width: 10),
           Text(
             l10n.checkoutPriceLoading,
             style: textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
@@ -754,29 +1121,28 @@ class _PriceBreakdown extends StatelessWidget {
     final p = pricing!;
     return Column(
       children: <Widget>[
-        _PriceRow(scale: scale, k: l10n.checkoutSubtotal, v: _fmt(p.productsAmount)),
-        _PriceRow(scale: scale, k: l10n.checkoutService, v: _fmt(p.feyamFee)),
-        _PriceRow(scale: scale, k: l10n.checkoutShipping, v: _fmt(p.estimatedLogistics)),
-        Divider(height: 1 + 16 * scale, color: colors.outlineVariant),
+        _PriceRow(k: l10n.checkoutSubtotal, v: _formatCurrency(p.productsAmount)),
+        _PriceRow(k: l10n.checkoutService, v: _formatCurrency(p.feyamFee)),
+        _PriceRow(k: l10n.checkoutShipping, v: _formatCurrency(p.estimatedLogistics)),
+        Divider(height: 24, color: colors.outlineVariant),
         _PriceRow(
-          scale: scale,
           k: l10n.checkoutTotal,
-          v: _fmt(p.total),
+          v: _formatCurrency(p.total),
           strong: true,
           accent: true,
         ),
-        SizedBox(height: 10 * scale),
+        const SizedBox(height: 10),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(Icons.info_outline_rounded, size: 13 * scale, color: colors.onSurfaceVariant),
-            SizedBox(width: 5 * scale),
+            Icon(Icons.info_outline_rounded, size: 13, color: colors.onSurfaceVariant),
+            const SizedBox(width: 5),
             Expanded(
               child: Text(
                 l10n.checkoutDisclaimer,
                 style: textTheme.bodySmall?.copyWith(
                   color: colors.onSurfaceVariant,
-                  fontSize: 11 * scale,
+                  fontSize: 11,
                   height: 1.45,
                 ),
               ),
@@ -788,131 +1154,14 @@ class _PriceBreakdown extends StatelessWidget {
   }
 }
 
-class _CoSection extends StatelessWidget {
-  const _CoSection({required this.scale, required this.label, required this.child});
-
-  final double scale;
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(left: 2 * scale, bottom: 8 * scale),
-          child: Text(
-            label.toUpperCase(),
-            style: textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontSize: 11 * scale,
-              letterSpacing: 0.8,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        child,
-      ],
-    );
-  }
-}
-
-class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.scale, required this.item});
-
-  final double scale;
-  final CartItemEntity item;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12 * scale),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(14 * scale),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              width: 44 * scale,
-              height: 44 * scale,
-              decoration: BoxDecoration(
-                color: colors.surfaceContainer,
-                borderRadius: BorderRadius.circular(8 * scale),
-              ),
-              child: Icon(Icons.inventory_2_rounded, size: 24 * scale, color: colors.onSurfaceVariant),
-            ),
-            SizedBox(width: 12 * scale),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    item.productName,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurface,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14 * scale,
-                      height: 1.35,
-                    ),
-                  ),
-                  if (item.notes != null && item.notes!.isNotEmpty) ...[
-                    SizedBox(height: 2 * scale),
-                    Text(
-                      item.notes!,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        fontSize: 12 * scale,
-                      ),
-                    ),
-                  ],
-                  SizedBox(height: 4 * scale),
-                  Text(
-                    '${l10n.addToCartQuantityLabel}: ${item.quantity}',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 12 * scale,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              _formatCurrency(item.totalPrice),
-              style: textTheme.bodyLarge?.copyWith(
-                color: colors.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 15 * scale,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _PriceRow extends StatelessWidget {
   const _PriceRow({
-    required this.scale,
     required this.k,
     required this.v,
     this.strong = false,
     this.accent = false,
   });
 
-  final double scale;
   final String k;
   final String v;
   final bool strong;
@@ -924,24 +1173,27 @@ class _PriceRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 5 * scale),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
-            k,
-            style: textTheme.bodyMedium?.copyWith(
-              color: strong ? colors.onSurface : colors.onSurfaceVariant,
-              fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
-              fontSize: strong ? 15 * scale : 13 * scale,
+          Expanded(
+            child: Text(
+              k,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium?.copyWith(
+                color: strong ? colors.onSurface : colors.onSurfaceVariant,
+                fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
+                fontSize: strong ? 15 : 13,
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             v,
             style: textTheme.bodyLarge?.copyWith(
-              color: accent ? colors.primary : colors.onSurface,
+              color: accent ? colors.secondary : colors.onSurface,
               fontWeight: strong ? FontWeight.w700 : FontWeight.w400,
-              fontSize: strong ? 17 * scale : 13 * scale,
+              fontSize: strong ? 17 : 13,
             ),
           ),
         ],
@@ -950,261 +1202,48 @@ class _PriceRow extends StatelessWidget {
   }
 }
 
-// ── Cupertino ─────────────────────────────────────────────────────────────────
+/// Fila de cupón/nota deshabilitada: la funcionalidad todavía no existe en el
+/// backend, así que se muestra atenuada con un rótulo "Próximamente" en vez de
+/// simular un flujo que no lleva a ningún lado.
+class _CouponRow extends StatelessWidget {
+  const _CouponRow({required this.l10n});
 
-class _CupertinoCheckoutContent extends StatelessWidget {
-  const _CupertinoCheckoutContent({
-    required this.cart,
-    required this.pricingStatus,
-    required this.pricing,
-    required this.onRetryPricing,
-    required this.busy,
-    required this.verifying,
-    required this.onPay,
-    required this.addressSection,
-  });
-
-  final CartEntity cart;
-  final CheckoutPricingStatus pricingStatus;
-  final CheckoutPricingEntity? pricing;
-  final VoidCallback onRetryPricing;
-  final bool busy;
-  final bool verifying;
-  final VoidCallback? onPay;
-  final Widget addressSection;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final dimmed = colors.onSurfaceVariant.withValues(alpha: 0.6);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
-
-        return ColoredBox(
-          color: kFeyamBg,
-          child: Column(
-            children: <Widget>[
-              CupertinoNavigationBar(
-                leading: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      const Icon(CupertinoIcons.chevron_back, size: 18),
-                      const SizedBox(width: 2),
-                      Text(l10n.navCart, style: const TextStyle(fontSize: 17)),
-                    ],
-                  ),
-                ),
-                middle: Text(l10n.checkoutTitle),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(bottom: 8 * scale),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      SizedBox(height: 16 * scale),
-                      FeyamListSection(
-                        header: l10n.checkoutAddress,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.all(16 * scale),
-                            child: addressSection,
-                          ),
-                        ],
-                      ),
-                      FeyamListSection(
-                        header: l10n.checkoutSummary,
-                        children: <Widget>[
-                          for (var i = 0; i < cart.items.length; i++)
-                            FeyamListTile(
-                              title: Text(cart.items[i].productName),
-                              subtitle: Text(
-                                '${l10n.addToCartQuantityLabel}: ${cart.items[i].quantity}',
-                              ),
-                              detail: Text(_formatCurrency(cart.items[i].totalPrice)),
-                              chevron: false,
-                              isLast: i == cart.items.length - 1,
-                            ),
-                        ],
-                      ),
-                      _CupertinoPriceSection(
-                        status: pricingStatus,
-                        pricing: pricing,
-                        onRetry: onRetryPricing,
-                      ),
-                      if (pricingStatus == CheckoutPricingStatus.loaded)
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(32 * scale, 4, 32 * scale, 16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              const Icon(CupertinoIcons.info_circle, size: 14, color: kFeyamLabelTer),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  l10n.checkoutDisclaimer,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: kFeyamLabelTer,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 28 * scale),
-                decoration: const BoxDecoration(
-                  color: kFeyamCard,
-                  border: Border(top: BorderSide(color: kFeyamSepLight, width: 0.5)),
-                ),
-                child: busy
-                    ? Column(
-                        children: <Widget>[
-                          const CupertinoActivityIndicator(),
-                          SizedBox(height: 8 * scale),
-                          Text(
-                            verifying ? l10n.checkoutVerifying : l10n.checkoutProcessing,
-                            style: const TextStyle(fontSize: 13, color: kFeyamLabelSec),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          if (onPay == null &&
-                              pricingStatus == CheckoutPricingStatus.loaded) ...[
-                            Text(
-                              l10n.checkoutSelectAddress,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 12, color: kFeyamLabelSec),
-                            ),
-                            SizedBox(height: 8 * scale),
-                          ],
-                          SizedBox(
-                            width: double.infinity,
-                            child: FeyamButton(
-                              label: l10n.checkoutPayButton,
-                              icon: CupertinoIcons.lock_fill,
-                              variant: FeyamButtonVariant.secondary,
-                              onPressed: onPay ?? () {},
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Sección Cupertino del desglose de precio. Igual que `_PriceBreakdown` (Material): los
-/// montos siempre vienen de [pricing] (GET /api/payments/checkout/pricing), nunca se calculan
-/// en el cliente.
-class _CupertinoPriceSection extends StatelessWidget {
-  const _CupertinoPriceSection({
-    required this.status,
-    required this.pricing,
-    required this.onRetry,
-  });
-
-  final CheckoutPricingStatus status;
-  final CheckoutPricingEntity? pricing;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    if (status == CheckoutPricingStatus.failure) {
-      return FeyamListSection(
-        header: l10n.checkoutEstPrice,
+    return _InfoCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
         children: <Widget>[
-          FeyamListTile(
-            title: Text(
-              l10n.checkoutPriceLoadError,
-              style: const TextStyle(color: CupertinoColors.destructiveRed),
-            ),
-            chevron: false,
-            isLast: false,
-          ),
-          FeyamListTile(
-            title: Text(l10n.checkoutPriceRetry, style: const TextStyle(color: kFeyamTint)),
-            chevron: false,
-            isLast: true,
-            onTap: onRetry,
-          ),
-        ],
-      );
-    }
-
-    if (status != CheckoutPricingStatus.loaded || pricing == null) {
-      return FeyamListSection(
-        header: l10n.checkoutEstPrice,
-        children: <Widget>[
-          FeyamListTile(
-            title: Row(
+          Icon(Icons.sell_outlined, size: 18, color: dimmed),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const CupertinoActivityIndicator(radius: 8),
-                const SizedBox(width: 10),
-                Text(l10n.checkoutPriceLoading),
+                Text(
+                  l10n.checkoutCouponTitle,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: dimmed,
+                    fontSize: 13.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.checkoutCouponSoon,
+                  style: textTheme.bodySmall?.copyWith(color: dimmed, fontSize: 11.5),
+                ),
               ],
             ),
-            chevron: false,
-            isLast: true,
           ),
+          Icon(Icons.chevron_right_rounded, size: 18, color: dimmed),
         ],
-      );
-    }
-
-    final p = pricing!;
-    return FeyamListSection(
-      header: l10n.checkoutEstPrice,
-      children: <Widget>[
-        FeyamListTile(
-          title: Text(l10n.checkoutSubtotal),
-          detail: Text(_formatCurrency(p.productsAmount)),
-          chevron: false,
-        ),
-        FeyamListTile(
-          title: Text(l10n.checkoutService),
-          detail: Text(_formatCurrency(p.feyamFee)),
-          chevron: false,
-        ),
-        FeyamListTile(
-          title: Text(l10n.checkoutShipping),
-          detail: Text(_formatCurrency(p.estimatedLogistics)),
-          chevron: false,
-        ),
-        FeyamListTile(
-          title: Text(
-            l10n.checkoutTotal,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          detail: Text(
-            _formatCurrency(p.total),
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-              color: kFeyamTint,
-            ),
-          ),
-          chevron: false,
-          isLast: true,
-        ),
-      ],
+      ),
     );
   }
 }
