@@ -518,6 +518,18 @@ abstract class AppLocalizations {
   /// **'My Orders'**
   String get profileMyOrders;
 
+  /// No description provided for @profileMyOrdersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View history and details'**
+  String get profileMyOrdersSubtitle;
+
+  /// No description provided for @profileMyAddressesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your shipping addresses'**
+  String get profileMyAddressesSubtitle;
+
   /// No description provided for @profilePersonalDetailsSection.
   ///
   /// In en, this message translates to:
@@ -536,6 +548,12 @@ abstract class AppLocalizations {
   /// **'Payment methods'**
   String get profilePaymentMethods;
 
+  /// No description provided for @profilePaymentMethodsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your cards and payments'**
+  String get profilePaymentMethodsSubtitle;
+
   /// No description provided for @profileGeneralSection.
   ///
   /// In en, this message translates to:
@@ -548,11 +566,41 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get profileNotifications;
 
+  /// No description provided for @profileNotificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your preferences'**
+  String get profileNotificationsSubtitle;
+
   /// No description provided for @profileHelpSupport.
   ///
   /// In en, this message translates to:
   /// **'Help & Support'**
   String get profileHelpSupport;
+
+  /// No description provided for @profileHelpSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get help when you need it'**
+  String get profileHelpSupportSubtitle;
+
+  /// No description provided for @profileStatOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get profileStatOrders;
+
+  /// No description provided for @profileStatDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get profileStatDelivered;
+
+  /// No description provided for @profileStatFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get profileStatFavorites;
 
   /// No description provided for @profileLogOut.
   ///

@@ -5,7 +5,11 @@ import 'package:feyam/core/push/device_token_service.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:feyam/features/help/presentation/screens/help_screen.dart';
+import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/notifications/presentation/screens/notification_settings_screen.dart';
+import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
 import 'package:feyam/features/profile/domain/entities/address_params.dart';
 import 'package:feyam/features/profile/domain/entities/address_subdivision_entity.dart';
@@ -48,66 +52,124 @@ class _MaterialProfileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
+        // The scrollable content starts above the header's bottom edge so the
+        // profile card overlaps into the navy area, matching the design.
+        const cardOverlap = 28.0;
+        final headerHeight = MediaQuery.of(context).padding.top + 76 * scale;
 
-        return Column(
-          children: <Widget>[
-            _MaterialProfileHeader(scale: scale),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  24 * scale,
-                  24 * scale,
-                  24 * scale,
-                  44 * scale,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    _MaterialProfileSummary(scale: scale),
-                    SizedBox(height: 32 * scale),
-                    _MaterialProfileSection(
-                      scale: scale,
-                      title: l10n.profileAccountSection,
-                      rows: <_MaterialProfileRowData>[
-                        _MaterialProfileRowData(
-                          title: l10n.profileMyAddresses,
-                          icon: Icons.location_on_outlined,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => BlocProvider<AddressesBloc>(
-                                create: (_) => sl<AddressesBloc>(),
-                                child: const AddressesScreen(),
-                              ),
+        return ColoredBox(
+          color: colors.surface,
+          child: Stack(
+            children: <Widget>[
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: headerHeight,
+                child: _MaterialProfileHeader(scale: scale),
+              ),
+              Positioned.fill(
+                top: headerHeight - cardOverlap * scale,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    20 * scale,
+                    0,
+                    20 * scale,
+                    32 * scale,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      _MaterialProfileCard(scale: scale),
+                      SizedBox(height: 20 * scale),
+                      _MaterialProfileRowCard(
+                        scale: scale,
+                        title: l10n.profileMyOrders,
+                        subtitle: l10n.profileMyOrdersSubtitle,
+                        icon: Icons.inventory_2_outlined,
+                        iconColor: colors.primary,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const OrderScreen(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _MaterialProfileRowCard(
+                        scale: scale,
+                        title: l10n.profileMyAddresses,
+                        subtitle: l10n.profileMyAddressesSubtitle,
+                        icon: Icons.location_on_outlined,
+                        iconColor: colors.secondary,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => BlocProvider<AddressesBloc>(
+                              create: (_) => sl<AddressesBloc>(),
+                              child: const AddressesScreen(),
                             ),
                           ),
                         ),
-                        _MaterialProfileRowData(
-                          title: l10n.profilePaymentMethods,
-                          icon: Icons.credit_card_outlined,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => const PaymentMethodsScreen(),
-                            ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _MaterialProfileRowCard(
+                        scale: scale,
+                        title: l10n.profilePaymentMethods,
+                        subtitle: l10n.profilePaymentMethodsSubtitle,
+                        icon: Icons.credit_card_outlined,
+                        iconColor: colors.secondary,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const PaymentMethodsScreen(),
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 24 * scale),
-                    _MaterialLogoutButton(
-                      label: l10n.profileLogOut,
-                      scale: scale,
-                    ),
-                  ],
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _MaterialProfileRowCard(
+                        scale: scale,
+                        title: l10n.profileNotifications,
+                        subtitle: l10n.profileNotificationsSubtitle,
+                        icon: Icons.notifications_outlined,
+                        iconColor: colors.primary,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const NotificationSettingsScreen(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _MaterialProfileRowCard(
+                        scale: scale,
+                        title: l10n.profileHelpSupport,
+                        subtitle: l10n.profileHelpSupportSubtitle,
+                        icon: Icons.support_agent_outlined,
+                        iconColor: colors.secondary,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const HelpScreen(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 28 * scale),
+                      _MaterialLogoutButton(
+                        label: l10n.profileLogOut,
+                        scale: scale,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -121,30 +183,45 @@ class _MaterialProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surfaceContainer,
-        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
-      ),
+      decoration: BoxDecoration(color: colors.primary),
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: 64 * scale,
+          height: 76 * scale,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20 * scale),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                l10n.navProfile,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: colors.onSurface,
-                  fontSize: 22 * scale,
-                  fontWeight: FontWeight.w700,
+            padding: EdgeInsets.symmetric(
+              horizontal: 20 * scale,
+              vertical: 12 * scale,
+            ),
+            child: Row(
+              children: <Widget>[
+                Image.asset(
+                  'assets/branding/logo_white.png',
+                  height: 28 * scale,
                 ),
-              ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  ),
+                  icon: Badge.count(
+                    count: context.watch<UnreadCountBloc>().state.count,
+                    isLabelVisible:
+                        context.watch<UnreadCountBloc>().state.count > 0,
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: colors.onPrimary,
+                      size: 24 * scale,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -153,8 +230,8 @@ class _MaterialProfileHeader extends StatelessWidget {
   }
 }
 
-class _MaterialProfileSummary extends StatelessWidget {
-  const _MaterialProfileSummary({required this.scale});
+class _MaterialProfileCard extends StatelessWidget {
+  const _MaterialProfileCard({required this.scale});
 
   final double scale;
 
@@ -167,77 +244,158 @@ class _MaterialProfileSummary extends StatelessWidget {
     final displayName = user?.displayName ?? l10n.profileName;
     final email = user?.email ?? l10n.profileEmail;
 
-    return Column(
-      children: <Widget>[
-        Container(
-          width: 88 * scale,
-          height: 88 * scale,
-          decoration: BoxDecoration(
-            color: colors.primaryContainer,
-            shape: BoxShape.circle,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20 * scale),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16 * scale,
+            offset: Offset(0, 6 * scale),
           ),
-          child: Center(
-            child: Text(
-              displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-              style: textTheme.headlineLarge?.copyWith(
-                color: colors.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
-                fontSize: 36 * scale,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 16 * scale),
-        Text(
-          displayName,
-          textAlign: TextAlign.center,
-          style: textTheme.titleLarge?.copyWith(
-            color: colors.onSurface,
-            fontSize: 20 * scale,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: 4 * scale),
-        Text(
-          email,
-          textAlign: TextAlign.center,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colors.onSurfaceVariant,
-            fontSize: 13 * scale,
-          ),
-        ),
-        SizedBox(height: 12 * scale),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.tertiaryContainer,
-            borderRadius: BorderRadius.circular(8 * scale),
-          ),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              10 * scale,
-              5 * scale,
-              12 * scale,
-              5 * scale,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(20 * scale),
+        child: Column(
+          children: <Widget>[
+            Row(
               children: <Widget>[
-                Icon(
-                  Icons.star_rounded,
-                  color: colors.onTertiaryContainer,
-                  size: 16 * scale,
+                Container(
+                  width: 64 * scale,
+                  height: 64 * scale,
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 26 * scale,
+                      ),
+                    ),
+                  ),
                 ),
-                SizedBox(width: 6 * scale),
-                Text(
-                  l10n.profileMembershipLevel,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: colors.onTertiaryContainer,
-                    fontSize: 13 * scale,
-                    fontWeight: FontWeight.w600,
+                SizedBox(width: 16 * scale),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: colors.primary,
+                          fontSize: 18 * scale,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 3 * scale),
+                      Text(
+                        email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13 * scale,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
+            SizedBox(height: 18 * scale),
+            Divider(height: 1, thickness: 1, color: colors.outlineVariant),
+            SizedBox(height: 16 * scale),
+            // Placeholder counts: the API only exposes a capped "recent orders"
+            // list (no lifetime totals), and there's no favorites feature yet.
+            // Swap these for real data once that backend support exists.
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: _MaterialProfileStat(
+                    scale: scale,
+                    icon: Icons.shopping_bag_outlined,
+                    iconColor: colors.primary,
+                    value: '12',
+                    label: l10n.profileStatOrders,
+                  ),
+                ),
+                _MaterialProfileStatDivider(scale: scale),
+                Expanded(
+                  child: _MaterialProfileStat(
+                    scale: scale,
+                    icon: Icons.local_shipping_outlined,
+                    iconColor: colors.secondary,
+                    value: '10',
+                    label: l10n.profileStatDelivered,
+                  ),
+                ),
+                _MaterialProfileStatDivider(scale: scale),
+                Expanded(
+                  child: _MaterialProfileStat(
+                    scale: scale,
+                    icon: Icons.favorite_border_rounded,
+                    iconColor: colors.tertiary,
+                    value: '8',
+                    label: l10n.profileStatFavorites,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MaterialProfileStat extends StatelessWidget {
+  const _MaterialProfileStat({
+    required this.scale,
+    required this.icon,
+    required this.iconColor,
+    required this.value,
+    required this.label,
+  });
+
+  final double scale;
+  final IconData icon;
+  final Color iconColor;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+
+    return Column(
+      children: <Widget>[
+        Icon(icon, color: iconColor, size: 20 * scale),
+        SizedBox(height: 6 * scale),
+        Text(
+          value,
+          style: textTheme.titleMedium?.copyWith(
+            color: colors.primary,
+            fontSize: 17 * scale,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(height: 2 * scale),
+        Text(
+          label,
+          style: textTheme.bodySmall?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontSize: 11.5 * scale,
           ),
         ),
       ],
@@ -245,105 +403,95 @@ class _MaterialProfileSummary extends StatelessWidget {
   }
 }
 
-class _MaterialProfileSection extends StatelessWidget {
-  const _MaterialProfileSection({
+class _MaterialProfileStatDivider extends StatelessWidget {
+  const _MaterialProfileStatDivider({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 36 * scale,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    );
+  }
+}
+
+class _MaterialProfileRowCard extends StatelessWidget {
+  const _MaterialProfileRowCard({
     required this.scale,
     required this.title,
-    required this.rows,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.onTap,
   });
 
   final double scale;
   final String title;
-  final List<_MaterialProfileRowData> rows;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(left: 4 * scale, bottom: 10 * scale),
-          child: Text(
-            title,
-            style: textTheme.labelMedium?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontSize: 12 * scale,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8,
-            ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16 * scale),
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16 * scale,
+            vertical: 14 * scale,
           ),
-        ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(16 * scale),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          child: Column(
+          child: Row(
             children: <Widget>[
-              for (var index = 0; index < rows.length; index++) ...[
-                _MaterialProfileRow(scale: scale, data: rows[index]),
-                if (index < rows.length - 1)
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 16 * scale,
-                    endIndent: 16 * scale,
-                    color: colors.outlineVariant,
-                  ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MaterialProfileRow extends StatelessWidget {
-  const _MaterialProfileRow({required this.scale, required this.data});
-
-  final double scale;
-  final _MaterialProfileRowData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colors = Theme.of(context).colorScheme;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(16 * scale),
-      onTap: data.onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16 * scale,
-          vertical: 14 * scale,
-        ),
-        child: Row(
-          children: <Widget>[
-            Icon(data.icon, color: colors.onSurfaceVariant, size: 22 * scale),
-            SizedBox(width: 16 * scale),
-            Expanded(
-              child: Text(
-                data.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: colors.onSurface,
-                  fontSize: 15 * scale,
-                  fontWeight: FontWeight.w400,
+              Icon(icon, color: iconColor, size: 24 * scale),
+              SizedBox(width: 16 * scale),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colors.primary,
+                        fontSize: 15 * scale,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 2 * scale),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12.5 * scale,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: colors.onSurfaceVariant,
-              size: 20 * scale,
-            ),
-          ],
+              Icon(
+                Icons.chevron_right_rounded,
+                color: colors.onSurfaceVariant,
+                size: 20 * scale,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -358,42 +506,27 @@ class _MaterialLogoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
 
-    return OutlinedButton.icon(
+    return TextButton.icon(
       onPressed: () {
         unawaited(sl<DeviceTokenService>().clearToken());
         context.read<AuthBloc>().add(SignOutPressed());
       },
-      icon: Icon(Icons.logout_rounded, size: 18 * scale),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: colors.error,
-        side: BorderSide(color: colors.error, width: scale),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12 * scale),
-        ),
-        minimumSize: Size(double.infinity, 48 * scale),
-        textStyle: textTheme.labelLarge?.copyWith(
+      icon: Icon(Icons.logout_rounded, size: 18 * scale, color: colors.error),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: colors.error,
           fontSize: 15 * scale,
           fontWeight: FontWeight.w600,
         ),
       ),
+      style: TextButton.styleFrom(
+        minimumSize: Size(double.infinity, 44 * scale),
+      ),
     );
   }
-}
-
-class _MaterialProfileRowData {
-  const _MaterialProfileRowData({
-    required this.title,
-    required this.icon,
-    this.onTap,
-  });
-
-  final String title;
-  final IconData icon;
-  final VoidCallback? onTap;
 }
 
 class _CupertinoProfileContent extends StatefulWidget {

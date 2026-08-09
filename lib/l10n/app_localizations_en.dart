@@ -226,6 +226,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMyOrders => 'My Orders';
 
   @override
+  String get profileMyOrdersSubtitle => 'View history and details';
+
+  @override
+  String get profileMyAddressesSubtitle => 'Manage your shipping addresses';
+
+  @override
   String get profilePersonalDetailsSection => 'Personal Details';
 
   @override
@@ -235,13 +241,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePaymentMethods => 'Payment methods';
 
   @override
+  String get profilePaymentMethodsSubtitle => 'Manage your cards and payments';
+
+  @override
   String get profileGeneralSection => 'General';
 
   @override
   String get profileNotifications => 'Notifications';
 
   @override
+  String get profileNotificationsSubtitle => 'Configure your preferences';
+
+  @override
   String get profileHelpSupport => 'Help & Support';
+
+  @override
+  String get profileHelpSupportSubtitle => 'Get help when you need it';
+
+  @override
+  String get profileStatOrders => 'Orders';
+
+  @override
+  String get profileStatDelivered => 'Delivered';
+
+  @override
+  String get profileStatFavorites => 'Favorites';
 
   @override
   String get profileLogOut => 'Log out';
