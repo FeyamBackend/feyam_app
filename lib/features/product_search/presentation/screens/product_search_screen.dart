@@ -115,116 +115,219 @@ class _MaterialProductSearch extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.productSearchTitle)),
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: TextField(
-                controller: controller,
-                autofocus: true,
-                onChanged: onQueryChanged,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: l10n.productSearchFieldHint,
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: controller,
-                    builder: (context, value, _) => value.text.isEmpty
-                        ? const SizedBox.shrink()
-                        : IconButton(
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () {
-                              controller.clear();
-                              context.read<ProductSearchBloc>().add(const ProductSearchCleared());
-                            },
+      backgroundColor: colors.surface,
+      body: Column(
+        children: <Widget>[
+          _ProductSearchHeroHeader(title: l10n.productSearchTitle),
+          Expanded(
+            child: DefaultTextStyle(
+              style: const TextStyle(decoration: TextDecoration.none),
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: colors.outlineVariant),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
                           ),
-                  ),
-                  filled: true,
-                  fillColor: colors.surfaceContainerHighest,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: BlocBuilder<ProductSearchBloc, ProductSearchState>(
-                builder: (context, state) {
-                  return switch (state.status) {
-                    ProductSearchStatus.initial => _MaterialMessage(
-                        icon: Icons.search_rounded,
-                        title: l10n.productSearchInitialHint,
-                      ),
-                    ProductSearchStatus.loading =>
-                      const Center(child: CircularProgressIndicator()),
-                    ProductSearchStatus.failure => _MaterialMessage(
-                        icon: Icons.error_outline_rounded,
-                        title: l10n.productSearchErrorTitle,
-                        actions: <Widget>[
-                          FilledButton(
-                            onPressed: () => context
-                                .read<ProductSearchBloc>()
-                                .add(const ProductSearchRetried()),
-                            child: Text(l10n.productSearchRetry),
-                          ),
-                          const SizedBox(height: 12),
-                          const PasteLinkFallbackCard(),
                         ],
                       ),
-                    ProductSearchStatus.empty => _MaterialMessage(
-                        icon: Icons.search_off_rounded,
-                        title: l10n.productSearchEmptyTitle,
-                        subtitle: l10n.productSearchEmptyBody,
-                        actions: const <Widget>[PasteLinkFallbackCard()],
+                      child: TextField(
+                        controller: controller,
+                        autofocus: true,
+                        onChanged: onQueryChanged,
+                        textInputAction: TextInputAction.search,
+                        decoration: InputDecoration(
+                          hintText: l10n.productSearchFieldHint,
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: controller,
+                            builder: (context, value, _) => value.text.isEmpty
+                                ? const SizedBox.shrink()
+                                : IconButton(
+                                    icon: const Icon(Icons.close_rounded),
+                                    onPressed: () {
+                                      controller.clear();
+                                      context.read<ProductSearchBloc>().add(
+                                        const ProductSearchCleared(),
+                                      );
+                                    },
+                                  ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
                       ),
-                    ProductSearchStatus.loaded => Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          if (state.isPartial)
-                            _PartialBanner(text: l10n.productSearchPartialBanner),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: state.items.length + 1,
-                              itemBuilder: (context, index) {
-                                if (index == state.items.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    child: Column(
-                                      children: <Widget>[
-                                        if (state.nextPage != null)
-                                          state.isLoadingMore
-                                              ? const CircularProgressIndicator()
-                                              : TextButton(
-                                                  onPressed: () => context
-                                                      .read<ProductSearchBloc>()
-                                                      .add(const ProductSearchNextPageRequested()),
-                                                  child: Text(l10n.productSearchLoadMore),
-                                                ),
-                                        const SizedBox(height: 8),
-                                        const PasteLinkFallbackCard(),
-                                      ],
-                                    ),
-                                  );
-                                }
-                                final item = state.items[index];
-                                return ProductResultTile(
-                                  item: item,
-                                  onTap: () => onOpenResult(item),
-                                );
-                              },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: BlocBuilder<ProductSearchBloc, ProductSearchState>(
+                      builder: (context, state) {
+                        return switch (state.status) {
+                          ProductSearchStatus.initial => _MaterialMessage(
+                            icon: Icons.search_rounded,
+                            title: l10n.productSearchInitialHint,
+                          ),
+                          ProductSearchStatus.loading => Center(
+                            child: CircularProgressIndicator(
+                              color: colors.primary,
                             ),
                           ),
-                        ],
-                      ),
-                  };
-                },
+                          ProductSearchStatus.failure => _MaterialMessage(
+                            icon: Icons.error_outline_rounded,
+                            title: l10n.productSearchErrorTitle,
+                            actions: <Widget>[
+                              FilledButton.tonal(
+                                onPressed: () => context
+                                    .read<ProductSearchBloc>()
+                                    .add(const ProductSearchRetried()),
+                                child: Text(l10n.productSearchRetry),
+                              ),
+                              const SizedBox(height: 12),
+                              const PasteLinkFallbackCard(),
+                            ],
+                          ),
+                          ProductSearchStatus.empty => _MaterialMessage(
+                            icon: Icons.search_off_rounded,
+                            title: l10n.productSearchEmptyTitle,
+                            subtitle: l10n.productSearchEmptyBody,
+                            actions: const <Widget>[PasteLinkFallbackCard()],
+                          ),
+                          ProductSearchStatus.loaded => Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              if (state.isPartial)
+                                _PartialBanner(
+                                  text: l10n.productSearchPartialBanner,
+                                ),
+                              Expanded(
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    8,
+                                  ),
+                                  itemCount: state.items.length + 1,
+                                  itemBuilder: (context, index) {
+                                    if (index == state.items.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        child: Column(
+                                          children: <Widget>[
+                                            if (state.nextPage != null)
+                                              state.isLoadingMore
+                                                  ? CircularProgressIndicator(
+                                                      color: colors.primary,
+                                                    )
+                                                  : TextButton(
+                                                      onPressed: () => context
+                                                          .read<
+                                                            ProductSearchBloc
+                                                          >()
+                                                          .add(
+                                                            const ProductSearchNextPageRequested(),
+                                                          ),
+                                                      child: Text(
+                                                        l10n.productSearchLoadMore,
+                                                      ),
+                                                    ),
+                                            const SizedBox(height: 8),
+                                            const PasteLinkFallbackCard(),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    final item = state.items[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 10,
+                                      ),
+                                      child: ProductResultTile(
+                                        item: item,
+                                        onTap: () => onOpenResult(item),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        };
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProductSearchHeroHeader extends StatelessWidget {
+  const _ProductSearchHeroHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22,
+                    ),
+                  ),
+                  Image.asset('assets/branding/logo_white.png', height: 22),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -267,13 +370,12 @@ class _MaterialMessage extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
               ),
             ],
-            if (actions.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              ...actions,
-            ],
+            if (actions.isNotEmpty) ...[const SizedBox(height: 16), ...actions],
           ],
         ),
       ),
@@ -299,7 +401,11 @@ class _PartialBanner extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Icon(Icons.info_outline_rounded, size: 18, color: colors.onSurfaceVariant),
+          Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: colors.onSurfaceVariant,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.bodySmall),
@@ -342,7 +448,9 @@ class _CupertinoProductSearch extends StatelessWidget {
                 onChanged: onQueryChanged,
                 onSuffixTap: () {
                   controller.clear();
-                  context.read<ProductSearchBloc>().add(const ProductSearchCleared());
+                  context.read<ProductSearchBloc>().add(
+                    const ProductSearchCleared(),
+                  );
                 },
               ),
             ),
@@ -352,89 +460,97 @@ class _CupertinoProductSearch extends StatelessWidget {
                 builder: (context, state) {
                   return switch (state.status) {
                     ProductSearchStatus.initial => FeyamEmptyState(
-                        icon: CupertinoIcons.search,
-                        title: l10n.productSearchInitialHint,
-                      ),
-                    ProductSearchStatus.loading =>
-                      const Center(child: CupertinoActivityIndicator()),
+                      icon: CupertinoIcons.search,
+                      title: l10n.productSearchInitialHint,
+                    ),
+                    ProductSearchStatus.loading => const Center(
+                      child: CupertinoActivityIndicator(),
+                    ),
                     ProductSearchStatus.failure => FeyamEmptyState(
-                        icon: CupertinoIcons.exclamationmark_triangle,
-                        title: l10n.productSearchErrorTitle,
-                        action: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            FeyamButton(
-                              label: l10n.productSearchRetry,
-                              variant: FeyamButtonVariant.tinted,
-                              onPressed: () => context
-                                  .read<ProductSearchBloc>()
-                                  .add(const ProductSearchRetried()),
-                            ),
-                            const SizedBox(height: 12),
-                            const PasteLinkFallbackCard(),
-                          ],
-                        ),
-                      ),
-                    ProductSearchStatus.empty => FeyamEmptyState(
-                        icon: CupertinoIcons.search,
-                        title: l10n.productSearchEmptyTitle,
-                        subtitle: l10n.productSearchEmptyBody,
-                        action: const PasteLinkFallbackCard(),
-                      ),
-                    ProductSearchStatus.loaded => Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      icon: CupertinoIcons.exclamationmark_triangle,
+                      title: l10n.productSearchErrorTitle,
+                      action: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          if (state.isPartial)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                              child: Text(
-                                l10n.productSearchPartialBanner,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  color: kFeyamLabelSec,
-                                ),
-                              ),
-                            ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: <Widget>[
-                                  FeyamListSection(
-                                    children: <Widget>[
-                                      for (var i = 0; i < state.items.length; i++)
-                                        _CupertinoResultTile(
-                                          item: state.items[i],
-                                          isLast: i == state.items.length - 1,
-                                          onTap: () => onOpenResult(state.items[i]),
-                                        ),
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    child: Column(
-                                      children: <Widget>[
-                                        if (state.nextPage != null)
-                                          state.isLoadingMore
-                                              ? const CupertinoActivityIndicator()
-                                              : FeyamButton(
-                                                  label: l10n.productSearchLoadMore,
-                                                  variant: FeyamButtonVariant.plain,
-                                                  onPressed: () => context
-                                                      .read<ProductSearchBloc>()
-                                                      .add(const ProductSearchNextPageRequested()),
-                                                ),
-                                        const SizedBox(height: 8),
-                                        const PasteLinkFallbackCard(),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                          FeyamButton(
+                            label: l10n.productSearchRetry,
+                            variant: FeyamButtonVariant.tinted,
+                            onPressed: () => context
+                                .read<ProductSearchBloc>()
+                                .add(const ProductSearchRetried()),
+                          ),
+                          const SizedBox(height: 12),
+                          const PasteLinkFallbackCard(),
+                        ],
+                      ),
+                    ),
+                    ProductSearchStatus.empty => FeyamEmptyState(
+                      icon: CupertinoIcons.search,
+                      title: l10n.productSearchEmptyTitle,
+                      subtitle: l10n.productSearchEmptyBody,
+                      action: const PasteLinkFallbackCard(),
+                    ),
+                    ProductSearchStatus.loaded => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        if (state.isPartial)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                            child: Text(
+                              l10n.productSearchPartialBanner,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: kFeyamLabelSec,
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: <Widget>[
+                                FeyamListSection(
+                                  children: <Widget>[
+                                    for (var i = 0; i < state.items.length; i++)
+                                      _CupertinoResultTile(
+                                        item: state.items[i],
+                                        isLast: i == state.items.length - 1,
+                                        onTap: () =>
+                                            onOpenResult(state.items[i]),
+                                      ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      if (state.nextPage != null)
+                                        state.isLoadingMore
+                                            ? const CupertinoActivityIndicator()
+                                            : FeyamButton(
+                                                label:
+                                                    l10n.productSearchLoadMore,
+                                                variant:
+                                                    FeyamButtonVariant.plain,
+                                                onPressed: () => context
+                                                    .read<ProductSearchBloc>()
+                                                    .add(
+                                                      const ProductSearchNextPageRequested(),
+                                                    ),
+                                              ),
+                                      const SizedBox(height: 8),
+                                      const PasteLinkFallbackCard(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   };
                 },
               ),
@@ -476,8 +592,10 @@ class _CupertinoResultTile extends StatelessWidget {
               ? Image.network(
                   item.imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) =>
-                      const Icon(CupertinoIcons.cube_box, color: kFeyamLabelSec),
+                  errorBuilder: (_, _, _) => const Icon(
+                    CupertinoIcons.cube_box,
+                    color: kFeyamLabelSec,
+                  ),
                 )
               : const Icon(CupertinoIcons.cube_box, color: kFeyamLabelSec),
         ),
@@ -485,7 +603,9 @@ class _CupertinoResultTile extends StatelessWidget {
       title: Text(item.title),
       subtitle: Text(item.retailer),
       trailing: Text(
-        price != null ? '\$${price.toStringAsFixed(2)}' : l10n.productSearchPriceUnknown,
+        price != null
+            ? '\$${price.toStringAsFixed(2)}'
+            : l10n.productSearchPriceUnknown,
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
     );

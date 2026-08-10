@@ -1,8 +1,11 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/push/device_token_service.dart';
+import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Reached from the Profile screen's "Notifications" settings row — surfaces the current OS
 /// push-permission state, distinct from the bell icon's [NotificationsScreen] (history).
@@ -35,8 +38,22 @@ class _NotificationSettingsScreenState
     await _refreshStatus();
   }
 
+  String _statusText(AppLocalizations l10n) => switch (_status) {
+    AuthorizationStatus.authorized ||
+    AuthorizationStatus.provisional => l10n.notifSettingsEnabled,
+    AuthorizationStatus.denied => l10n.notifSettingsDisabled,
+    _ => l10n.notifSettingsUnknown,
+  };
+
   @override
   Widget build(BuildContext context) {
+    if (AdaptivePlatform.isCupertino(context)) {
+      return _buildCupertino(context);
+    }
+    return _buildMaterial(context);
+  }
+
+  Widget _buildCupertino(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return CupertinoPageScaffold(
@@ -56,12 +73,28 @@ class _NotificationSettingsScreenState
                   onPressed: _requestPermission,
                   child: Text(l10n.notifSettingsEnableButton),
                 ),
-                AuthorizationStatus.denied => Text(
-                  l10n.notifSettingsDeniedHint,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.secondaryLabel,
-                  ),
+                AuthorizationStatus.denied => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      l10n.notifSettingsDeniedHint,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: CupertinoColors.secondaryLabel,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    CupertinoButton.filled(
+                      onPressed: openAppSettings,
+                      child: Text(l10n.notifSettingsOpenButton),
+                    ),
+                  ],
+                ),
+                AuthorizationStatus.authorized ||
+                AuthorizationStatus.provisional => CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: openAppSettings,
+                  child: Text(l10n.notifSettingsOpenButton),
                 ),
                 _ => const SizedBox.shrink(),
               },
@@ -72,10 +105,197 @@ class _NotificationSettingsScreenState
     );
   }
 
-  String _statusText(AppLocalizations l10n) => switch (_status) {
-    AuthorizationStatus.authorized ||
-    AuthorizationStatus.provisional => l10n.notifSettingsEnabled,
-    AuthorizationStatus.denied => l10n.notifSettingsDisabled,
-    _ => l10n.notifSettingsUnknown,
-  };
+  Widget _buildMaterial(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+
+    final (icon, iconColor, iconBg) = switch (_status) {
+      AuthorizationStatus.authorized || AuthorizationStatus.provisional => (
+        Icons.notifications_active_rounded,
+        colors.secondary,
+        colors.secondaryContainer,
+      ),
+      AuthorizationStatus.denied => (
+        Icons.notifications_off_rounded,
+        colors.error,
+        colors.errorContainer,
+      ),
+      _ => (
+        Icons.notifications_none_rounded,
+        colors.primary,
+        colors.primaryContainer,
+      ),
+    };
+
+    return Scaffold(
+      backgroundColor: colors.surface,
+      body: Column(
+        children: <Widget>[
+          _NotifSettingsHeroHeader(title: l10n.notifSettingsTitle),
+          Expanded(
+            child: DefaultTextStyle(
+              style: const TextStyle(decoration: TextDecoration.none),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: colors.outlineVariant),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: iconBg,
+                              ),
+                              child: Icon(icon, size: 22, color: iconColor),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _statusText(l10n),
+                                style: TextStyle(
+                                  color: colors.onSurface,
+                                  fontSize: 14,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (_status == AuthorizationStatus.notDetermined) ...[
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: FilledButton(
+                          onPressed: _requestPermission,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colors.secondary,
+                            foregroundColor: colors.onSecondary,
+                            shape: const StadiumBorder(),
+                          ),
+                          child: Text(l10n.notifSettingsEnableButton),
+                        ),
+                      ),
+                    ],
+                    if (_status == AuthorizationStatus.denied) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.notifSettingsDeniedHint,
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: FilledButton.tonal(
+                          onPressed: openAppSettings,
+                          style: FilledButton.styleFrom(
+                            shape: const StadiumBorder(),
+                          ),
+                          child: Text(l10n.notifSettingsOpenButton),
+                        ),
+                      ),
+                    ],
+                    if (_status == AuthorizationStatus.authorized ||
+                        _status == AuthorizationStatus.provisional) ...[
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: FilledButton.tonal(
+                          onPressed: openAppSettings,
+                          style: FilledButton.styleFrom(
+                            shape: const StadiumBorder(),
+                          ),
+                          child: Text(l10n.notifSettingsOpenButton),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotifSettingsHeroHeader extends StatelessWidget {
+  const _NotifSettingsHeroHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22,
+                    ),
+                  ),
+                  Image.asset('assets/branding/logo_white.png', height: 22),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

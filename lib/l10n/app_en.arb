@@ -201,6 +201,8 @@
     "notifSettingsUnknown": "We haven't asked for notification permission yet.",
     "notifSettingsEnableButton": "Enable notifications",
     "notifSettingsDeniedHint": "To receive notifications, enable them for Feyam in your device's Settings app.",
+    "notifSettingsOpenButton": "Open Settings",
+    "ordDetailTitle": "Order details",
     "ordDetailId": "Order number",
     "ordDetailDate": "Order date",
     "ordDetailEstDelivery": "Estimated delivery",

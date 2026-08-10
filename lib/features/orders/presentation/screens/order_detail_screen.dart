@@ -32,7 +32,12 @@ class OrderDetailScreen extends StatelessWidget {
   final String? delivery;
   final String? imageUrl;
 
-  static const _statusKeys = <String>['review', 'payment', 'shipping', 'delivered'];
+  static const _statusKeys = <String>[
+    'review',
+    'payment',
+    'shipping',
+    'delivered',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +65,26 @@ class OrderDetailScreen extends StatelessWidget {
     ];
 
     final (statusLabel, statusBg, statusFg) = switch (status) {
-      'payment' => (l10n.ordersStatusPorPagar, colors.tertiaryContainer, colors.onTertiaryContainer),
-      'shipping' => (l10n.ordersStatusEnCamino, colors.primaryContainer, colors.onPrimaryContainer),
-      'delivered' => (l10n.ordersStatusEntregado, colors.secondaryContainer, colors.onSecondaryContainer),
-      _ => (l10n.ordersStatusEnRevision, colors.surfaceContainerHighest, colors.onSurfaceVariant),
+      'payment' => (
+        l10n.ordersStatusPorPagar,
+        colors.tertiaryContainer,
+        colors.onTertiaryContainer,
+      ),
+      'shipping' => (
+        l10n.ordersStatusEnCamino,
+        colors.primaryContainer,
+        colors.onPrimaryContainer,
+      ),
+      'delivered' => (
+        l10n.ordersStatusEntregado,
+        colors.secondaryContainer,
+        colors.onSecondaryContainer,
+      ),
+      _ => (
+        l10n.ordersStatusEnRevision,
+        colors.surfaceContainerHighest,
+        colors.onSurfaceVariant,
+      ),
     };
 
     return LayoutBuilder(
@@ -72,157 +93,242 @@ class OrderDetailScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: colors.surface,
-          appBar: AppBar(
-            backgroundColor: colors.surfaceContainer,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.arrow_back_rounded, size: 24 * scale),
-            ),
-            title: Text(
-              '${l10n.ordDetailId} #FY-${_shortOrderId(orderId)}',
-              style: textTheme.titleLarge?.copyWith(
-                color: colors.onSurface,
-                fontSize: 20 * scale,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.all(20 * scale),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                // Header
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12 * scale),
-                      child: Container(
-                        width: 64 * scale,
-                        height: 64 * scale,
-                        color: colors.surfaceContainerHighest,
-                        child: Builder(
-                          builder: (context) {
-                            final placeholder = Icon(
-                              Icons.inventory_2_rounded,
-                              size: 30 * scale,
-                              color: colors.onSurfaceVariant,
-                            );
-                            if (imageUrl == null) return placeholder;
-                            return Image.network(
-                              imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => placeholder,
-                              loadingBuilder: (context, child, progress) =>
-                                  progress == null ? child : placeholder,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16 * scale),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            title,
-                            style: textTheme.titleMedium?.copyWith(
-                              color: colors.onSurface,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 17 * scale,
-                            ),
-                          ),
-                          SizedBox(height: 4 * scale),
-                          Text(
-                            '#FY-${_shortOrderId(orderId)} · $price',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              fontSize: 13 * scale,
-                            ),
-                          ),
-                          SizedBox(height: 8 * scale),
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: statusBg,
-                              borderRadius: BorderRadius.circular(6 * scale),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 10 * scale,
-                                vertical: 4 * scale,
+          body: Column(
+            children: <Widget>[
+              _OrderDetailHeroHeader(title: l10n.ordDetailTitle, scale: scale),
+              Expanded(
+                child: DefaultTextStyle(
+                  style: const TextStyle(decoration: TextDecoration.none),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(20 * scale),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        // Product summary card
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: colors.surfaceContainerLowest,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: colors.outlineVariant),
+                            boxShadow: <BoxShadow>[
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
                               ),
-                              child: Text(
-                                statusLabel,
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: statusFg,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12 * scale,
+                            ],
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(14 * scale),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    12 * scale,
+                                  ),
+                                  child: Container(
+                                    width: 64 * scale,
+                                    height: 64 * scale,
+                                    color: colors.surfaceContainerHighest,
+                                    child: Builder(
+                                      builder: (context) {
+                                        final placeholder = Icon(
+                                          Icons.inventory_2_rounded,
+                                          size: 30 * scale,
+                                          color: colors.onSurfaceVariant,
+                                        );
+                                        if (imageUrl == null) {
+                                          return placeholder;
+                                        }
+                                        return Image.network(
+                                          imageUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) =>
+                                              placeholder,
+                                          loadingBuilder:
+                                              (context, child, progress) =>
+                                                  progress == null
+                                                  ? child
+                                                  : placeholder,
+                                        );
+                                      },
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                SizedBox(width: 16 * scale),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        title,
+                                        style: textTheme.titleMedium?.copyWith(
+                                          color: colors.onSurface,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 17 * scale,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4 * scale),
+                                      Text(
+                                        '#FY-${_shortOrderId(orderId)} · $price',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colors.onSurfaceVariant,
+                                          fontSize: 13 * scale,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8 * scale),
+                                      DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          color: statusBg,
+                                          borderRadius: BorderRadius.circular(
+                                            6 * scale,
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 10 * scale,
+                                            vertical: 4 * scale,
+                                          ),
+                                          child: Text(
+                                            statusLabel,
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: statusFg,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 12 * scale,
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16 * scale),
-                // Info rows
-                _InfoRow(
-                  scale: scale,
-                  label: l10n.ordDetailId,
-                  value: '#FY-${_shortOrderId(orderId)}',
-                ),
-                _InfoRow(
-                  scale: scale,
-                  label: l10n.ordDetailDate,
-                  value: date,
-                ),
-                if (delivery != null)
-                  _InfoRow(
-                    scale: scale,
-                    label: l10n.ordDetailEstDelivery,
-                    value: delivery!,
-                    valueColor: colors.primary,
-                  ),
-                SizedBox(height: 8 * scale),
-                Divider(color: colors.outlineVariant),
-                SizedBox(height: 16 * scale),
-                // Tracking
-                Text(
-                  l10n.ordDetailTracking,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: colors.onSurface,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16 * scale,
-                  ),
-                ),
-                SizedBox(height: 16 * scale),
-                Padding(
-                  padding: EdgeInsets.only(left: 8 * scale),
-                  child: Column(
-                    children: <Widget>[
-                      for (var i = 0; i < _statusKeys.length; i++)
-                        _TrackingStep(
-                          scale: scale,
-                          label: stepLabels[i],
-                          done: i <= cur,
-                          current: i == cur,
-                          last: i == _statusKeys.length - 1,
-                          currentStatusLabel: l10n.ordDetailCurrentStatus,
                         ),
-                    ],
+                        SizedBox(height: 16 * scale),
+                        // Info rows
+                        _InfoRow(
+                          scale: scale,
+                          label: l10n.ordDetailId,
+                          value: '#FY-${_shortOrderId(orderId)}',
+                        ),
+                        _InfoRow(
+                          scale: scale,
+                          label: l10n.ordDetailDate,
+                          value: date,
+                        ),
+                        if (delivery != null)
+                          _InfoRow(
+                            scale: scale,
+                            label: l10n.ordDetailEstDelivery,
+                            value: delivery!,
+                            valueColor: colors.primary,
+                          ),
+                        SizedBox(height: 8 * scale),
+                        Divider(color: colors.outlineVariant),
+                        SizedBox(height: 16 * scale),
+                        // Tracking
+                        Text(
+                          l10n.ordDetailTracking,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colors.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16 * scale,
+                          ),
+                        ),
+                        SizedBox(height: 16 * scale),
+                        Padding(
+                          padding: EdgeInsets.only(left: 8 * scale),
+                          child: Column(
+                            children: <Widget>[
+                              for (var i = 0; i < _statusKeys.length; i++)
+                                _TrackingStep(
+                                  scale: scale,
+                                  label: stepLabels[i],
+                                  done: i <= cur,
+                                  current: i == cur,
+                                  last: i == _statusKeys.length - 1,
+                                  currentStatusLabel:
+                                      l10n.ordDetailCurrentStatus,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _OrderDetailHeroHeader extends StatelessWidget {
+  const _OrderDetailHeroHeader({required this.title, required this.scale});
+
+  final String title;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            12 * scale,
+            6 * scale,
+            16 * scale,
+            20 * scale,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/branding/logo_white.png',
+                    height: 22 * scale,
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
+                title,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -316,7 +422,11 @@ class _TrackingStep extends StatelessWidget {
                 color: done ? colors.primary : colors.surfaceContainerHighest,
               ),
               child: done
-                  ? Icon(Icons.check_rounded, size: 15 * scale, color: colors.onPrimary)
+                  ? Icon(
+                      Icons.check_rounded,
+                      size: 15 * scale,
+                      color: colors.onPrimary,
+                    )
                   : null,
             ),
             if (!last)
@@ -324,14 +434,19 @@ class _TrackingStep extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 width: 2 * scale,
                 height: 44 * scale,
-                color: done && !current ? colors.primary : colors.outlineVariant,
+                color: done && !current
+                    ? colors.primary
+                    : colors.outlineVariant,
               ),
           ],
         ),
         SizedBox(width: 16 * scale),
         Expanded(
           child: Padding(
-            padding: EdgeInsets.only(top: 2 * scale, bottom: last ? 0 : 20 * scale),
+            padding: EdgeInsets.only(
+              top: 2 * scale,
+              bottom: last ? 0 : 20 * scale,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -379,21 +494,31 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
   final String status;
   final String? imageUrl;
 
-  static const _steps = <String>['En revisión', 'Por pagar', 'En camino', 'Entregado'];
-  static const _stepKeys = <String>['review', 'payment', 'shipping', 'delivered'];
+  static const _steps = <String>[
+    'En revisión',
+    'Por pagar',
+    'En camino',
+    'Entregado',
+  ];
+  static const _stepKeys = <String>[
+    'review',
+    'payment',
+    'shipping',
+    'delivered',
+  ];
 
   static const _stepColors = <String, Color>{
     'En revisión': kFeyamOrange,
-    'Por pagar':   kFeyamTint,
-    'En camino':   kFeyamTeal,
-    'Entregado':   kFeyamGreen,
+    'Por pagar': kFeyamTint,
+    'En camino': kFeyamTeal,
+    'Entregado': kFeyamGreen,
   };
 
   static const _stepIcons = <String, IconData>{
     'En revisión': CupertinoIcons.clock_fill,
-    'Por pagar':   CupertinoIcons.creditcard_fill,
-    'En camino':   CupertinoIcons.airplane,
-    'Entregado':   CupertinoIcons.checkmark_circle_fill,
+    'Por pagar': CupertinoIcons.creditcard_fill,
+    'En camino': CupertinoIcons.airplane,
+    'Entregado': CupertinoIcons.checkmark_circle_fill,
   };
 
   FeyamOrderStatus get _feyamStatus => feyamStatusFromString(status);
@@ -437,7 +562,12 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                     children: <Widget>[
                       // Header card
                       Padding(
-                        padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 0),
+                        padding: EdgeInsets.fromLTRB(
+                          16 * scale,
+                          16 * scale,
+                          16 * scale,
+                          0,
+                        ),
                         child: Container(
                           decoration: BoxDecoration(
                             color: kFeyamCard,
@@ -464,8 +594,11 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                                         imageUrl!,
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, _, _) => placeholder,
-                                        loadingBuilder: (context, child, progress) =>
-                                            progress == null ? child : placeholder,
+                                        loadingBuilder:
+                                            (context, child, progress) =>
+                                                progress == null
+                                                ? child
+                                                : placeholder,
                                       );
                                     },
                                   ),
@@ -476,11 +609,33 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    Text(title, style: TextStyle(fontSize: 16 * scale, fontWeight: FontWeight.w600, color: kFeyamLabel, letterSpacing: -0.41)),
+                                    Text(
+                                      title,
+                                      style: TextStyle(
+                                        fontSize: 16 * scale,
+                                        fontWeight: FontWeight.w600,
+                                        color: kFeyamLabel,
+                                        letterSpacing: -0.41,
+                                      ),
+                                    ),
                                     SizedBox(height: 2 * scale),
-                                    Text('Pedido #FY-${_shortOrderId(orderId)}', style: TextStyle(fontSize: 13 * scale, color: kFeyamLabelSec)),
+                                    Text(
+                                      'Pedido #FY-${_shortOrderId(orderId)}',
+                                      style: TextStyle(
+                                        fontSize: 13 * scale,
+                                        color: kFeyamLabelSec,
+                                      ),
+                                    ),
                                     SizedBox(height: 4 * scale),
-                                    Text(price, style: TextStyle(fontSize: 17 * scale, fontWeight: FontWeight.w700, color: kFeyamTint, letterSpacing: -0.41)),
+                                    Text(
+                                      price,
+                                      style: TextStyle(
+                                        fontSize: 17 * scale,
+                                        fontWeight: FontWeight.w700,
+                                        color: kFeyamTint,
+                                        letterSpacing: -0.41,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -495,7 +650,12 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                         header: 'Seguimiento',
                         children: <Widget>[
                           Padding(
-                            padding: EdgeInsets.fromLTRB(20 * scale, 16 * scale, 20 * scale, 8 * scale),
+                            padding: EdgeInsets.fromLTRB(
+                              20 * scale,
+                              16 * scale,
+                              20 * scale,
+                              8 * scale,
+                            ),
                             child: Column(
                               children: <Widget>[
                                 for (var i = 0; i < _steps.length; i++)
@@ -577,11 +737,30 @@ class _TimelineStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: dotColor,
                 shape: BoxShape.circle,
-                boxShadow: active ? [BoxShadow(color: stepColor.withValues(alpha: 0.13), blurRadius: 0, spreadRadius: 4)] : null,
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: stepColor.withValues(alpha: 0.13),
+                          blurRadius: 0,
+                          spreadRadius: 4,
+                        ),
+                      ]
+                    : null,
               ),
               child: done
-                  ? Icon(active ? activeIcon : CupertinoIcons.checkmark, size: 15, color: CupertinoColors.white)
-                  : Container(width: 8, height: 8, decoration: const BoxDecoration(color: kFeyamLabelTer, shape: BoxShape.circle)),
+                  ? Icon(
+                      active ? activeIcon : CupertinoIcons.checkmark,
+                      size: 15,
+                      color: CupertinoColors.white,
+                    )
+                  : Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: kFeyamLabelTer,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
             ),
             if (!last)
               Container(
@@ -607,14 +786,19 @@ class _TimelineStep extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: active ? FontWeight.w700 : (done ? FontWeight.w500 : FontWeight.w400),
+                    fontWeight: active
+                        ? FontWeight.w700
+                        : (done ? FontWeight.w500 : FontWeight.w400),
                     color: done ? kFeyamLabel : kFeyamLabelTer,
                     letterSpacing: -0.41,
                   ),
                 ),
                 if (active) ...[
                   const SizedBox(height: 2),
-                  const Text('Estado actual de tu pedido', style: TextStyle(fontSize: 13, color: kFeyamLabelSec)),
+                  const Text(
+                    'Estado actual de tu pedido',
+                    style: TextStyle(fontSize: 13, color: kFeyamLabelSec),
+                  ),
                 ],
               ],
             ),

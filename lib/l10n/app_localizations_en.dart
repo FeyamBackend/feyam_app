@@ -570,6 +570,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'To receive notifications, enable them for Feyam in your device\'s Settings app.';
 
   @override
+  String get notifSettingsOpenButton => 'Open Settings';
+
+  @override
+  String get ordDetailTitle => 'Order details';
+
+  @override
   String get ordDetailId => 'Order number';
 
   @override

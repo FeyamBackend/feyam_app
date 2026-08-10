@@ -1184,6 +1184,18 @@ abstract class AppLocalizations {
   /// **'To receive notifications, enable them for Feyam in your device\'s Settings app.'**
   String get notifSettingsDeniedHint;
 
+  /// No description provided for @notifSettingsOpenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get notifSettingsOpenButton;
+
+  /// No description provided for @ordDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order details'**
+  String get ordDetailTitle;
+
   /// No description provided for @ordDetailId.
   ///
   /// In en, this message translates to:

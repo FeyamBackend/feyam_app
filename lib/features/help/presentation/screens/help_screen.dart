@@ -28,24 +28,25 @@ class _MaterialHelpContent extends StatelessWidget {
       builder: (context, constraints) {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
-        return ColoredBox(
-          color: colors.surface,
-          child: Column(
+        return Scaffold(
+          backgroundColor: colors.surface,
+          body: Column(
             children: <Widget>[
-              _HelpHeader(scale: scale),
+              _HelpHeroHeader(scale: scale),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    20 * scale,
-                    24 * scale,
-                    20 * scale,
-                    32 * scale,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      _FaqSection(scale: scale),
-                    ],
+                child: DefaultTextStyle(
+                  style: const TextStyle(decoration: TextDecoration.none),
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      20 * scale,
+                      24 * scale,
+                      20 * scale,
+                      32 * scale,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[_FaqSection(scale: scale)],
+                    ),
                   ),
                 ),
               ),
@@ -57,8 +58,8 @@ class _MaterialHelpContent extends StatelessWidget {
   }
 }
 
-class _HelpHeader extends StatelessWidget {
-  const _HelpHeader({required this.scale});
+class _HelpHeroHeader extends StatelessWidget {
+  const _HelpHeroHeader({required this.scale});
 
   final double scale;
 
@@ -66,32 +67,52 @@ class _HelpHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surfaceContainer,
-        border: Border(
-          bottom: BorderSide(color: colors.outlineVariant),
-        ),
-      ),
+      decoration: BoxDecoration(color: colors.primary),
       child: SafeArea(
         bottom: false,
-        child: SizedBox(
-          height: 64 * scale,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20 * scale),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            12 * scale,
+            6 * scale,
+            16 * scale,
+            20 * scale,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/branding/logo_white.png',
+                    height: 22 * scale,
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
                 l10n.navHelp,
-                style: textTheme.titleLarge?.copyWith(
-                  color: colors.onSurface,
-                  fontSize: 22 * scale,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20 * scale,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -111,22 +132,10 @@ class _FaqSection extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final faqs = <_FaqItem>[
-      _FaqItem(
-        question: l10n.helpFaq1Question,
-        answer: l10n.helpFaq1Answer,
-      ),
-      _FaqItem(
-        question: l10n.helpFaq2Question,
-        answer: l10n.helpFaq2Answer,
-      ),
-      _FaqItem(
-        question: l10n.helpFaq3Question,
-        answer: l10n.helpFaq3Answer,
-      ),
-      _FaqItem(
-        question: l10n.helpFaq4Question,
-        answer: l10n.helpFaq4Answer,
-      ),
+      _FaqItem(question: l10n.helpFaq1Question, answer: l10n.helpFaq1Answer),
+      _FaqItem(question: l10n.helpFaq2Question, answer: l10n.helpFaq2Answer),
+      _FaqItem(question: l10n.helpFaq3Question, answer: l10n.helpFaq3Answer),
+      _FaqItem(question: l10n.helpFaq4Question, answer: l10n.helpFaq4Answer),
     ];
 
     return Column(
@@ -146,6 +155,13 @@ class _FaqSection extends StatelessWidget {
             color: colors.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(16 * scale),
             border: Border.all(color: colors.outlineVariant),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16 * scale),
@@ -267,9 +283,16 @@ class _CupertinoHelpContent extends StatelessWidget {
               // Large title nav bar
               Container(
                 color: kFeyamBg,
-                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
+                ),
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 0),
+                  padding: EdgeInsets.fromLTRB(
+                    16 * scale,
+                    8 * scale,
+                    16 * scale,
+                    0,
+                  ),
                   child: Text(
                     l10n.navHelp,
                     style: GoogleFonts.poppins(
@@ -322,7 +345,10 @@ class _CupertinoHelpContent extends StatelessWidget {
                         children: <Widget>[
                           FeyamListTile(
                             title: const Text('Términos y condiciones'),
-                            leading: FeyamIconTile(icon: CupertinoIcons.doc_text_fill, color: kFeyamLabelSec),
+                            leading: FeyamIconTile(
+                              icon: CupertinoIcons.doc_text_fill,
+                              color: kFeyamLabelSec,
+                            ),
                             isLast: true,
                             onTap: () {},
                           ),
@@ -383,7 +409,12 @@ class _CupertinoFaqTileState extends State<_CupertinoFaqTile> {
                       decoration: BoxDecoration(
                         border: widget.isLast && !_open
                             ? null
-                            : const Border(bottom: BorderSide(color: kFeyamSepLight, width: 0.5)),
+                            : const Border(
+                                bottom: BorderSide(
+                                  color: kFeyamSepLight,
+                                  width: 0.5,
+                                ),
+                              ),
                       ),
                       child: Row(
                         children: <Widget>[
@@ -393,13 +424,21 @@ class _CupertinoFaqTileState extends State<_CupertinoFaqTile> {
                               children: <Widget>[
                                 Text(
                                   widget.question,
-                                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: kFeyamLabel),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: kFeyamLabel,
+                                  ),
                                 ),
                                 if (_open) ...[
                                   const SizedBox(height: 6),
                                   Text(
                                     widget.answer,
-                                    style: GoogleFonts.poppins(fontSize: 13, color: kFeyamLabelSec, height: 1.33),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      color: kFeyamLabelSec,
+                                      height: 1.33,
+                                    ),
                                   ),
                                 ],
                               ],
@@ -409,7 +448,9 @@ class _CupertinoFaqTileState extends State<_CupertinoFaqTile> {
                           Padding(
                             padding: const EdgeInsets.only(right: 16),
                             child: Icon(
-                              _open ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+                              _open
+                                  ? CupertinoIcons.chevron_up
+                                  : CupertinoIcons.chevron_down,
                               size: 14,
                               color: kFeyamLabelTer,
                             ),
@@ -421,8 +462,7 @@ class _CupertinoFaqTileState extends State<_CupertinoFaqTile> {
                 ],
               ),
             ),
-            if (_open && widget.isLast)
-              const SizedBox(height: 8),
+            if (_open && widget.isLast) const SizedBox(height: 8),
           ],
         ),
       ),

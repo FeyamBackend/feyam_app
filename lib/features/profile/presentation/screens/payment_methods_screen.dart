@@ -1,4 +1,3 @@
-import 'package:feyam/core/theme/app_theme_palette.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -11,8 +10,18 @@ class PaymentMethodsScreen extends StatefulWidget {
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   List<_PaymentMethod> _methods = const <_PaymentMethod>[
-    _PaymentMethod(id: 1, type: _PmType.nequi, label: 'Nequi', detail: '300 456 7890'),
-    _PaymentMethod(id: 2, type: _PmType.bank, label: 'Bancolombia', detail: 'Ahorros · ****4521'),
+    _PaymentMethod(
+      id: 1,
+      type: _PmType.nequi,
+      label: 'Nequi',
+      detail: '300 456 7890',
+    ),
+    _PaymentMethod(
+      id: 2,
+      type: _PmType.bank,
+      label: 'Bancolombia',
+      detail: 'Ahorros · ****4521',
+    ),
   ];
 
   void _openSheet({_PaymentMethod? initial}) {
@@ -53,107 +62,186 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return Scaffold(
-          backgroundColor: colors.surfaceContainerLowest,
-          appBar: AppBar(
-            backgroundColor: colors.surfaceContainer,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.arrow_back_rounded, size: 24 * scale),
-            ),
-            title: Text(
-              l10n.paymentTitle,
-              style: textTheme.titleLarge?.copyWith(
-                color: colors.onSurface,
-                fontSize: 22 * scale,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+          backgroundColor: colors.surface,
           body: Column(
             children: <Widget>[
-              // Info banner
-              Padding(
-                padding: EdgeInsets.fromLTRB(16 * scale, 14 * scale, 16 * scale, 0),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.tertiaryContainer,
-                    borderRadius: BorderRadius.circular(12 * scale),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(14 * scale),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Icon(Icons.info_outline_rounded, size: 18 * scale, color: colors.onTertiaryContainer),
-                        SizedBox(width: 10 * scale),
-                        Expanded(
-                          child: Text(
-                            l10n.paymentInfo,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colors.onTertiaryContainer,
-                              fontSize: 13 * scale,
-                              height: 1.4,
+              _PaymentMethodsHeroHeader(scale: scale),
+              Expanded(
+                child: DefaultTextStyle(
+                  style: const TextStyle(decoration: TextDecoration.none),
+                  child: Column(
+                    children: <Widget>[
+                      // Info banner
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          16 * scale,
+                          14 * scale,
+                          16 * scale,
+                          0,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: colors.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(12 * scale),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(14 * scale),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  size: 18 * scale,
+                                  color: colors.onTertiaryContainer,
+                                ),
+                                SizedBox(width: 10 * scale),
+                                Expanded(
+                                  child: Text(
+                                    l10n.paymentInfo,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.onTertiaryContainer,
+                                      fontSize: 13 * scale,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Expanded(
+                        child: _methods.isEmpty
+                            ? _EmptyMethods(
+                                scale: scale,
+                                onAdd: () => _openSheet(),
+                              )
+                            : ListView.builder(
+                                padding: EdgeInsets.all(16 * scale),
+                                itemCount: _methods.length,
+                                itemBuilder: (context, index) => Padding(
+                                  padding: EdgeInsets.only(bottom: 10 * scale),
+                                  child: _MethodCard(
+                                    scale: scale,
+                                    method: _methods[index],
+                                    isPrimary: index == 0,
+                                    onTap: () =>
+                                        _openSheet(initial: _methods[index]),
+                                  ),
+                                ),
+                              ),
+                      ),
+                      if (_methods.isNotEmpty)
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: colors.surfaceContainerLowest,
+                            border: Border(
+                              top: BorderSide(color: colors.outlineVariant),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              16 * scale,
+                              12 * scale,
+                              16 * scale,
+                              20 * scale,
+                            ),
+                            child: SizedBox(
+                              height: 48 * scale,
+                              child: FilledButton.tonal(
+                                onPressed: () => _openSheet(),
+                                style: FilledButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      12 * scale,
+                                    ),
+                                  ),
+                                  textStyle: textTheme.labelLarge?.copyWith(
+                                    fontSize: 15 * scale,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(Icons.add_rounded, size: 20 * scale),
+                                    SizedBox(width: 8 * scale),
+                                    Text(l10n.paymentAdd),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
-              Expanded(
-                child: _methods.isEmpty
-                    ? _EmptyMethods(scale: scale, onAdd: () => _openSheet())
-                    : ListView.builder(
-                        padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 8 * scale),
-                        itemCount: _methods.length,
-                        itemBuilder: (context, index) => Padding(
-                          padding: EdgeInsets.only(bottom: 10 * scale),
-                          child: _MethodCard(
-                            scale: scale,
-                            method: _methods[index],
-                            isPrimary: index == 0,
-                            onTap: () => _openSheet(initial: _methods[index]),
-                          ),
-                        ),
-                      ),
-              ),
-              if (_methods.isNotEmpty)
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.surface,
-                    border: Border(top: BorderSide(color: colors.outlineVariant)),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 20 * scale),
-                    child: SizedBox(
-                      height: 48 * scale,
-                      child: FilledButton.tonal(
-                        onPressed: () => _openSheet(),
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12 * scale),
-                          ),
-                          textStyle: textTheme.labelLarge?.copyWith(fontSize: 15 * scale),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Icon(Icons.add_rounded, size: 20 * scale),
-                            SizedBox(width: 8 * scale),
-                            Text(l10n.paymentAdd),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _PaymentMethodsHeroHeader extends StatelessWidget {
+  const _PaymentMethodsHeroHeader({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            12 * scale,
+            6 * scale,
+            16 * scale,
+            20 * scale,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/branding/logo_white.png',
+                    height: 22 * scale,
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
+                l10n.paymentTitle,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -171,25 +259,27 @@ class _MethodCard extends StatelessWidget {
   final bool isPrimary;
   final VoidCallback onTap;
 
-  static const _meta = <_PmType, ({Color bg, Color fg, IconData icon})>{
+  Map<_PmType, ({Color bg, Color fg, IconData icon})> _meta(
+    ColorScheme colors,
+  ) => {
     _PmType.nequi: (
-      bg: ConciergeProPalette.primaryContainer,
-      fg: ConciergeProPalette.onPrimaryContainer,
+      bg: colors.primaryContainer,
+      fg: colors.onPrimaryContainer,
       icon: Icons.phone_android_rounded,
     ),
     _PmType.bank: (
-      bg: ConciergeProPalette.secondaryContainer,
-      fg: ConciergeProPalette.onSecondaryContainer,
+      bg: colors.secondaryContainer,
+      fg: colors.onSecondaryContainer,
       icon: Icons.account_balance_rounded,
     ),
     _PmType.efecty: (
-      bg: ConciergeProPalette.tertiaryContainer,
-      fg: ConciergeProPalette.onTertiaryContainer,
+      bg: colors.tertiaryContainer,
+      fg: colors.onTertiaryContainer,
       icon: Icons.payments_rounded,
     ),
     _PmType.card: (
-      bg: ConciergeProPalette.surfaceContainerHighest,
-      fg: ConciergeProPalette.onSurface,
+      bg: colors.surfaceContainerHighest,
+      fg: colors.onSurface,
       icon: Icons.credit_card_rounded,
     ),
   };
@@ -199,17 +289,24 @@ class _MethodCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
-    final m = _meta[method.type]!;
+    final m = _meta(colors)[method.type]!;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12 * scale),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(12 * scale),
-          border: Border.all(color: colors.outlineVariant),
-        ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: EdgeInsets.all(14 * scale),
           child: Row(
@@ -246,7 +343,10 @@ class _MethodCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(99 * scale),
                             ),
                             child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8 * scale, vertical: 2 * scale),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8 * scale,
+                                vertical: 2 * scale,
+                              ),
                               child: Text(
                                 l10n.paymentDefault,
                                 style: textTheme.labelSmall?.copyWith(
@@ -275,7 +375,11 @@ class _MethodCard extends StatelessWidget {
                 width: 36 * scale,
                 height: 36 * scale,
                 alignment: Alignment.center,
-                child: Icon(Icons.edit_rounded, size: 18 * scale, color: colors.onSurfaceVariant),
+                child: Icon(
+                  Icons.edit_rounded,
+                  size: 18 * scale,
+                  color: colors.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -303,11 +407,10 @@ class _EmptyMethods extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Container(
-              width: 72 * scale,
-              height: 72 * scale,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: colors.surfaceContainerHigh),
-              child: Icon(Icons.credit_card_off_rounded, size: 32 * scale, color: colors.onSurfaceVariant),
+            Icon(
+              Icons.credit_card_off_rounded,
+              size: 56 * scale,
+              color: colors.onSurfaceVariant,
             ),
             SizedBox(height: 16 * scale),
             Text(
@@ -348,7 +451,11 @@ class _EmptyMethods extends StatelessWidget {
 }
 
 class _PaymentSheet extends StatefulWidget {
-  const _PaymentSheet({this.initial, required this.onSave, required this.onDelete});
+  const _PaymentSheet({
+    this.initial,
+    required this.onSave,
+    required this.onDelete,
+  });
 
   final _PaymentMethod? initial;
   final void Function(_PaymentMethod) onSave;
@@ -382,12 +489,14 @@ class _PaymentSheetState extends State<_PaymentSheet> {
   void _save() {
     setState(() => _submitted = true);
     if (_label.text.trim().isEmpty || _detail.text.trim().isEmpty) return;
-    widget.onSave(_PaymentMethod(
-      id: widget.initial?.id ?? DateTime.now().millisecondsSinceEpoch,
-      type: _type,
-      label: _label.text.trim(),
-      detail: _detail.text.trim(),
-    ));
+    widget.onSave(
+      _PaymentMethod(
+        id: widget.initial?.id ?? DateTime.now().millisecondsSinceEpoch,
+        type: _type,
+        label: _label.text.trim(),
+        detail: _detail.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -397,14 +506,32 @@ class _PaymentSheetState extends State<_PaymentSheet> {
     final textTheme = Theme.of(context).textTheme;
 
     final types = <({_PmType type, String label, IconData icon})>[
-      (type: _PmType.nequi, label: l10n.paymentTypeNequi, icon: Icons.phone_android_rounded),
-      (type: _PmType.bank, label: l10n.paymentTypeBank, icon: Icons.account_balance_rounded),
-      (type: _PmType.efecty, label: l10n.paymentTypeEfecty, icon: Icons.payments_rounded),
-      (type: _PmType.card, label: l10n.paymentTypeCard, icon: Icons.credit_card_rounded),
+      (
+        type: _PmType.nequi,
+        label: l10n.paymentTypeNequi,
+        icon: Icons.phone_android_rounded,
+      ),
+      (
+        type: _PmType.bank,
+        label: l10n.paymentTypeBank,
+        icon: Icons.account_balance_rounded,
+      ),
+      (
+        type: _PmType.efecty,
+        label: l10n.paymentTypeEfecty,
+        icon: Icons.payments_rounded,
+      ),
+      (
+        type: _PmType.card,
+        label: l10n.paymentTypeCard,
+        icon: Icons.credit_card_rounded,
+      ),
     ];
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: colors.surfaceContainerLow,
@@ -429,7 +556,10 @@ class _PaymentSheetState extends State<_PaymentSheet> {
               ),
               Text(
                 widget.initial != null ? l10n.paymentEdit : l10n.paymentAdd,
-                style: textTheme.headlineSmall?.copyWith(color: colors.onSurface, fontSize: 22),
+                style: textTheme.headlineSmall?.copyWith(
+                  color: colors.onSurface,
+                  fontSize: 22,
+                ),
               ),
               const SizedBox(height: 18),
               Wrap(
@@ -441,12 +571,19 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                     onTap: () => setState(() => _type = t.type),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        color: selected ? colors.primaryContainer : Colors.transparent,
+                        color: selected
+                            ? colors.primaryContainer
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(99),
                         border: Border.all(
-                          color: selected ? colors.primary : colors.outlineVariant,
+                          color: selected
+                              ? colors.primary
+                              : colors.outlineVariant,
                           width: 1.5,
                         ),
                       ),
@@ -456,13 +593,17 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                           Icon(
                             t.icon,
                             size: 16,
-                            color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                            color: selected
+                                ? colors.onPrimaryContainer
+                                : colors.onSurfaceVariant,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             t.label,
                             style: textTheme.labelMedium?.copyWith(
-                              color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                              color: selected
+                                  ? colors.onPrimaryContainer
+                                  : colors.onSurfaceVariant,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -477,7 +618,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 controller: _label,
                 decoration: InputDecoration(
                   labelText: l10n.paymentLabelField,
-                  errorText: _submitted && _label.text.trim().isEmpty ? l10n.paymentRequired : null,
+                  errorText: _submitted && _label.text.trim().isEmpty
+                      ? l10n.paymentRequired
+                      : null,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -486,7 +629,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                 controller: _detail,
                 decoration: InputDecoration(
                   labelText: l10n.paymentDetailField,
-                  errorText: _submitted && _detail.text.trim().isEmpty ? l10n.paymentRequired : null,
+                  errorText: _submitted && _detail.text.trim().isEmpty
+                      ? l10n.paymentRequired
+                      : null,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -496,7 +641,9 @@ class _PaymentSheetState extends State<_PaymentSheet> {
                   if (widget.initial != null)
                     TextButton(
                       onPressed: () => widget.onDelete(widget.initial!.id),
-                      style: TextButton.styleFrom(foregroundColor: colors.error),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colors.error,
+                      ),
                       child: Text(l10n.addressDelete),
                     ),
                   const Spacer(),
