@@ -755,8 +755,14 @@ abstract class AppLocalizations {
   /// No description provided for @ordersHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Orders'**
+  /// **'My Orders'**
   String get ordersHistoryTitle;
+
+  /// No description provided for @ordersHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the status of your purchases'**
+  String get ordersHistorySubtitle;
 
   /// No description provided for @ordersFilterSemanticLabel.
   ///
@@ -770,11 +776,17 @@ abstract class AppLocalizations {
   /// **'All'**
   String get ordersTabAll;
 
-  /// No description provided for @ordersTabActive.
+  /// No description provided for @ordersTabReview.
   ///
   /// In en, this message translates to:
-  /// **'Active'**
-  String get ordersTabActive;
+  /// **'Under review'**
+  String get ordersTabReview;
+
+  /// No description provided for @ordersTabShipping.
+  ///
+  /// In en, this message translates to:
+  /// **'In transit'**
+  String get ordersTabShipping;
 
   /// No description provided for @ordersTabDelivered.
   ///

@@ -4,6 +4,14 @@ import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+/// Friendly short order code derived from the backend's GUID `orderId`
+/// (e.g. `08f97b3b-e8a9-...` → `08F97B3B`) — the full GUID is too long to
+/// show inline in an app bar, card, or info row.
+String _shortOrderId(String orderId) {
+  final compact = orderId.replaceAll('-', '');
+  return (compact.length > 8 ? compact.substring(0, 8) : compact).toUpperCase();
+}
+
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({
     super.key,
@@ -13,6 +21,7 @@ class OrderDetailScreen extends StatelessWidget {
     required this.status,
     required this.date,
     this.delivery,
+    this.imageUrl,
   });
 
   final String orderId;
@@ -21,6 +30,7 @@ class OrderDetailScreen extends StatelessWidget {
   final String status;
   final String date;
   final String? delivery;
+  final String? imageUrl;
 
   static const _statusKeys = <String>['review', 'payment', 'shipping', 'delivered'];
 
@@ -32,6 +42,7 @@ class OrderDetailScreen extends StatelessWidget {
         title: title,
         price: price,
         status: status,
+        imageUrl: imageUrl,
       );
     }
 
@@ -70,7 +81,7 @@ class OrderDetailScreen extends StatelessWidget {
               icon: Icon(Icons.arrow_back_rounded, size: 24 * scale),
             ),
             title: Text(
-              '${l10n.ordDetailId} #$orderId',
+              '${l10n.ordDetailId} #FY-${_shortOrderId(orderId)}',
               style: textTheme.titleLarge?.copyWith(
                 color: colors.onSurface,
                 fontSize: 20 * scale,
@@ -87,17 +98,29 @@ class OrderDetailScreen extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Container(
-                      width: 64 * scale,
-                      height: 64 * scale,
-                      decoration: BoxDecoration(
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12 * scale),
+                      child: Container(
+                        width: 64 * scale,
+                        height: 64 * scale,
                         color: colors.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12 * scale),
-                      ),
-                      child: Icon(
-                        Icons.inventory_2_rounded,
-                        size: 30 * scale,
-                        color: colors.onSurfaceVariant,
+                        child: Builder(
+                          builder: (context) {
+                            final placeholder = Icon(
+                              Icons.inventory_2_rounded,
+                              size: 30 * scale,
+                              color: colors.onSurfaceVariant,
+                            );
+                            if (imageUrl == null) return placeholder;
+                            return Image.network(
+                              imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => placeholder,
+                              loadingBuilder: (context, child, progress) =>
+                                  progress == null ? child : placeholder,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     SizedBox(width: 16 * scale),
@@ -115,7 +138,7 @@ class OrderDetailScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 4 * scale),
                           Text(
-                            '#FY-$orderId · $price',
+                            '#FY-${_shortOrderId(orderId)} · $price',
                             style: textTheme.bodySmall?.copyWith(
                               color: colors.onSurfaceVariant,
                               fontSize: 13 * scale,
@@ -152,7 +175,7 @@ class OrderDetailScreen extends StatelessWidget {
                 _InfoRow(
                   scale: scale,
                   label: l10n.ordDetailId,
-                  value: '#FY-$orderId',
+                  value: '#FY-${_shortOrderId(orderId)}',
                 ),
                 _InfoRow(
                   scale: scale,
@@ -229,18 +252,26 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: textTheme.bodyMedium?.copyWith(
                 color: colors.onSurfaceVariant,
                 fontSize: 13 * scale,
               ),
             ),
           ),
-          Text(
-            value,
-            style: textTheme.bodyMedium?.copyWith(
-              color: valueColor ?? colors.onSurface,
-              fontWeight: FontWeight.w500,
-              fontSize: 13 * scale,
+          SizedBox(width: 12 * scale),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: textTheme.bodyMedium?.copyWith(
+                color: valueColor ?? colors.onSurface,
+                fontWeight: FontWeight.w500,
+                fontSize: 13 * scale,
+              ),
             ),
           ),
         ],
@@ -339,12 +370,14 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
     required this.title,
     required this.price,
     required this.status,
+    this.imageUrl,
   });
 
   final String orderId;
   final String title;
   final String price;
   final String status;
+  final String? imageUrl;
 
   static const _steps = <String>['En revisión', 'Por pagar', 'En camino', 'Entregado'];
   static const _stepKeys = <String>['review', 'payment', 'shipping', 'delivered'];
@@ -413,14 +446,30 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                           padding: EdgeInsets.all(16 * scale),
                           child: Row(
                             children: <Widget>[
-                              Container(
-                                width: 56 * scale,
-                                height: 56 * scale,
-                                decoration: BoxDecoration(
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12 * scale),
+                                child: Container(
+                                  width: 56 * scale,
+                                  height: 56 * scale,
                                   color: kFeyamBg,
-                                  borderRadius: BorderRadius.circular(12 * scale),
+                                  child: Builder(
+                                    builder: (context) {
+                                      const placeholder = Icon(
+                                        CupertinoIcons.cube_box_fill,
+                                        size: 28,
+                                        color: kFeyamLabelSec,
+                                      );
+                                      if (imageUrl == null) return placeholder;
+                                      return Image.network(
+                                        imageUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => placeholder,
+                                        loadingBuilder: (context, child, progress) =>
+                                            progress == null ? child : placeholder,
+                                      );
+                                    },
+                                  ),
                                 ),
-                                child: const Icon(CupertinoIcons.cube_box_fill, size: 28, color: kFeyamLabelSec),
                               ),
                               SizedBox(width: 14 * scale),
                               Expanded(
@@ -429,7 +478,7 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                                   children: <Widget>[
                                     Text(title, style: TextStyle(fontSize: 16 * scale, fontWeight: FontWeight.w600, color: kFeyamLabel, letterSpacing: -0.41)),
                                     SizedBox(height: 2 * scale),
-                                    Text('Pedido #$orderId', style: TextStyle(fontSize: 13 * scale, color: kFeyamLabelSec)),
+                                    Text('Pedido #FY-${_shortOrderId(orderId)}', style: TextStyle(fontSize: 13 * scale, color: kFeyamLabelSec)),
                                     SizedBox(height: 4 * scale),
                                     Text(price, style: TextStyle(fontSize: 17 * scale, fontWeight: FontWeight.w700, color: kFeyamTint, letterSpacing: -0.41)),
                                   ],
@@ -470,7 +519,7 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                         children: <Widget>[
                           FeyamListTile(
                             title: const Text('Número de pedido'),
-                            detail: Text('#$orderId'),
+                            detail: Text('#FY-${_shortOrderId(orderId)}'),
                             chevron: false,
                           ),
                           FeyamListTile(

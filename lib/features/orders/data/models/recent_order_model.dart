@@ -9,6 +9,7 @@ class RecentOrderModel extends RecentOrderEntity {
     required super.currencyCode,
     required super.financialStatus,
     required super.createdDate,
+    super.imageUrl,
   });
 
   factory RecentOrderModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +21,7 @@ class RecentOrderModel extends RecentOrderEntity {
       currencyCode: json['currencyCode'] as String,
       financialStatus: json['financialStatus'] as String,
       createdDate: DateTime.parse(json['createdDate'] as String),
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 }

@@ -10,6 +10,7 @@ class RecentOrderEntity extends Equatable {
     required this.currencyCode,
     required this.financialStatus,
     required this.createdDate,
+    this.imageUrl,
   });
 
   final String orderId;
@@ -21,6 +22,10 @@ class RecentOrderEntity extends Equatable {
   /// Raw financial status name from the API (e.g. "FundsReserved").
   final String financialStatus;
   final DateTime createdDate;
+
+  /// Product thumbnail captured from the cart at checkout time; null if the
+  /// source cart item had none.
+  final String? imageUrl;
 
   /// UI status derived from [financialStatus].
   OrderDisplayStatus get displayStatus =>
@@ -38,5 +43,6 @@ class RecentOrderEntity extends Equatable {
         currencyCode,
         financialStatus,
         createdDate,
+        imageUrl,
       ];
 }

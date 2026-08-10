@@ -345,7 +345,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cartErrorRetry => 'Retry';
 
   @override
-  String get ordersHistoryTitle => 'Orders';
+  String get ordersHistoryTitle => 'My Orders';
+
+  @override
+  String get ordersHistorySubtitle => 'Check the status of your purchases';
 
   @override
   String get ordersFilterSemanticLabel => 'Filter orders';
@@ -354,7 +357,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersTabAll => 'All';
 
   @override
-  String get ordersTabActive => 'Active';
+  String get ordersTabReview => 'Under review';
+
+  @override
+  String get ordersTabShipping => 'In transit';
 
   @override
   String get ordersTabDelivered => 'Delivered';
