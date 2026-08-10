@@ -48,84 +48,141 @@ class _StoresScreenState extends State<StoresScreen> {
 
             return Scaffold(
               backgroundColor: colors.surface,
-              appBar: AppBar(
-                backgroundColor: colors.surfaceContainer,
-                elevation: 0,
-                scrolledUnderElevation: 0,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.arrow_back_rounded, size: 24 * scale),
-                ),
-                title: Text(
-                  l10n.storesTitle,
-                  style: textTheme.titleLarge?.copyWith(
-                    color: colors.onSurface,
-                    fontSize: 22 * scale,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              body: switch (state.status) {
-                StoresStatus.initial || StoresStatus.loading => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                StoresStatus.failure => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.wifi_off_rounded,
-                            size: 48, color: colors.onSurfaceVariant),
-                        const SizedBox(height: 12),
-                        Text(
-                          l10n.storesLoadError,
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colors.onSurfaceVariant),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: () => context
-                            .read<StoresBloc>()
-                            .add(const StoresLoadRequested()),
-                          child: Text(l10n.storesRetry),
-                        ),
-                      ],
-                    ),
-                  ),
-                StoresStatus.loaded => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            20 * scale, 12 * scale, 20 * scale, 4 * scale),
-                        child: Text(
-                          l10n.storesHint,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 14 * scale,
-                            height: 1.4,
+              body: Column(
+                children: <Widget>[
+                  _StoresHeroHeader(scale: scale),
+                  Expanded(
+                    child: switch (state.status) {
+                      StoresStatus.initial ||
+                      StoresStatus.loading => Center(
+                        child: SizedBox(
+                          width: 28 * scale,
+                          height: 28 * scale,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: colors.primary,
                           ),
                         ),
                       ),
-                      Expanded(
-                        child: ListView.builder(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 8 * scale),
-                          itemCount: state.stores.length,
-                          itemBuilder: (context, index) {
-                            return _StoreListTile(
-                              scale: scale,
-                              store: state.stores[index],
-                            );
-                          },
+                      StoresStatus.failure => Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24 * scale),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                l10n.storesLoadError,
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                  fontSize: 14 * scale,
+                                ),
+                              ),
+                              SizedBox(height: 12 * scale),
+                              FilledButton.tonal(
+                                onPressed: () => context.read<StoresBloc>().add(
+                                  const StoresLoadRequested(),
+                                ),
+                                child: Text(l10n.storesRetry),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
+                      StoresStatus.loaded => ListView.separated(
+                        padding: EdgeInsets.all(16 * scale),
+                        itemCount: state.stores.length + 1,
+                        separatorBuilder: (_, _) => SizedBox(height: 10 * scale),
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 4 * scale),
+                              child: Text(
+                                l10n.storesHint,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                  fontSize: 13.5 * scale,
+                                  height: 1.4,
+                                ),
+                              ),
+                            );
+                          }
+                          return _StoreListTile(
+                            scale: scale,
+                            store: state.stores[index - 1],
+                          );
+                        },
+                      ),
+                    },
                   ),
-              },
+                ],
+              ),
             );
           },
         );
       },
+    );
+  }
+}
+
+class _StoresHeroHeader extends StatelessWidget {
+  const _StoresHeroHeader({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            12 * scale,
+            6 * scale,
+            16 * scale,
+            20 * scale,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/branding/logo_white.png',
+                    height: 22 * scale,
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
+                l10n.storesTitle,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -173,18 +230,32 @@ class _StoreListTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final searchable = zincRetailerSlugFromHost(store.host) != null;
 
-    return InkWell(
-      onTap: () => searchable
-          ? _openStoreSearch(context, store.host)
-          : _openStore(store.host),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: 8 * scale, vertical: 4 * scale),
-        child: Row(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(8 * scale),
-              child: Container(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => searchable
+            ? _openStoreSearch(context, store.host)
+            : _openStore(store.host),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 12 * scale,
+            vertical: 10 * scale,
+          ),
+          child: Row(
+            children: <Widget>[
+              Container(
                 width: 44 * scale,
                 height: 44 * scale,
                 decoration: BoxDecoration(
@@ -197,40 +268,40 @@ class _StoreListTile extends StatelessWidget {
                   size: 22 * scale,
                 ),
               ),
-            ),
-            SizedBox(width: 4 * scale),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    store.name,
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: colors.onSurface,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16 * scale,
+              SizedBox(width: 12 * scale),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      store.name,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colors.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15 * scale,
+                      ),
                     ),
-                  ),
-                  Text(
-                    store.host,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontSize: 13 * scale,
+                    Text(
+                      store.host,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 13 * scale,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              onPressed: () => _openStore(store.host),
-              tooltip: store.host,
-              icon: Icon(
-                Icons.open_in_new_rounded,
-                size: 20 * scale,
-                color: colors.onSurfaceVariant,
+              IconButton(
+                onPressed: () => _openStore(store.host),
+                tooltip: store.host,
+                icon: Icon(
+                  Icons.open_in_new_rounded,
+                  size: 20 * scale,
+                  color: colors.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
