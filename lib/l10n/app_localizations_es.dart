@@ -35,6 +35,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navHome => 'Inicio';
 
   @override
+  String get navStores => 'Tiendas';
+
+  @override
   String get navCart => 'Carrito';
 
   @override

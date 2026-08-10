@@ -28,7 +28,9 @@ void main() {
     expect(tabBar.currentIndex, 1);
   });
 
-  testWidgets('renders a Material NavigationBar off iOS', (tester) async {
+  testWidgets('renders a flat Material bar with a green selected item off iOS', (
+    tester,
+  ) async {
     const selectedColor = Color(0xFF0058BC);
 
     await tester.pumpWidget(
@@ -45,27 +47,17 @@ void main() {
       ),
     );
 
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(CupertinoTabBar), findsNothing);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Cart'), findsOneWidget);
     expect(find.text('Profile'), findsOneWidget);
 
-    final navigationBar = tester.widget<NavigationBar>(
-      find.byType(NavigationBar),
-    );
-    expect(navigationBar.selectedIndex, 2);
+    final selectedLabel = tester.widget<Text>(find.text('Profile'));
+    expect(selectedLabel.style?.color, selectedColor);
 
-    final theme = tester.widget<NavigationBarTheme>(
-      find.ancestor(
-        of: find.byType(NavigationBar),
-        matching: find.byType(NavigationBarTheme),
-      ),
-    );
-    final colors = Theme.of(
-      tester.element(find.byType(NavigationBar)),
-    ).colorScheme;
-    expect(theme.data.indicatorColor, colors.secondaryContainer);
+    final unselectedLabel = tester.widget<Text>(find.text('Home'));
+    expect(unselectedLabel.style?.color, isNot(selectedColor));
   });
 
   testWidgets('emits the tapped destination index on Material', (tester) async {

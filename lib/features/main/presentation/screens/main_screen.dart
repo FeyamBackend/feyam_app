@@ -5,15 +5,19 @@ import 'package:feyam/core/push/local_notifications_service.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/auth/presentation/screens/login_screen.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_event.dart';
+import 'package:feyam/features/cart/presentation/bloc/cart_state.dart';
 import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
-import 'package:feyam/features/help/presentation/screens/help_screen.dart';
+import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
 import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_event.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
-import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
 import 'package:feyam/features/payments/presentation/screens/price_adjustment_payment_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
+import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
+import 'package:feyam/features/stores/presentation/screens/stores_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -65,6 +69,7 @@ class _MainScreenState extends State<MainScreen> {
   var _currentIndex = 0;
   late final StreamSubscription<dynamic> _sharingSubscription;
   late final UnreadCountBloc _unreadCountBloc;
+  late final CartBloc _cartBloc;
   StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
   StreamSubscription<RemoteMessage>? _openedAppMessageSubscription;
 
@@ -77,6 +82,7 @@ class _MainScreenState extends State<MainScreen> {
 
     _unreadCountBloc = sl<UnreadCountBloc>()
       ..add(const UnreadCountRefreshRequested());
+    _cartBloc = sl<CartBloc>()..add(const CartLoadRequested());
     _setUpPushListeners();
   }
 
@@ -157,6 +163,7 @@ class _MainScreenState extends State<MainScreen> {
     _foregroundMessageSubscription?.cancel();
     _openedAppMessageSubscription?.cancel();
     _unreadCountBloc.close();
+    _cartBloc.close();
     super.dispose();
   }
 
@@ -164,46 +171,55 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final useCupertino = AdaptivePlatform.isCupertino(context);
-    final items = _bottomNavigationItems(
-      useCupertino: useCupertino,
-      l10n: l10n,
-    );
-    final currentLabel = items[_currentIndex].label;
-    final bottomNavigationBar = AdaptiveAppBottomNavigationBar(
-      currentIndex: _currentIndex,
-      items: items,
-      onDestinationSelected: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
-    );
 
-    return BlocProvider<UnreadCountBloc>.value(
-      value: _unreadCountBloc,
-      child: BlocListener<AuthBloc, AuthState>(
-        listenWhen: (previous, current) =>
-            previous.status != current.status &&
-            current.status == AuthStatus.initial,
-        listener: (context, state) {
-          Navigator.of(context).pushAndRemoveUntil(
-            AdaptivePlatform.pageRoute<void>(
-              context: context,
-              builder: (_) => const LoginScreen(),
-            ),
-            (_) => false,
-          );
-        },
-        child: AdaptiveAppScaffold(
-          title:
-              _currentIndex == 0 ||
-                  _currentIndex == 1 ||
-                  _currentIndex == 2 ||
-                  _currentIndex == 3
-              ? null
-              : currentLabel,
-          body: _MainTabContent(currentIndex: _currentIndex),
-          bottomNavigationBar: bottomNavigationBar,
+    return BlocProvider<CartBloc>.value(
+      value: _cartBloc,
+      child: BlocProvider<UnreadCountBloc>.value(
+        value: _unreadCountBloc,
+        child: BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) =>
+              previous.status != current.status &&
+              current.status == AuthStatus.initial,
+          listener: (context, state) {
+            Navigator.of(context).pushAndRemoveUntil(
+              AdaptivePlatform.pageRoute<void>(
+                context: context,
+                builder: (_) => const LoginScreen(),
+              ),
+              (_) => false,
+            );
+          },
+          child: BlocBuilder<CartBloc, CartState>(
+            builder: (context, cartState) {
+              final items = _bottomNavigationItems(
+                useCupertino: useCupertino,
+                l10n: l10n,
+                cartItemCount: cartState.cart?.items.length ?? 0,
+              );
+              final currentLabel = items[_currentIndex].label;
+              final bottomNavigationBar = AdaptiveAppBottomNavigationBar(
+                currentIndex: _currentIndex,
+                items: items,
+                onDestinationSelected: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+              );
+
+              return AdaptiveAppScaffold(
+                title:
+                    _currentIndex == 0 ||
+                        _currentIndex == 1 ||
+                        _currentIndex == 2 ||
+                        _currentIndex == 3
+                    ? null
+                    : currentLabel,
+                body: _MainTabContent(currentIndex: _currentIndex),
+                bottomNavigationBar: bottomNavigationBar,
+              );
+            },
+          ),
         ),
       ),
     );
@@ -212,6 +228,7 @@ class _MainScreenState extends State<MainScreen> {
   List<AdaptiveAppBottomNavigationItem> _bottomNavigationItems({
     required bool useCupertino,
     required AppLocalizations l10n,
+    required int cartItemCount,
   }) {
     if (useCupertino) {
       return <AdaptiveAppBottomNavigationItem>[
@@ -221,14 +238,20 @@ class _MainScreenState extends State<MainScreen> {
           label: l10n.navHome,
         ),
         AdaptiveAppBottomNavigationItem(
-          icon: const Icon(CupertinoIcons.cube_box),
-          activeIcon: const Icon(CupertinoIcons.cube_box_fill),
-          label: l10n.navOrders,
+          icon: const Icon(CupertinoIcons.bag),
+          activeIcon: const Icon(CupertinoIcons.bag_fill),
+          label: l10n.navStores,
         ),
         AdaptiveAppBottomNavigationItem(
-          icon: const Icon(CupertinoIcons.question_circle),
-          activeIcon: const Icon(CupertinoIcons.question_circle_fill),
-          label: l10n.navHelp,
+          icon: _CartNavIcon(
+            count: cartItemCount,
+            icon: const Icon(CupertinoIcons.cart),
+          ),
+          activeIcon: _CartNavIcon(
+            count: cartItemCount,
+            icon: const Icon(CupertinoIcons.cart_fill),
+          ),
+          label: l10n.navCart,
         ),
         AdaptiveAppBottomNavigationItem(
           icon: const Icon(CupertinoIcons.person),
@@ -245,14 +268,20 @@ class _MainScreenState extends State<MainScreen> {
         label: l10n.navHome,
       ),
       AdaptiveAppBottomNavigationItem(
-        icon: Icon(Icons.list_alt_outlined),
-        activeIcon: Icon(Icons.list_alt),
-        label: l10n.navOrders,
+        icon: Icon(Icons.storefront_outlined),
+        activeIcon: Icon(Icons.storefront),
+        label: l10n.navStores,
       ),
       AdaptiveAppBottomNavigationItem(
-        icon: Icon(Icons.help_outline_rounded),
-        activeIcon: Icon(Icons.help_rounded),
-        label: l10n.navHelp,
+        icon: _CartNavIcon(
+          count: cartItemCount,
+          icon: const Icon(Icons.shopping_cart_outlined),
+        ),
+        activeIcon: _CartNavIcon(
+          count: cartItemCount,
+          icon: const Icon(Icons.shopping_cart),
+        ),
+        label: l10n.navCart,
       ),
       AdaptiveAppBottomNavigationItem(
         icon: Icon(Icons.person_outline),
@@ -260,6 +289,23 @@ class _MainScreenState extends State<MainScreen> {
         label: l10n.navProfile,
       ),
     ];
+  }
+}
+
+class _CartNavIcon extends StatelessWidget {
+  const _CartNavIcon({required this.count, required this.icon});
+
+  final int count;
+  final Widget icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Badge.count(
+      count: count,
+      isLabelVisible: count > 0,
+      backgroundColor: const Color(0xFF4CAF50),
+      child: icon,
+    );
   }
 }
 
@@ -272,8 +318,11 @@ class _MainTabContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       const HomeScreen(),
-      const OrderScreen(),
-      const HelpScreen(),
+      BlocProvider<StoresBloc>(
+        create: (_) => sl<StoresBloc>(),
+        child: const StoresScreen(),
+      ),
+      const CartScreen(),
       const ProfileScreen(),
     ];
 

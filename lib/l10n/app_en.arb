@@ -28,6 +28,7 @@
         "description": "Divider label shown above the social sign-in options on the login screen."
     },
     "navHome": "Home",
+    "navStores": "Stores",
     "navCart": "Cart",
     "navOrders": "Orders",
     "navHelp": "Help",
