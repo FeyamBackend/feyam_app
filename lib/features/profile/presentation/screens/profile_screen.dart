@@ -93,12 +93,18 @@ class _MaterialProfileContent extends StatelessWidget {
                         subtitle: l10n.profileMyOrdersSubtitle,
                         icon: Icons.inventory_2_outlined,
                         iconColor: colors.primary,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const OrderScreen(),
-                          ),
-                        ),
+                        onTap: () {
+                          final unreadCountBloc = context.read<UnreadCountBloc>();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => BlocProvider<UnreadCountBloc>.value(
+                                value: unreadCountBloc,
+                                child: const OrderScreen(),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       SizedBox(height: 12 * scale),
                       _MaterialProfileRowCard(

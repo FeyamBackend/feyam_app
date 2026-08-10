@@ -28,71 +28,81 @@ class CheckoutSuccessScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: colors.surface,
-          body: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(32 * scale),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.5, end: 1.0),
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeOutBack,
-                      builder: (_, v, child) => Transform.scale(scale: v, child: child),
-                      child: Container(
-                        width: 96 * scale,
-                        height: 96 * scale,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colors.secondaryContainer,
-                        ),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          size: 56 * scale,
-                          color: colors.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 24 * scale),
-                    Text(
-                      pending ? l10n.paymentPendingTitle : l10n.paymentSuccessTitle,
-                      textAlign: TextAlign.center,
-                      style: textTheme.headlineSmall?.copyWith(
-                        color: colors.onSurface,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 28 * scale,
-                      ),
-                    ),
-                    SizedBox(height: 12 * scale),
-                    Text(
-                      pending ? l10n.paymentPendingBody : l10n.paymentSuccessBody,
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        fontSize: 15 * scale,
-                        height: 1.5,
-                      ),
-                    ),
-                    SizedBox(height: 32 * scale),
-                    SizedBox(
-                      width: 280 * scale,
-                      height: 52 * scale,
-                      child: FilledButton(
-                        onPressed: () {
-                          Navigator.of(context).popUntil((r) => r.isFirst);
-                        },
-                        style: FilledButton.styleFrom(
-                          shape: const StadiumBorder(),
-                          textStyle: textTheme.labelLarge?.copyWith(
-                            fontSize: 16 * scale,
-                            fontWeight: FontWeight.w600,
+          body: DefaultTextStyle(
+            style: const TextStyle(decoration: TextDecoration.none),
+            child: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32 * scale),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.5, end: 1.0),
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutBack,
+                        builder: (_, v, child) =>
+                            Transform.scale(scale: v, child: child),
+                        child: Container(
+                          width: 96 * scale,
+                          height: 96 * scale,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: colors.secondaryContainer,
+                          ),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 56 * scale,
+                            color: colors.onSecondaryContainer,
                           ),
                         ),
-                        child: Text(l10n.successViewOrders),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 24 * scale),
+                      Text(
+                        pending
+                            ? l10n.paymentPendingTitle
+                            : l10n.paymentSuccessTitle,
+                        textAlign: TextAlign.center,
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 26 * scale,
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      Text(
+                        pending
+                            ? l10n.paymentPendingBody
+                            : l10n.paymentSuccessBody,
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 15 * scale,
+                          height: 1.5,
+                        ),
+                      ),
+                      SizedBox(height: 32 * scale),
+                      SizedBox(
+                        width: 280 * scale,
+                        height: 52 * scale,
+                        child: FilledButton(
+                          onPressed: () {
+                            Navigator.of(context).popUntil((r) => r.isFirst);
+                          },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colors.secondary,
+                            foregroundColor: colors.onSecondary,
+                            shape: const StadiumBorder(),
+                            textStyle: textTheme.labelLarge?.copyWith(
+                              fontSize: 16 * scale,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: Text(l10n.successViewOrders),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -126,7 +136,8 @@ class _CupertinoSuccessContent extends StatelessWidget {
                   tween: Tween(begin: 0.5, end: 1.0),
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeOutBack,
-                  builder: (_, v, child) => Transform.scale(scale: v, child: child),
+                  builder: (_, v, child) =>
+                      Transform.scale(scale: v, child: child),
                   child: Container(
                     width: 96,
                     height: 96,
@@ -134,7 +145,11 @@ class _CupertinoSuccessContent extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: kFeyamGreen.withValues(alpha: 0.12),
                     ),
-                    child: const Icon(CupertinoIcons.checkmark_circle_fill, size: 60, color: kFeyamGreen),
+                    child: const Icon(
+                      CupertinoIcons.checkmark_circle_fill,
+                      size: 60,
+                      color: kFeyamGreen,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -162,7 +177,9 @@ class _CupertinoSuccessContent extends StatelessWidget {
                   width: 300,
                   child: FeyamButton(
                     label: l10n.successViewOrders,
-                    onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+                    variant: FeyamButtonVariant.secondary,
+                    onPressed: () =>
+                        Navigator.of(context).popUntil((r) => r.isFirst),
                   ),
                 ),
               ],

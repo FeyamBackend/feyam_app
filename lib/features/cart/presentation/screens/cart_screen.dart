@@ -1,11 +1,13 @@
-import 'package:feyam/core/theme/app_theme_palette.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_event.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_state.dart';
+import 'package:feyam/features/cart/presentation/screens/add_to_cart.dart';
 import 'package:feyam/features/cart/presentation/screens/checkout_screen.dart';
+import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
+import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,16 +29,6 @@ class CartScreen extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // Material
 // ─────────────────────────────────────────────────────────────────────────────
-
-// ── Feyam MD3 light tokens (derived from the brand seed palette) ──────────────
-const _mSurface = ConciergeProPalette.surface;
-const _mCard = ConciergeProPalette.surfaceContainerLowest;
-const _mPrimary = ConciergeProPalette.primary;
-const _mPrimaryTint = Color(0x140D3B66);
-const _mOnSurface = Color(0xFF1A1D21);
-const _mOnSurfaceVar = Color(0xFF6B7280);
-const _mOutline = Color(0xFFEEF0F2);
-const _mError = ConciergeProPalette.error;
 
 class _MaterialCartContent extends StatefulWidget {
   const _MaterialCartContent();
@@ -62,16 +54,15 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
           builder: (context, constraints) {
             // Sane scale: phones land near 1.0 instead of ~0.55.
             final scale = (constraints.maxWidth / 390).clamp(0.85, 1.15);
-            final cart = state.cart;
-            final itemCount = (cart?.items.length) ?? 0;
+            final colors = Theme.of(context).colorScheme;
 
             return DefaultTextStyle(
               style: const TextStyle(decoration: TextDecoration.none),
               child: ColoredBox(
-                color: _mSurface,
+                color: colors.surface,
                 child: Column(
                   children: <Widget>[
-                    _MaterialCartHeader(scale: scale, itemCount: itemCount),
+                    _CartHeroHeader(scale: scale),
                     Expanded(child: _buildMaterialBody(context, state, scale)),
                   ],
                 ),
@@ -85,9 +76,16 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
 
   Widget _buildMaterialBody(BuildContext context, CartState state, double scale) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
     if (state.status == CartStatus.loading || state.status == CartStatus.initial) {
-      return const Center(child: CircularProgressIndicator(color: _mPrimary));
+      return Center(
+        child: SizedBox(
+          width: 28 * scale,
+          height: 28 * scale,
+          child: CircularProgressIndicator(strokeWidth: 2.5, color: colors.primary),
+        ),
+      );
     }
 
     if (state.status == CartStatus.empty || state.cart == null || state.cart!.items.isEmpty) {
@@ -98,7 +96,7 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
       return Center(
         child: Text(
           l10n.cartErrorTitle,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: _mOnSurfaceVar),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: colors.onSurfaceVariant),
         ),
       );
     }
@@ -110,10 +108,12 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
       children: <Widget>[
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 20 * scale),
+            padding: EdgeInsets.fromLTRB(16 * scale, 0, 16 * scale, 20 * scale),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                _CartTitleRow(scale: scale, itemCount: cart.items.length),
+                SizedBox(height: 14 * scale),
                 for (final item in cart.items) ...<Widget>[
                   _MaterialCartItemCard(
                     scale: scale,
@@ -140,8 +140,55 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
   }
 }
 
-class _MaterialCartHeader extends StatelessWidget {
-  const _MaterialCartHeader({required this.scale, required this.itemCount});
+class _CartHeroHeader extends StatelessWidget {
+  const _CartHeroHeader({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final unreadCount = context.watch<UnreadCountBloc>().state.count;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 8 * scale, 8 * scale),
+          child: Row(
+            children: <Widget>[
+              Image.asset('assets/branding/logo_white.png', height: 22 * scale),
+              const Spacer(),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  );
+                },
+                icon: Badge.count(
+                  count: unreadCount,
+                  isLabelVisible: unreadCount > 0,
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    color: colors.onPrimary,
+                    size: 22 * scale,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CartTitleRow extends StatelessWidget {
+  const _CartTitleRow({required this.scale, required this.itemCount});
 
   final double scale;
   final int itemCount;
@@ -149,62 +196,39 @@ class _MaterialCartHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: _mSurface,
-        border: Border(bottom: BorderSide(color: _mOutline)),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 60 * scale,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4 * scale),
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(Icons.arrow_back, size: 24 * scale),
-                  color: _mOnSurface,
-                ),
-                Expanded(
-                  child: Text(
-                    l10n.cartTitle,
-                    style: TextStyle(
-                      color: _mOnSurface,
-                      fontSize: 22 * scale,
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                    ),
-                  ),
-                ),
-                if (itemCount > 0)
-                  Padding(
-                    padding: EdgeInsets.only(right: 12 * scale),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10 * scale,
-                        vertical: 4 * scale,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _mPrimaryTint,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        '$itemCount',
-                        style: TextStyle(
-                          color: _mPrimary,
-                          fontSize: 13 * scale,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+    return Padding(
+      padding: EdgeInsets.only(top: 16 * scale),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              l10n.cartTitle,
+              style: TextStyle(
+                color: colors.primary,
+                fontSize: 22 * scale,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
-        ),
+          if (itemCount > 0)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 4 * scale),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$itemCount',
+                style: TextStyle(
+                  color: colors.onPrimaryContainer,
+                  fontSize: 13 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -234,16 +258,18 @@ class _MaterialCartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: _mCard,
-        border: Border.all(color: _mOutline, width: 1),
-        borderRadius: BorderRadius.circular(16 * scale),
+        color: colors.surfaceContainerLowest,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8 * scale,
-            offset: Offset(0, 2 * scale),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -256,7 +282,7 @@ class _MaterialCartItemCard extends StatelessWidget {
             width: 60 * scale,
             height: 60 * scale,
             decoration: BoxDecoration(
-              color: _mSurface,
+              color: colors.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12 * scale),
             ),
             clipBehavior: Clip.antiAlias,
@@ -267,13 +293,13 @@ class _MaterialCartItemCard extends StatelessWidget {
                     errorBuilder: (_, _, _) => Icon(
                       Icons.inventory_2_outlined,
                       size: 28 * scale,
-                      color: _mOnSurfaceVar,
+                      color: colors.onSurfaceVariant,
                     ),
                   )
                 : Icon(
                     Icons.inventory_2_outlined,
                     size: 28 * scale,
-                    color: _mOnSurfaceVar,
+                    color: colors.onSurfaceVariant,
                   ),
           ),
           SizedBox(width: 14 * scale),
@@ -287,7 +313,7 @@ class _MaterialCartItemCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: _mOnSurface,
+                    color: colors.onSurface,
                     fontSize: 15.5 * scale,
                     fontWeight: FontWeight.w600,
                     height: 1.2,
@@ -300,7 +326,7 @@ class _MaterialCartItemCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: _mOnSurfaceVar,
+                      color: colors.onSurfaceVariant,
                       fontSize: 12.5 * scale,
                       fontWeight: FontWeight.w400,
                     ),
@@ -313,7 +339,7 @@ class _MaterialCartItemCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: _mOnSurfaceVar,
+                      color: colors.onSurfaceVariant,
                       fontSize: 12 * scale,
                       height: 1.3,
                     ),
@@ -323,7 +349,7 @@ class _MaterialCartItemCard extends StatelessWidget {
                 Text(
                   '\$${item.totalPrice.toStringAsFixed(2)}',
                   style: TextStyle(
-                    color: _mPrimary,
+                    color: colors.primary,
                     fontSize: 16.5 * scale,
                     fontWeight: FontWeight.w700,
                   ),
@@ -344,7 +370,7 @@ class _MaterialCartItemCard extends StatelessWidget {
                   child: Icon(
                     Icons.delete_outline,
                     size: 20 * scale,
-                    color: _mError.withValues(alpha: 0.85),
+                    color: colors.error.withValues(alpha: 0.85),
                   ),
                 ),
               ),
@@ -366,12 +392,13 @@ class _MaterialQuantityStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final canDecrement = item.quantity > 1;
 
     return Container(
       height: 40 * scale,
       decoration: BoxDecoration(
-        color: _mPrimaryTint,
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(999),
       ),
       padding: EdgeInsets.symmetric(horizontal: 4 * scale),
@@ -392,7 +419,7 @@ class _MaterialQuantityStepper extends StatelessWidget {
               '${item.quantity}',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _mOnSurface,
+                color: colors.onPrimaryContainer,
                 fontSize: 15 * scale,
                 fontWeight: FontWeight.w600,
               ),
@@ -427,6 +454,8 @@ class _MaterialQuantityButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: enabled ? onTap : null,
       behavior: HitTestBehavior.opaque,
@@ -435,7 +464,9 @@ class _MaterialQuantityButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 20 * scale,
-          color: enabled ? _mPrimary : _mPrimary.withValues(alpha: 0.32),
+          color: enabled
+              ? colors.onPrimaryContainer
+              : colors.onPrimaryContainer.withValues(alpha: 0.35),
         ),
       ),
     );
@@ -456,13 +487,21 @@ class _MaterialCartTotals extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
     final totalStr = '\$${total.toStringAsFixed(2)}';
 
     return Container(
       decoration: BoxDecoration(
-        color: _mCard,
-        border: Border.all(color: _mOutline, width: 1),
-        borderRadius: BorderRadius.circular(16 * scale),
+        color: colors.surfaceContainerLowest,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       padding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 14 * scale),
       child: Column(
@@ -473,7 +512,7 @@ class _MaterialCartTotals extends StatelessWidget {
             value: totalStr,
           ),
           SizedBox(height: 12 * scale),
-          Divider(height: 1, thickness: 1, color: _mOutline),
+          Divider(height: 1, thickness: 1, color: colors.outlineVariant),
           SizedBox(height: 12 * scale),
           _MaterialTotalRow(
             scale: scale,
@@ -502,13 +541,15 @@ class _MaterialTotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Row(
       children: <Widget>[
         Expanded(
           child: Text(
             label,
             style: TextStyle(
-              color: isTotal ? _mOnSurface : _mOnSurfaceVar,
+              color: isTotal ? colors.onSurface : colors.onSurfaceVariant,
               fontSize: isTotal ? 16 * scale : 14 * scale,
               fontWeight: isTotal ? FontWeight.w700 : FontWeight.w400,
             ),
@@ -517,7 +558,7 @@ class _MaterialTotalRow extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: isTotal ? _mPrimary : _mOnSurface,
+            color: isTotal ? colors.primary : colors.onSurface,
             fontSize: isTotal ? 18 * scale : 14 * scale,
             fontWeight: isTotal ? FontWeight.w800 : FontWeight.w500,
           ),
@@ -536,11 +577,12 @@ class _MaterialCheckoutBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: _mCard,
-        border: Border(top: BorderSide(color: _mOutline)),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        border: Border(top: BorderSide(color: colors.outlineVariant)),
       ),
       child: SafeArea(
         top: false,
@@ -562,8 +604,8 @@ class _MaterialCheckoutBar extends StatelessWidget {
                     );
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: ConciergeProPalette.secondary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colors.secondary,
+                    foregroundColor: colors.onSecondary,
                     shape: const StadiumBorder(),
                     textStyle: TextStyle(
                       fontSize: 16 * scale,
@@ -578,7 +620,7 @@ class _MaterialCheckoutBar extends StatelessWidget {
                 l10n.cartMaterialFootnote,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _mOnSurfaceVar,
+                  color: colors.onSurfaceVariant,
                   fontSize: 11.5 * scale,
                   height: 1.3,
                 ),
@@ -599,6 +641,7 @@ class _MaterialCartEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
     return Center(
       child: Padding(
@@ -609,14 +652,14 @@ class _MaterialCartEmpty extends StatelessWidget {
             Container(
               width: 88 * scale,
               height: 88 * scale,
-              decoration: const BoxDecoration(
-                color: _mPrimaryTint,
+              decoration: BoxDecoration(
+                color: colors.primaryContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.shopping_cart_outlined,
                 size: 40 * scale,
-                color: _mPrimary,
+                color: colors.primary,
               ),
             ),
             SizedBox(height: 20 * scale),
@@ -624,7 +667,7 @@ class _MaterialCartEmpty extends StatelessWidget {
               l10n.cartEmptyTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _mOnSurface,
+                color: colors.onSurface,
                 fontSize: 18 * scale,
                 fontWeight: FontWeight.w700,
               ),
@@ -634,19 +677,22 @@ class _MaterialCartEmpty extends StatelessWidget {
               l10n.cartEmptySubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _mOnSurfaceVar,
+                color: colors.onSurfaceVariant,
                 fontSize: 14 * scale,
                 height: 1.4,
               ),
             ),
             SizedBox(height: 24 * scale),
             FilledButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const AddToCartScreen()),
+              ),
               icon: Icon(Icons.link, size: 18 * scale),
               label: Text(l10n.cartEmptyAction),
               style: FilledButton.styleFrom(
-                backgroundColor: ConciergeProPalette.secondary,
-                foregroundColor: Colors.white,
+                backgroundColor: colors.secondary,
+                foregroundColor: colors.onSecondary,
                 shape: const StadiumBorder(),
                 padding: EdgeInsets.symmetric(
                   horizontal: 20 * scale,
@@ -714,18 +760,6 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
       child: Column(
         children: <Widget>[
           CupertinoNavigationBar(
-            leading: CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => Navigator.of(context).pop(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Icon(CupertinoIcons.chevron_back, size: 18),
-                  const SizedBox(width: 2),
-                  Text(l10n.navHome, style: const TextStyle(fontSize: 17)),
-                ],
-              ),
-            ),
             middle: Text(l10n.navCart),
           ),
           Expanded(
@@ -738,7 +772,11 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                 icon: CupertinoIcons.link,
                 variant: FeyamButtonVariant.tinted,
                 small: true,
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => const AddToCartScreen(),
+                  ),
+                ),
               ),
             ),
           ),
@@ -754,18 +792,6 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
       child: Column(
         children: <Widget>[
           CupertinoNavigationBar(
-            leading: CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => Navigator.of(context).pop(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Icon(CupertinoIcons.chevron_back, size: 18),
-                  const SizedBox(width: 2),
-                  Text(l10n.navHome, style: const TextStyle(fontSize: 17)),
-                ],
-              ),
-            ),
             middle: Text(l10n.navCart),
           ),
           Expanded(
@@ -803,18 +829,6 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
           child: Column(
             children: <Widget>[
               CupertinoNavigationBar(
-                leading: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(CupertinoIcons.chevron_back, size: 18),
-                      SizedBox(width: 2),
-                      Text('Inicio', style: TextStyle(fontSize: 17)),
-                    ],
-                  ),
-                ),
                 middle: Text('${l10n.navCart} ($totalQty)'),
               ),
               Expanded(

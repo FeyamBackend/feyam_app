@@ -144,52 +144,31 @@ class _MaterialOrdersContentState extends State<_MaterialOrdersContent> {
           builder: (context, constraints) {
             final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
-            return ColoredBox(
-              color: colors.surface,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  _Md3OrdersHeroHeader(scale: scale),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(16 * scale, 18 * scale, 16 * scale, 2 * scale),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          l10n.ordersHistoryTitle,
-                          style: TextStyle(
-                            color: colors.primary,
-                            fontSize: 24 * scale,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        SizedBox(height: 4 * scale),
-                        Text(
-                          l10n.ordersHistorySubtitle,
-                          style: TextStyle(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 13.5 * scale,
-                          ),
-                        ),
-                      ],
+            return DefaultTextStyle(
+              style: const TextStyle(decoration: TextDecoration.none),
+              child: ColoredBox(
+                color: colors.surface,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    _Md3OrdersHeroHeader(scale: scale),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 0, 0),
+                      child: _Md3FilterPills(
+                        scale: scale,
+                        selectedIndex: _tabIndex,
+                        labels: [
+                          l10n.ordersTabAll,
+                          l10n.ordersTabReview,
+                          l10n.ordersTabShipping,
+                          l10n.ordersTabDelivered,
+                        ],
+                        onChanged: (i) => setState(() => _tabIndex = i),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(16 * scale, 14 * scale, 0, 0),
-                    child: _Md3FilterPills(
-                      scale: scale,
-                      selectedIndex: _tabIndex,
-                      labels: [
-                        l10n.ordersTabAll,
-                        l10n.ordersTabReview,
-                        l10n.ordersTabShipping,
-                        l10n.ordersTabDelivered,
-                      ],
-                      onChanged: (i) => setState(() => _tabIndex = i),
-                    ),
-                  ),
-                  Expanded(child: _buildBody(context, state, scale)),
-                ],
+                    Expanded(child: _buildBody(context, state, scale)),
+                  ],
+                ),
               ),
             );
           },
@@ -336,6 +315,7 @@ class _Md3OrdersHeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final unreadCount = context.watch<UnreadCountBloc>().state.count;
 
@@ -344,24 +324,59 @@ class _Md3OrdersHeroHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 8 * scale, 8 * scale),
-          child: Row(
+          padding: EdgeInsets.fromLTRB(12 * scale, 6 * scale, 16 * scale, 20 * scale),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Image.asset('assets/branding/logo_white.png', height: 22 * scale),
-              const Spacer(),
-              IconButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
-                ),
-                icon: Badge.count(
-                  count: unreadCount,
-                  isLabelVisible: unreadCount > 0,
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: colors.onPrimary,
-                    size: 22 * scale,
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
                   ),
+                  Image.asset('assets/branding/logo_white.png', height: 22 * scale),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+                    ),
+                    icon: Badge.count(
+                      count: unreadCount,
+                      isLabelVisible: unreadCount > 0,
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        color: colors.onPrimary,
+                        size: 22 * scale,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
+                l10n.ordersHistoryTitle,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 4 * scale),
+              Text(
+                l10n.ordersHistorySubtitle,
+                style: TextStyle(
+                  color: colors.onPrimary.withValues(alpha: 0.85),
+                  fontSize: 13.5 * scale,
                 ),
               ),
             ],

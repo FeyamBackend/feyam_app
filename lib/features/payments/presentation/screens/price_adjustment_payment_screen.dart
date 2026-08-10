@@ -54,71 +54,153 @@ class _PriceAdjustmentPaymentView extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.priceAdjustmentTitle)),
-      body:
-          BlocBuilder<PriceAdjustmentPaymentBloc, PriceAdjustmentPaymentState>(
-            builder: (context, state) {
-              final busy =
-                  state.status == PriceAdjustmentPaymentStatus.processing ||
-                  state.status == PriceAdjustmentPaymentStatus.verifying;
+      backgroundColor: colors.surface,
+      body: Column(
+        children: <Widget>[
+          _PriceAdjustmentHeroHeader(title: l10n.priceAdjustmentTitle),
+          Expanded(
+            child: DefaultTextStyle(
+              style: const TextStyle(decoration: TextDecoration.none),
+              child:
+                  BlocBuilder<
+                    PriceAdjustmentPaymentBloc,
+                    PriceAdjustmentPaymentState
+                  >(
+                    builder: (context, state) {
+                      final busy =
+                          state.status ==
+                              PriceAdjustmentPaymentStatus.processing ||
+                          state.status ==
+                              PriceAdjustmentPaymentStatus.verifying;
 
-              Widget content;
-              switch (state.status) {
-                case PriceAdjustmentPaymentStatus.success:
-                  content = _ResultCard(
-                    icon: Icons.check_circle_rounded,
-                    color: colors.primary,
-                    title: l10n.priceAdjustmentSuccessTitle,
-                    body: l10n.priceAdjustmentSuccessBody,
-                    actionLabel: l10n.priceAdjustmentDoneButton,
-                    onAction: () => Navigator.of(context).pop(),
-                  );
-                case PriceAdjustmentPaymentStatus.pendingConfirmation:
-                  content = _ResultCard(
-                    icon: Icons.hourglass_top_rounded,
-                    color: colors.primary,
-                    title: l10n.priceAdjustmentPendingTitle,
-                    body: l10n.priceAdjustmentPendingBody,
-                    actionLabel: l10n.priceAdjustmentDoneButton,
-                    onAction: () => Navigator.of(context).pop(),
-                  );
-                case PriceAdjustmentPaymentStatus.failure:
-                  content = _ResultCard(
-                    icon: Icons.error_outline_rounded,
-                    color: colors.error,
-                    title: l10n.priceAdjustmentFailureTitle,
-                    body: _failureMessage(l10n, state.failure),
-                    actionLabel: l10n.priceAdjustmentRetryButton,
-                    onAction: () => context
-                        .read<PriceAdjustmentPaymentBloc>()
-                        .add(PriceAdjustmentPaymentRequested(purchaseId)),
-                  );
-                case PriceAdjustmentPaymentStatus.initial:
-                case PriceAdjustmentPaymentStatus.processing:
-                case PriceAdjustmentPaymentStatus.verifying:
-                case PriceAdjustmentPaymentStatus.cancelled:
-                  content = _PayPrompt(
-                    busy: busy,
-                    verifying:
-                        state.status == PriceAdjustmentPaymentStatus.verifying,
-                    amountLabel:
-                        state.amount != null && state.currencyCode != null
-                        ? _formatCurrency(state.amount!, state.currencyCode!)
-                        : null,
-                    onPay: busy
-                        ? null
-                        : () => context.read<PriceAdjustmentPaymentBloc>().add(
-                            PriceAdjustmentPaymentRequested(purchaseId),
-                          ),
-                  );
-              }
+                      Widget content;
+                      switch (state.status) {
+                        case PriceAdjustmentPaymentStatus.success:
+                          content = _ResultCard(
+                            icon: Icons.check_circle_rounded,
+                            iconColor: colors.secondary,
+                            iconBg: colors.secondaryContainer,
+                            title: l10n.priceAdjustmentSuccessTitle,
+                            body: l10n.priceAdjustmentSuccessBody,
+                            actionLabel: l10n.priceAdjustmentDoneButton,
+                            onAction: () => Navigator.of(context).pop(),
+                          );
+                        case PriceAdjustmentPaymentStatus.pendingConfirmation:
+                          content = _ResultCard(
+                            icon: Icons.hourglass_top_rounded,
+                            iconColor: colors.primary,
+                            iconBg: colors.primaryContainer,
+                            title: l10n.priceAdjustmentPendingTitle,
+                            body: l10n.priceAdjustmentPendingBody,
+                            actionLabel: l10n.priceAdjustmentDoneButton,
+                            onAction: () => Navigator.of(context).pop(),
+                          );
+                        case PriceAdjustmentPaymentStatus.failure:
+                          content = _ResultCard(
+                            icon: Icons.error_outline_rounded,
+                            iconColor: colors.error,
+                            iconBg: colors.errorContainer,
+                            title: l10n.priceAdjustmentFailureTitle,
+                            body: _failureMessage(l10n, state.failure),
+                            actionLabel: l10n.priceAdjustmentRetryButton,
+                            primaryAction: false,
+                            onAction: () =>
+                                context.read<PriceAdjustmentPaymentBloc>().add(
+                                  PriceAdjustmentPaymentRequested(purchaseId),
+                                ),
+                          );
+                        case PriceAdjustmentPaymentStatus.initial:
+                        case PriceAdjustmentPaymentStatus.processing:
+                        case PriceAdjustmentPaymentStatus.verifying:
+                        case PriceAdjustmentPaymentStatus.cancelled:
+                          content = _PayPrompt(
+                            busy: busy,
+                            verifying:
+                                state.status ==
+                                PriceAdjustmentPaymentStatus.verifying,
+                            amountLabel:
+                                state.amount != null &&
+                                    state.currencyCode != null
+                                ? _formatCurrency(
+                                    state.amount!,
+                                    state.currencyCode!,
+                                  )
+                                : null,
+                            onPay: busy
+                                ? null
+                                : () => context
+                                      .read<PriceAdjustmentPaymentBloc>()
+                                      .add(
+                                        PriceAdjustmentPaymentRequested(
+                                          purchaseId,
+                                        ),
+                                      ),
+                          );
+                      }
 
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: content),
-              );
-            },
+                      return Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(child: content),
+                      );
+                    },
+                  ),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PriceAdjustmentHeroHeader extends StatelessWidget {
+  const _PriceAdjustmentHeroHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22,
+                    ),
+                  ),
+                  Image.asset('assets/branding/logo_white.png', height: 22),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -145,8 +227,20 @@ class _PayPrompt extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(Icons.receipt_long_rounded, size: 48, color: colors.primary),
-        const SizedBox(height: 16),
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colors.primaryContainer,
+          ),
+          child: Icon(
+            Icons.receipt_long_rounded,
+            size: 40,
+            color: colors.primary,
+          ),
+        ),
+        const SizedBox(height: 20),
         Text(
           l10n.priceAdjustmentIntro,
           textAlign: TextAlign.center,
@@ -157,18 +251,39 @@ class _PayPrompt extends StatelessWidget {
         ),
         if (amountLabel != null) ...[
           const SizedBox(height: 20),
-          Text(
-            l10n.priceAdjustmentAmountLabel,
-            style: textTheme.labelMedium?.copyWith(
-              color: colors.onSurfaceVariant,
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colors.outlineVariant),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            amountLabel!,
-            style: textTheme.headlineSmall?.copyWith(
-              color: colors.primary,
-              fontWeight: FontWeight.w700,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    l10n.priceAdjustmentAmountLabel,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    amountLabel!,
+                    style: textTheme.headlineSmall?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -178,13 +293,18 @@ class _PayPrompt extends StatelessWidget {
           height: 52,
           child: FilledButton.icon(
             onPressed: onPay,
+            style: FilledButton.styleFrom(
+              backgroundColor: colors.secondary,
+              foregroundColor: colors.onSecondary,
+              shape: const StadiumBorder(),
+            ),
             icon: busy
                 ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: colors.onPrimary,
+                      color: colors.onSecondary,
                     ),
                   )
                 : const Icon(Icons.lock_rounded),
@@ -205,19 +325,28 @@ class _PayPrompt extends StatelessWidget {
 class _ResultCard extends StatelessWidget {
   const _ResultCard({
     required this.icon,
-    required this.color,
+    required this.iconColor,
+    required this.iconBg,
     required this.title,
     required this.body,
     required this.actionLabel,
     required this.onAction,
+    this.primaryAction = true,
   });
 
   final IconData icon;
-  final Color color;
+  final Color iconColor;
+  final Color iconBg;
   final String title;
   final String body;
   final String actionLabel;
   final VoidCallback onAction;
+
+  /// `true` for a "go/done" action (rendered as the app's green pill CTA,
+  /// matching checkout/pay buttons); `false` for a retry after failure
+  /// (rendered as the app's muted tonal button, matching Orders/Notifications
+  /// retry buttons — a retry isn't a "go" action).
+  final bool primaryAction;
 
   @override
   Widget build(BuildContext context) {
@@ -227,13 +356,20 @@ class _ResultCard extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(icon, size: 48, color: color),
-        const SizedBox(height: 16),
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: iconBg),
+          child: Icon(icon, size: 40, color: iconColor),
+        ),
+        const SizedBox(height: 20),
         Text(
           title,
+          textAlign: TextAlign.center,
           style: textTheme.titleMedium?.copyWith(
             color: colors.onSurface,
             fontWeight: FontWeight.w700,
+            fontSize: 18,
           ),
         ),
         const SizedBox(height: 8),
@@ -246,7 +382,25 @@ class _ResultCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        FilledButton(onPressed: onAction, child: Text(actionLabel)),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: primaryAction
+              ? FilledButton(
+                  onPressed: onAction,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colors.secondary,
+                    foregroundColor: colors.onSecondary,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: Text(actionLabel),
+                )
+              : FilledButton.tonal(
+                  onPressed: onAction,
+                  style: FilledButton.styleFrom(shape: const StadiumBorder()),
+                  child: Text(actionLabel),
+                ),
+        ),
       ],
     );
   }

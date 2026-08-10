@@ -75,118 +75,192 @@ class _AddressesScreenState extends State<AddressesScreen> {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
 
         return Scaffold(
-          backgroundColor: colors.surfaceContainerLowest,
-          appBar: AppBar(
-            backgroundColor: colors.surfaceContainer,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.arrow_back_rounded, size: 24 * scale),
-            ),
-            title: Text(
-              l10n.addressesTitle,
-              style: textTheme.titleLarge?.copyWith(
-                color: colors.onSurface,
-                fontSize: 22 * scale,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          body: BlocConsumer<AddressesBloc, AddressesState>(
-            listenWhen: (prev, curr) =>
-                prev.actionStatus != curr.actionStatus,
-            listener: (context, state) {
-              switch (state.actionStatus) {
-                case AddressActionStatus.success:
-                  if (_sheetOpen) Navigator.pop(context);
-                  _toast(l10n.addressSave);
-                case AddressActionStatus.failure:
-                  _toast(l10n.addressSaveError);
-                case AddressActionStatus.idle:
-                case AddressActionStatus.inProgress:
-                  break;
-              }
-            },
-            builder: (context, state) {
-              if (state.status == AddressesStatus.loading &&
-                  state.addresses.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (state.status == AddressesStatus.failure &&
-                  state.addresses.isEmpty) {
-                return _ErrorState(
-                  scale: scale,
-                  message: l10n.addressLoadError,
-                  onRetry: () => context.read<AddressesBloc>().add(
-                        AddressesLoadRequested(
-                          Localizations.localeOf(context).languageCode,
-                        ),
-                      ),
-                );
-              }
-
-              return Column(
-                children: <Widget>[
-                  Expanded(
-                    child: state.addresses.isEmpty
-                        ? _EmptyAddresses(scale: scale, onAdd: () => _openSheet())
-                        : ListView.builder(
-                            padding: EdgeInsets.fromLTRB(
-                                16 * scale, 12 * scale, 16 * scale, 8 * scale),
-                            itemCount: state.addresses.length,
-                            itemBuilder: (context, index) => Padding(
-                              padding: EdgeInsets.only(bottom: 10 * scale),
-                              child: _AddressCard(
-                                scale: scale,
-                                address: state.addresses[index],
-                                isDefault: index == 0,
-                                onTap: () =>
-                                    _openSheet(initial: state.addresses[index]),
-                              ),
-                            ),
-                          ),
-                  ),
-                  if (state.addresses.isNotEmpty)
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        border: Border(
-                            top: BorderSide(color: colors.outlineVariant)),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            16 * scale, 12 * scale, 16 * scale, 20 * scale),
+          backgroundColor: colors.surface,
+          body: Column(
+            children: <Widget>[
+              _AddressesHeroHeader(scale: scale),
+              Expanded(
+                child: BlocConsumer<AddressesBloc, AddressesState>(
+                  listenWhen: (prev, curr) =>
+                      prev.actionStatus != curr.actionStatus,
+                  listener: (context, state) {
+                    switch (state.actionStatus) {
+                      case AddressActionStatus.success:
+                        if (_sheetOpen) Navigator.pop(context);
+                        _toast(l10n.addressSave);
+                      case AddressActionStatus.failure:
+                        _toast(l10n.addressSaveError);
+                      case AddressActionStatus.idle:
+                      case AddressActionStatus.inProgress:
+                        break;
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state.status == AddressesStatus.loading &&
+                        state.addresses.isEmpty) {
+                      return Center(
                         child: SizedBox(
-                          height: 48 * scale,
-                          child: FilledButton.tonal(
-                            onPressed: () => _openSheet(),
-                            style: FilledButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12 * scale),
-                              ),
-                              textStyle: textTheme.labelLarge
-                                  ?.copyWith(fontSize: 15 * scale),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(Icons.add_rounded, size: 20 * scale),
-                                SizedBox(width: 8 * scale),
-                                Text(l10n.addressAdd),
-                              ],
-                            ),
+                          width: 28 * scale,
+                          height: 28 * scale,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: colors.primary,
                           ),
                         ),
-                      ),
-                    ),
-                ],
-              );
-            },
+                      );
+                    }
+
+                    if (state.status == AddressesStatus.failure &&
+                        state.addresses.isEmpty) {
+                      return _ErrorState(
+                        scale: scale,
+                        message: l10n.addressLoadError,
+                        onRetry: () => context.read<AddressesBloc>().add(
+                          AddressesLoadRequested(
+                            Localizations.localeOf(context).languageCode,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: <Widget>[
+                        Expanded(
+                          child: state.addresses.isEmpty
+                              ? _EmptyAddresses(
+                                  scale: scale,
+                                  onAdd: () => _openSheet(),
+                                )
+                              : ListView.builder(
+                                  padding: EdgeInsets.all(16 * scale),
+                                  itemCount: state.addresses.length,
+                                  itemBuilder: (context, index) => Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: 10 * scale,
+                                    ),
+                                    child: _AddressCard(
+                                      scale: scale,
+                                      address: state.addresses[index],
+                                      isDefault: index == 0,
+                                      onTap: () => _openSheet(
+                                        initial: state.addresses[index],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        if (state.addresses.isNotEmpty)
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerLowest,
+                              border: Border(
+                                top: BorderSide(color: colors.outlineVariant),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                16 * scale,
+                                12 * scale,
+                                16 * scale,
+                                20 * scale,
+                              ),
+                              child: SizedBox(
+                                height: 48 * scale,
+                                child: FilledButton.tonal(
+                                  onPressed: () => _openSheet(),
+                                  style: FilledButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        12 * scale,
+                                      ),
+                                    ),
+                                    textStyle: textTheme.labelLarge?.copyWith(
+                                      fontSize: 15 * scale,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(Icons.add_rounded, size: 20 * scale),
+                                      SizedBox(width: 8 * scale),
+                                      Text(l10n.addressAdd),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _AddressesHeroHeader extends StatelessWidget {
+  const _AddressesHeroHeader({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            12 * scale,
+            6 * scale,
+            16 * scale,
+            20 * scale,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 36 * scale,
+                      minHeight: 36 * scale,
+                    ),
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/branding/logo_white.png',
+                    height: 22 * scale,
+                  ),
+                ],
+              ),
+              SizedBox(height: 14 * scale),
+              Text(
+                l10n.addressesTitle,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 20 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -227,15 +301,22 @@ class _AddressCard extends StatelessWidget {
         ? address.recipient!.trim()
         : _typeLabel(l10n);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12 * scale),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(12 * scale),
-          border: Border.all(color: colors.outlineVariant),
-        ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: EdgeInsets.all(14 * scale),
           child: Row(
@@ -349,13 +430,10 @@ class _ErrorState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32 * scale),
+        padding: EdgeInsets.all(24 * scale),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(Icons.cloud_off_rounded,
-                size: 40 * scale, color: colors.onSurfaceVariant),
-            SizedBox(height: 16 * scale),
             Text(
               message,
               textAlign: TextAlign.center,
@@ -364,7 +442,7 @@ class _ErrorState extends StatelessWidget {
                 fontSize: 14 * scale,
               ),
             ),
-            SizedBox(height: 16 * scale),
+            SizedBox(height: 12 * scale),
             FilledButton.tonal(
               onPressed: onRetry,
               child: Text(l10n.addressRetry),
@@ -394,15 +472,10 @@ class _EmptyAddresses extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Container(
-              width: 72 * scale,
-              height: 72 * scale,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colors.surfaceContainerHigh,
-              ),
-              child: Icon(Icons.location_off_rounded,
-                  size: 32 * scale, color: colors.onSurfaceVariant),
+            Icon(
+              Icons.location_off_rounded,
+              size: 56 * scale,
+              color: colors.onSurfaceVariant,
             ),
             SizedBox(height: 16 * scale),
             Text(
