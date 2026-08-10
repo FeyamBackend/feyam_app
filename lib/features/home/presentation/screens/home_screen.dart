@@ -4,8 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
-import 'package:feyam/features/cart/presentation/screens/cart_screen.dart';
 import 'package:feyam/features/product_search/presentation/screens/product_search_screen.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
@@ -128,43 +126,101 @@ class _MaterialHomeContent extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
+        final colors = Theme.of(context).colorScheme;
 
-        return Column(
-          children: <Widget>[
-            _MaterialTopBar(scale: scale),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  16 * scale,
-                  16 * scale,
-                  16 * scale,
-                  28 * scale,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    _MaterialGreeting(scale: scale),
-                    SizedBox(height: 12 * scale),
-                    _MaterialSearchBar(scale: scale),
-                    SizedBox(height: 16 * scale),
-                    _MaterialRecentOrders(scale: scale),
-                    SizedBox(height: 16 * scale),
-                    _MaterialStoresSection(scale: scale, stores: _stores),
-                  ],
+        return ColoredBox(
+          color: colors.surface,
+          child: Column(
+            children: <Widget>[
+              _MaterialHomeHeroHeader(scale: scale),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    16 * scale,
+                    16 * scale,
+                    16 * scale,
+                    28 * scale,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      _MaterialGreeting(scale: scale),
+                      SizedBox(height: 16 * scale),
+                      _MaterialSearchBar(scale: scale),
+                      SizedBox(height: 18 * scale),
+                      _MaterialRecentOrders(scale: scale),
+                      SizedBox(height: 18 * scale),
+                      _MaterialStoresSection(scale: scale, stores: _stores),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
   }
 }
 
-class _MaterialTopBar extends StatelessWidget {
-  const _MaterialTopBar({required this.scale});
+class _MaterialHomeHeroHeader extends StatelessWidget {
+  const _MaterialHomeHeroHeader({required this.scale});
 
   final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final unreadCount = context.watch<UnreadCountBloc>().state.count;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: colors.primary),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            16 * scale,
+            8 * scale,
+            8 * scale,
+            8 * scale,
+          ),
+          child: Row(
+            children: <Widget>[
+              Image.asset('assets/branding/logo_white.png', height: 22 * scale),
+              const Spacer(),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  );
+                },
+                icon: Badge.count(
+                  count: unreadCount,
+                  isLabelVisible: unreadCount > 0,
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    color: colors.onPrimary,
+                    size: 22 * scale,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Shared card recipe (matches checkout_screen.dart's _InfoCard/_InfoCardHeader) ──
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.child});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -172,61 +228,93 @@ class _MaterialTopBar extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: colors.surfaceContainer,
-        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 64 * scale,
-          child: Padding(
-            padding: EdgeInsets.only(left: 16 * scale, right: 8 * scale),
-            child: Row(
-              children: <Widget>[
-                Image.asset('assets/branding/logo.png', height: 26 * scale),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => BlocProvider(
-                          create: (_) => sl<CartBloc>(),
-                          child: const CartScreen(),
-                        ),
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.shopping_cart_outlined,
-                    color: colors.onSurface,
-                    size: 24 * scale,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => const NotificationsScreen(),
-                      ),
-                    );
-                  },
-                  icon: Badge.count(
-                    count: context.watch<UnreadCountBloc>().state.count,
-                    isLabelVisible:
-                        context.watch<UnreadCountBloc>().state.count > 0,
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: colors.onSurface,
-                      size: 24 * scale,
-                    ),
-                  ),
-                ),
-              ],
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+class _InfoCardHeader extends StatelessWidget {
+  const _InfoCardHeader({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    this.action,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBg;
+  final String title;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      children: <Widget>[
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+          child: Icon(icon, size: 18, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: textTheme.bodyLarge?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
             ),
           ),
         ),
+        ?action,
+      ],
+    );
+  }
+}
+
+class _SectionViewAllLink extends StatelessWidget {
+  const _SectionViewAllLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            label,
+            style: textTheme.labelMedium?.copyWith(
+              color: colors.primary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded, color: colors.primary, size: 16),
+        ],
       ),
     );
   }
@@ -252,15 +340,16 @@ class _MaterialGreeting extends StatelessWidget {
           l10n.homeGreetingPrefix,
           style: textTheme.bodyMedium?.copyWith(
             color: colors.onSurfaceVariant,
-            fontSize: 14 * scale,
+            fontSize: 13.5 * scale,
           ),
         ),
+        SizedBox(height: 2 * scale),
         Text(
           displayName.split(' ').first,
           style: textTheme.headlineSmall?.copyWith(
-            color: colors.onSurface,
+            color: colors.primary,
             fontSize: 24 * scale,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ],
@@ -288,9 +377,16 @@ class _MaterialSearchBar extends StatelessWidget {
       },
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLow,
+          color: colors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(14 * scale),
-          border: Border.all(color: colors.outline.withValues(alpha: 0.4)),
+          border: Border.all(color: colors.outlineVariant),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -336,41 +432,27 @@ class _MaterialRecentOrders extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return BlocBuilder<RecentOrdersBloc, RecentOrdersState>(
       builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    l10n.homeRecentOrdersTitle,
-                    style: textTheme.titleMedium?.copyWith(
-                      color: colors.onSurface,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16 * scale,
-                    ),
-                  ),
-                ),
-                GestureDetector(
+        return _InfoCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _InfoCardHeader(
+                icon: Icons.inventory_2_outlined,
+                iconColor: colors.primary,
+                iconBg: colors.primaryContainer,
+                title: l10n.homeRecentOrdersTitle,
+                action: _SectionViewAllLink(
+                  label: l10n.homeViewAll,
                   onTap: () {},
-                  child: Text(
-                    l10n.homeViewAll,
-                    style: textTheme.labelLarge?.copyWith(
-                      color: colors.primary,
-                      fontSize: 14 * scale,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                 ),
-              ],
-            ),
-            SizedBox(height: 8 * scale),
-            _buildBody(context, state),
-          ],
+              ),
+              SizedBox(height: 14 * scale),
+              _buildBody(context, state),
+            ],
+          ),
         );
       },
     );
@@ -384,64 +466,52 @@ class _MaterialRecentOrders extends StatelessWidget {
     switch (state.status) {
       case RecentOrdersStatus.initial:
       case RecentOrdersStatus.loading:
-        return _card(
-          colors,
-          scale,
-          Center(
-            child: Padding(
-              padding: EdgeInsets.all(16 * scale),
-              child: SizedBox(
-                width: 24 * scale,
-                height: 24 * scale,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: colors.onPrimaryContainer,
-                ),
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 12 * scale),
+            child: SizedBox(
+              width: 24 * scale,
+              height: 24 * scale,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: colors.primary,
               ),
             ),
           ),
         );
       case RecentOrdersStatus.failure:
-        return _card(
-          colors,
-          scale,
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  l10n.ordersLoadError,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colors.onPrimaryContainer,
-                    fontSize: 13 * scale,
-                  ),
+        return Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                l10n.ordersLoadError,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 13 * scale,
                 ),
               ),
-              TextButton(
-                onPressed: () => context.read<RecentOrdersBloc>().add(
-                  const RecentOrdersLoadRequested(),
-                ),
-                child: Text(
-                  l10n.ordersRetry,
-                  style: textTheme.labelLarge?.copyWith(
-                    color: colors.onPrimaryContainer,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13 * scale,
-                  ),
+            ),
+            TextButton(
+              onPressed: () => context.read<RecentOrdersBloc>().add(
+                const RecentOrdersLoadRequested(),
+              ),
+              child: Text(
+                l10n.ordersRetry,
+                style: textTheme.labelLarge?.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13 * scale,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       case RecentOrdersStatus.empty:
-        return _card(
-          colors,
-          scale,
-          Text(
-            l10n.homeNoOrdersYet,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colors.onPrimaryContainer,
-              fontSize: 13 * scale,
-            ),
+        return Text(
+          l10n.homeNoOrdersYet,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontSize: 13 * scale,
           ),
         );
       case RecentOrdersStatus.loaded:
@@ -454,16 +524,6 @@ class _MaterialRecentOrders extends StatelessWidget {
           textTheme: textTheme,
         );
     }
-  }
-
-  static Widget _card(ColorScheme colors, double scale, Widget child) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(16 * scale),
-      ),
-      child: Padding(padding: EdgeInsets.all(20 * scale), child: child),
-    );
   }
 }
 
@@ -486,85 +546,59 @@ class _LoadedRecentOrders extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(16 * scale),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          20 * scale,
-          20 * scale,
-          20 * scale,
-          12 * scale,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        l10n.homeEstimatedPrice,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colors.onPrimaryContainer.withValues(
-                            alpha: 0.7,
-                          ),
-                          fontSize: 12 * scale,
-                        ),
-                      ),
-                      SizedBox(height: 2 * scale),
-                      Text(
-                        _formatPrice(total),
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colors.onPrimaryContainer,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 28 * scale,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.inventory_2_outlined,
-                  color: colors.onPrimaryContainer,
-                  size: 20 * scale,
-                ),
-              ],
-            ),
-            SizedBox(height: 12 * scale),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.onPrimaryContainer.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10 * scale),
-              ),
+            Expanded(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  for (var i = 0; i < orders.length; i++) ...[
-                    _OrderPreviewRow(
-                      scale: scale,
-                      order: orders[i],
-                      colors: colors,
-                      textTheme: textTheme,
+                  Text(
+                    l10n.homeEstimatedPrice,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12 * scale,
                     ),
-                    if (i < orders.length - 1)
-                      Divider(
-                        height: 1,
-                        color: colors.onPrimaryContainer.withValues(
-                          alpha: 0.15,
-                        ),
-                      ),
-                  ],
+                  ),
+                  SizedBox(height: 2 * scale),
+                  Text(
+                    _formatPrice(total),
+                    style: textTheme.headlineMedium?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 26 * scale,
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
         ),
-      ),
+        SizedBox(height: 12 * scale),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(10 * scale),
+          ),
+          child: Column(
+            children: <Widget>[
+              for (var i = 0; i < orders.length; i++) ...[
+                _OrderPreviewRow(
+                  scale: scale,
+                  order: orders[i],
+                  colors: colors,
+                  textTheme: textTheme,
+                ),
+                if (i < orders.length - 1)
+                  Divider(height: 1, color: colors.outlineVariant),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -641,7 +675,7 @@ class _OrderPreviewRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colors.onPrimaryContainer,
+                      color: colors.onSurface,
                       fontWeight: FontWeight.w600,
                       fontSize: 13 * scale,
                     ),
@@ -674,7 +708,7 @@ class _OrderPreviewRow extends StatelessWidget {
             Text(
               order.price,
               style: textTheme.bodyMedium?.copyWith(
-                color: colors.onPrimaryContainer,
+                color: colors.onSurface,
                 fontWeight: FontWeight.w700,
                 fontSize: 13 * scale,
               ),
@@ -696,24 +730,18 @@ class _MaterialStoresSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                l10n.homeSupportedStores,
-                style: textTheme.titleMedium?.copyWith(
-                  color: colors.onSurface,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16 * scale,
-                ),
-              ),
-            ),
-            GestureDetector(
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _InfoCardHeader(
+            icon: Icons.storefront_outlined,
+            iconColor: colors.secondary,
+            iconBg: colors.secondaryContainer,
+            title: l10n.homeSupportedStores,
+            action: _SectionViewAllLink(
+              label: l10n.homeViewAllStores,
               onTap: () {
                 Navigator.push(
                   context,
@@ -725,39 +753,22 @@ class _MaterialStoresSection extends StatelessWidget {
                   ),
                 );
               },
-              child: Row(
-                children: <Widget>[
-                  Text(
-                    l10n.homeViewAllStores,
-                    style: textTheme.labelMedium?.copyWith(
-                      color: colors.primary,
-                      fontSize: 13 * scale,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: colors.primary,
-                    size: 16 * scale,
-                  ),
-                ],
-              ),
             ),
-          ],
-        ),
-        SizedBox(height: 8 * scale),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10 * scale,
-          crossAxisSpacing: 10 * scale,
-          childAspectRatio: 2.8,
-          children: stores
-              .map((s) => _StoreTile(scale: scale, store: s))
-              .toList(),
-        ),
-      ],
+          ),
+          SizedBox(height: 14 * scale),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10 * scale,
+            crossAxisSpacing: 10 * scale,
+            childAspectRatio: 2.8,
+            children: stores
+                .map((s) => _StoreTile(scale: scale, store: s))
+                .toList(),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -779,7 +790,6 @@ class _StoreTile extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12 * scale),
-          border: Border.all(color: colors.outlineVariant),
           color: colors.surfaceContainerLow,
         ),
         child: Padding(
@@ -1092,18 +1102,6 @@ class _CupertinoHomeLargeNavBar extends StatelessWidget {
                         onTap: () => Navigator.of(context).push(
                           CupertinoPageRoute<void>(
                             builder: (_) => const NotificationsScreen(),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 18 * scale),
-                      FeyamCartButton(
-                        count: 0,
-                        onTap: () => Navigator.of(context).push(
-                          CupertinoPageRoute<void>(
-                            builder: (_) => BlocProvider(
-                              create: (_) => sl<CartBloc>(),
-                              child: const CartScreen(),
-                            ),
                           ),
                         ),
                       ),
