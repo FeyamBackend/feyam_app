@@ -1,6 +1,7 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/orders/domain/entities/order_display_status.dart';
@@ -25,7 +26,8 @@ class OrderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<RecentOrdersBloc>(
       create: (_) =>
-          sl<RecentOrdersBloc>()..add(const RecentOrdersLoadRequested(take: _ordersTake)),
+          sl<RecentOrdersBloc>()
+            ..add(const RecentOrdersLoadRequested(take: _ordersTake)),
       child: AdaptivePlatform.isCupertino(context)
           ? const _CupertinoOrdersContent()
           : const _MaterialOrdersContent(),
@@ -57,47 +59,74 @@ String _formatPrice(double amount) => '\$${amount.toStringAsFixed(2)}';
 
 String _formatDate(DateTime d) {
   const months = [
-    'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-    'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
   ];
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
 
 _OrderVm _toOrderVm(RecentOrderEntity o) => _OrderVm(
-      id: o.orderId,
-      title: o.title,
-      price: _formatPrice(o.chargedAmount),
-      date: _formatDate(o.createdDate),
-      status: o.displayStatus,
-      imageUrl: o.imageUrl,
-    );
+  id: o.orderId,
+  title: o.title,
+  price: _formatPrice(o.chargedAmount),
+  date: _formatDate(o.createdDate),
+  status: o.displayStatus,
+  imageUrl: o.imageUrl,
+);
 
 String _statusLabel(AppLocalizations l10n, OrderDisplayStatus s) => switch (s) {
-      OrderDisplayStatus.review => l10n.ordersStatusEnRevision,
-      OrderDisplayStatus.payment => l10n.ordersStatusPorPagar,
-      OrderDisplayStatus.shipping => l10n.ordersStatusEnCamino,
-      OrderDisplayStatus.delivered => l10n.ordersStatusEntregado,
-    };
+  OrderDisplayStatus.review => l10n.ordersStatusEnRevision,
+  OrderDisplayStatus.payment => l10n.ordersStatusPorPagar,
+  OrderDisplayStatus.shipping => l10n.ordersStatusEnCamino,
+  OrderDisplayStatus.delivered => l10n.ordersStatusEntregado,
+};
 
 /// Status pill colors — match the STATUS table in the Feyam MD3 Design System,
 /// shared verbatim with [FeyamStatusBadge] so both platforms render identically.
 ({Color bg, Color fg}) _statusStyle(OrderDisplayStatus s) => switch (s) {
-      OrderDisplayStatus.review => (bg: const Color(0xFFFDF1E0), fg: const Color(0xFFA8710F)),
-      OrderDisplayStatus.payment => (bg: const Color(0xFFDEE8C3), fg: const Color(0xFF5C6600)),
-      OrderDisplayStatus.shipping => (bg: const Color(0xFFDBE8FB), fg: kFeyamTeal),
-      OrderDisplayStatus.delivered => (bg: const Color(0xFFD2EAD1), fg: const Color(0xFF1F6B26)),
-    };
+  OrderDisplayStatus.review => (
+    bg: const Color(0xFFFDF1E0),
+    fg: const Color(0xFFA8710F),
+  ),
+  OrderDisplayStatus.payment => (
+    bg: const Color(0xFFDEE8C3),
+    fg: const Color(0xFF5C6600),
+  ),
+  OrderDisplayStatus.shipping => (bg: const Color(0xFFDBE8FB), fg: kFeyamTeal),
+  OrderDisplayStatus.delivered => (
+    bg: const Color(0xFFD2EAD1),
+    fg: const Color(0xFF1F6B26),
+  ),
+};
 
 /// tabIndex: 0=todos, 1=en revisión, 2=en tránsito, 3=entregados.
-List<_OrderVm> _filterOrders(List<_OrderVm> orders, int tabIndex) => switch (tabIndex) {
-      1 => orders.where((o) => o.status == OrderDisplayStatus.review).toList(),
-      2 => orders.where((o) => o.status == OrderDisplayStatus.shipping).toList(),
-      3 => orders.where((o) => o.status == OrderDisplayStatus.delivered).toList(),
-      _ => orders,
-    };
+List<_OrderVm> _filterOrders(
+  List<_OrderVm> orders,
+  int tabIndex,
+) => switch (tabIndex) {
+  1 => orders.where((o) => o.status == OrderDisplayStatus.review).toList(),
+  2 => orders.where((o) => o.status == OrderDisplayStatus.shipping).toList(),
+  3 => orders.where((o) => o.status == OrderDisplayStatus.delivered).toList(),
+  _ => orders,
+};
 
 class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.scale, required this.label, required this.bg, required this.fg});
+  const _StatusPill({
+    required this.scale,
+    required this.label,
+    required this.bg,
+    required this.fg,
+  });
 
   final double scale;
   final String label;
@@ -107,14 +136,24 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 9 * scale, vertical: 4 * scale),
+        padding: EdgeInsets.symmetric(
+          horizontal: 9 * scale,
+          vertical: 4 * scale,
+        ),
         child: Text(
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 11 * scale),
+          style: TextStyle(
+            color: fg,
+            fontWeight: FontWeight.w700,
+            fontSize: 11 * scale,
+          ),
         ),
       ),
     );
@@ -151,9 +190,38 @@ class _MaterialOrdersContentState extends State<_MaterialOrdersContent> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    _Md3OrdersHeroHeader(scale: scale),
+                    FeyamHeroHeader(
+                      scale: scale,
+                      showBackButton: true,
+                      title: l10n.ordersHistoryTitle,
+                      subtitle: l10n.ordersHistorySubtitle,
+                      trailing: IconButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const NotificationsScreen(),
+                          ),
+                        ),
+                        padding: EdgeInsets.zero,
+                        icon: Badge.count(
+                          count: context.watch<UnreadCountBloc>().state.count,
+                          isLabelVisible:
+                              context.watch<UnreadCountBloc>().state.count > 0,
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            color: colors.onPrimary,
+                            size: 22 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 0, 0),
+                      padding: EdgeInsets.fromLTRB(
+                        16 * scale,
+                        16 * scale,
+                        0,
+                        0,
+                      ),
                       child: _Md3FilterPills(
                         scale: scale,
                         selectedIndex: _tabIndex,
@@ -177,7 +245,11 @@ class _MaterialOrdersContentState extends State<_MaterialOrdersContent> {
     );
   }
 
-  Widget _buildBody(BuildContext context, RecentOrdersState state, double scale) {
+  Widget _buildBody(
+    BuildContext context,
+    RecentOrdersState state,
+    double scale,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -212,9 +284,9 @@ class _MaterialOrdersContentState extends State<_MaterialOrdersContent> {
                 ),
                 SizedBox(height: 12 * scale),
                 FilledButton.tonal(
-                  onPressed: () => context
-                      .read<RecentOrdersBloc>()
-                      .add(const RecentOrdersLoadRequested(take: _ordersTake)),
+                  onPressed: () => context.read<RecentOrdersBloc>().add(
+                    const RecentOrdersLoadRequested(take: _ordersTake),
+                  ),
                   child: Text(l10n.ordersRetry),
                 ),
               ],
@@ -308,85 +380,6 @@ class _Md3EmptyState extends StatelessWidget {
   }
 }
 
-class _Md3OrdersHeroHeader extends StatelessWidget {
-  const _Md3OrdersHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-    final unreadCount = context.watch<UnreadCountBloc>().state.count;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(12 * scale, 6 * scale, 16 * scale, 20 * scale),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36 * scale,
-                      minHeight: 36 * scale,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                  Image.asset('assets/branding/logo_white.png', height: 22 * scale),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
-                    ),
-                    icon: Badge.count(
-                      count: unreadCount,
-                      isLabelVisible: unreadCount > 0,
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        color: colors.onPrimary,
-                        size: 22 * scale,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 14 * scale),
-              Text(
-                l10n.ordersHistoryTitle,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 4 * scale),
-              Text(
-                l10n.ordersHistorySubtitle,
-                style: TextStyle(
-                  color: colors.onPrimary.withValues(alpha: 0.85),
-                  fontSize: 13.5 * scale,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _Md3FilterPills extends StatelessWidget {
   const _Md3FilterPills({
     required this.scale,
@@ -421,7 +414,9 @@ class _Md3FilterPills extends StatelessWidget {
                 duration: const Duration(milliseconds: 180),
                 padding: EdgeInsets.symmetric(horizontal: 16 * scale),
                 decoration: BoxDecoration(
-                  color: selected ? colors.primary : colors.surfaceContainerLowest,
+                  color: selected
+                      ? colors.primary
+                      : colors.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
                     color: selected ? colors.primary : colors.outlineVariant,
@@ -431,7 +426,9 @@ class _Md3FilterPills extends StatelessWidget {
                 child: Text(
                   labels[i],
                   style: TextStyle(
-                    color: selected ? colors.onPrimary : colors.onSurfaceVariant,
+                    color: selected
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     fontSize: 13 * scale,
                   ),
@@ -455,7 +452,11 @@ class _Md3OrderThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final size = 56 * scale;
-    final placeholder = Icon(Icons.inventory_2_rounded, size: 26 * scale, color: colors.onSurfaceVariant);
+    final placeholder = Icon(
+      Icons.inventory_2_rounded,
+      size: 26 * scale,
+      color: colors.onSurfaceVariant,
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12 * scale),
@@ -545,7 +546,11 @@ class _Md3OrderCard extends StatelessWidget {
                     SizedBox(height: 6 * scale),
                     Row(
                       children: <Widget>[
-                        Icon(Icons.calendar_today_rounded, size: 12 * scale, color: colors.primary),
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 12 * scale,
+                          color: colors.primary,
+                        ),
                         SizedBox(width: 4 * scale),
                         Expanded(
                           child: Text(
@@ -573,7 +578,11 @@ class _Md3OrderCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 4 * scale),
-              Icon(Icons.chevron_right_rounded, size: 20 * scale, color: colors.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20 * scale,
+                color: colors.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -588,7 +597,8 @@ class _CupertinoOrdersContent extends StatefulWidget {
   const _CupertinoOrdersContent();
 
   @override
-  State<_CupertinoOrdersContent> createState() => _CupertinoOrdersContentState();
+  State<_CupertinoOrdersContent> createState() =>
+      _CupertinoOrdersContentState();
 }
 
 class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
@@ -612,7 +622,12 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                 children: <Widget>[
                   _CupertinoOrdersHeroHeader(scale: scale),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(16 * scale, 18 * scale, 16 * scale, 2 * scale),
+                    padding: EdgeInsets.fromLTRB(
+                      16 * scale,
+                      18 * scale,
+                      16 * scale,
+                      2 * scale,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -627,7 +642,10 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                         SizedBox(height: 4 * scale),
                         Text(
                           l10n.ordersHistorySubtitle,
-                          style: TextStyle(color: kFeyamLabelSec, fontSize: 13.5 * scale),
+                          style: TextStyle(
+                            color: kFeyamLabelSec,
+                            fontSize: 13.5 * scale,
+                          ),
                         ),
                       ],
                     ),
@@ -656,7 +674,11 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
     );
   }
 
-  Widget _buildBody(BuildContext context, RecentOrdersState state, double scale) {
+  Widget _buildBody(
+    BuildContext context,
+    RecentOrdersState state,
+    double scale,
+  ) {
     final l10n = AppLocalizations.of(context)!;
 
     switch (state.status) {
@@ -677,9 +699,9 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
                 ),
                 SizedBox(height: 12 * scale),
                 CupertinoButton(
-                  onPressed: () => context
-                      .read<RecentOrdersBloc>()
-                      .add(const RecentOrdersLoadRequested(take: _ordersTake)),
+                  onPressed: () => context.read<RecentOrdersBloc>().add(
+                    const RecentOrdersLoadRequested(take: _ordersTake),
+                  ),
                   child: Text(l10n.ordersRetry),
                 ),
               ],
@@ -705,7 +727,12 @@ class _CupertinoOrdersContentState extends State<_CupertinoOrdersContent> {
         }
 
         return ListView.separated(
-          padding: EdgeInsets.fromLTRB(16 * scale, 16 * scale, 16 * scale, 32 * scale),
+          padding: EdgeInsets.fromLTRB(
+            16 * scale,
+            16 * scale,
+            16 * scale,
+            32 * scale,
+          ),
           itemCount: filtered.length,
           separatorBuilder: (_, _) => SizedBox(height: 5 * scale),
           itemBuilder: (context, index) =>
@@ -729,19 +756,30 @@ class _CupertinoOrdersHeroHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 16 * scale, 8 * scale),
+          padding: EdgeInsets.fromLTRB(
+            16 * scale,
+            8 * scale,
+            16 * scale,
+            8 * scale,
+          ),
           child: Row(
             children: <Widget>[
               Image.asset('assets/branding/logo_white.png', height: 22 * scale),
               const Spacer(),
               GestureDetector(
                 onTap: () => Navigator.of(context).push(
-                  CupertinoPageRoute<void>(builder: (_) => const NotificationsScreen()),
+                  CupertinoPageRoute<void>(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
                 ),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: <Widget>[
-                    Icon(CupertinoIcons.bell, size: 22 * scale, color: CupertinoColors.white),
+                    Icon(
+                      CupertinoIcons.bell,
+                      size: 22 * scale,
+                      color: CupertinoColors.white,
+                    ),
                     if (unreadCount > 0)
                       Positioned(
                         top: -4 * scale,
@@ -749,7 +787,10 @@ class _CupertinoOrdersHeroHeader extends StatelessWidget {
                         child: Container(
                           width: 16 * scale,
                           height: 16 * scale,
-                          decoration: const BoxDecoration(color: kFeyamRed, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(
+                            color: kFeyamRed,
+                            shape: BoxShape.circle,
+                          ),
                           child: Center(
                             child: Text(
                               '$unreadCount',
@@ -808,7 +849,9 @@ class _CupertinoFilterPills extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: selected ? kFeyamTint : kFeyamCard,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: selected ? kFeyamTint : kFeyamSepLight),
+                  border: Border.all(
+                    color: selected ? kFeyamTint : kFeyamSepLight,
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -837,7 +880,11 @@ class _CupertinoOrderThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = 56 * scale;
-    final placeholder = Icon(CupertinoIcons.cube_box_fill, size: 26 * scale, color: kFeyamLabelSec);
+    final placeholder = Icon(
+      CupertinoIcons.cube_box_fill,
+      size: 26 * scale,
+      color: kFeyamLabelSec,
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12 * scale),
@@ -924,20 +971,31 @@ class _CupertinoOrderCard extends StatelessWidget {
                   SizedBox(height: 6 * scale),
                   Row(
                     children: <Widget>[
-                      Icon(CupertinoIcons.calendar, size: 12 * scale, color: kFeyamTint),
+                      Icon(
+                        CupertinoIcons.calendar,
+                        size: 12 * scale,
+                        color: kFeyamTint,
+                      ),
                       SizedBox(width: 4 * scale),
                       Expanded(
                         child: Text(
                           order.date,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: kFeyamTint, fontSize: 11.5 * scale),
+                          style: TextStyle(
+                            color: kFeyamTint,
+                            fontSize: 11.5 * scale,
+                          ),
                         ),
                       ),
                       SizedBox(width: 6 * scale),
                       Text(
                         order.price,
-                        style: TextStyle(color: kFeyamLabel, fontWeight: FontWeight.w700, fontSize: 14.5 * scale),
+                        style: TextStyle(
+                          color: kFeyamLabel,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5 * scale,
+                        ),
                       ),
                     ],
                   ),
@@ -945,7 +1003,11 @@ class _CupertinoOrderCard extends StatelessWidget {
               ),
             ),
             SizedBox(width: 4 * scale),
-            Icon(CupertinoIcons.chevron_right, size: 18 * scale, color: kFeyamLabelTer),
+            Icon(
+              CupertinoIcons.chevron_right,
+              size: 18 * scale,
+              color: kFeyamLabelTer,
+            ),
           ],
         ),
       ),

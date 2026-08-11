@@ -4,6 +4,7 @@ import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/push/device_token_service.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/help/presentation/screens/help_screen.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
@@ -59,8 +60,10 @@ class _MaterialProfileContent extends StatelessWidget {
         final scale = (constraints.maxWidth / 390).clamp(0.9, 1.1);
         // The scrollable content starts above the header's bottom edge so the
         // profile card overlaps into the navy area, matching the design.
-        const cardOverlap = 28.0;
-        final headerHeight = MediaQuery.of(context).padding.top + 76 * scale;
+        // Capped at the header's own bottom padding (8) so the card never
+        // rides up over the logo/bell row above it.
+        const cardOverlap = 8.0;
+        final headerHeight = MediaQuery.of(context).padding.top + 52 * scale;
 
         return ColoredBox(
           color: colors.surface,
@@ -71,7 +74,28 @@ class _MaterialProfileContent extends StatelessWidget {
                 left: 0,
                 right: 0,
                 height: headerHeight,
-                child: _MaterialProfileHeader(scale: scale),
+                child: FeyamHeroHeader(
+                  scale: scale,
+                  trailing: IconButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    ),
+                    padding: EdgeInsets.zero,
+                    icon: Badge.count(
+                      count: context.watch<UnreadCountBloc>().state.count,
+                      isLabelVisible:
+                          context.watch<UnreadCountBloc>().state.count > 0,
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        color: colors.onPrimary,
+                        size: 22 * scale,
+                      ),
+                    ),
+                  ),
+                ),
               ),
               Positioned.fill(
                 top: headerHeight - cardOverlap * scale,
@@ -94,14 +118,16 @@ class _MaterialProfileContent extends StatelessWidget {
                         icon: Icons.inventory_2_outlined,
                         iconColor: colors.primary,
                         onTap: () {
-                          final unreadCountBloc = context.read<UnreadCountBloc>();
+                          final unreadCountBloc = context
+                              .read<UnreadCountBloc>();
                           Navigator.push(
                             context,
                             MaterialPageRoute<void>(
-                              builder: (_) => BlocProvider<UnreadCountBloc>.value(
-                                value: unreadCountBloc,
-                                child: const OrderScreen(),
-                              ),
+                              builder: (_) =>
+                                  BlocProvider<UnreadCountBloc>.value(
+                                    value: unreadCountBloc,
+                                    child: const OrderScreen(),
+                                  ),
                             ),
                           );
                         },
@@ -178,60 +204,6 @@ class _MaterialProfileContent extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _MaterialProfileHeader extends StatelessWidget {
-  const _MaterialProfileHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 76 * scale,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20 * scale,
-              vertical: 12 * scale,
-            ),
-            child: Row(
-              children: <Widget>[
-                Image.asset(
-                  'assets/branding/logo_white.png',
-                  height: 28 * scale,
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => const NotificationsScreen(),
-                    ),
-                  ),
-                  icon: Badge.count(
-                    count: context.watch<UnreadCountBloc>().state.count,
-                    isLabelVisible:
-                        context.watch<UnreadCountBloc>().state.count > 0,
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: colors.onPrimary,
-                      size: 24 * scale,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

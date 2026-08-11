@@ -1,3 +1,4 @@
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
 import 'package:feyam/features/profile/domain/entities/address_params.dart';
 import 'package:feyam/features/profile/domain/entities/address_subdivision_entity.dart';
@@ -78,7 +79,11 @@ class _AddressesScreenState extends State<AddressesScreen> {
           backgroundColor: colors.surface,
           body: Column(
             children: <Widget>[
-              _AddressesHeroHeader(scale: scale),
+              FeyamHeroHeader(
+                scale: scale,
+                showBackButton: true,
+                title: l10n.addressesTitle,
+              ),
               Expanded(
                 child: BlocConsumer<AddressesBloc, AddressesState>(
                   listenWhen: (prev, curr) =>
@@ -203,68 +208,6 @@ class _AddressesScreenState extends State<AddressesScreen> {
   }
 }
 
-class _AddressesHeroHeader extends StatelessWidget {
-  const _AddressesHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            12 * scale,
-            6 * scale,
-            16 * scale,
-            20 * scale,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36 * scale,
-                      minHeight: 36 * scale,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                  Image.asset(
-                    'assets/branding/logo_white.png',
-                    height: 22 * scale,
-                  ),
-                ],
-              ),
-              SizedBox(height: 14 * scale),
-              Text(
-                l10n.addressesTitle,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _AddressCard extends StatelessWidget {
   const _AddressCard({
     required this.scale,
@@ -278,8 +221,9 @@ class _AddressCard extends StatelessWidget {
   final bool isDefault;
   final VoidCallback onTap;
 
-  String _typeLabel(AppLocalizations l10n) =>
-      address.type == 'Billing' ? l10n.addressTypeBilling : l10n.addressTypeShipment;
+  String _typeLabel(AppLocalizations l10n) => address.type == 'Billing'
+      ? l10n.addressTypeBilling
+      : l10n.addressTypeShipment;
 
   String get _subtitle {
     final parts = <String>[
@@ -399,8 +343,11 @@ class _AddressCard extends StatelessWidget {
                 child: SizedBox(
                   width: 36 * scale,
                   height: 36 * scale,
-                  child: Icon(Icons.edit_rounded,
-                      size: 18 * scale, color: colors.onSurfaceVariant),
+                  child: Icon(
+                    Icons.edit_rounded,
+                    size: 18 * scale,
+                    color: colors.onSurfaceVariant,
+                  ),
                 ),
               ),
             ],
@@ -556,8 +503,9 @@ class _AddressSheetState extends State<_AddressSheet> {
     );
     _zip = TextEditingController(text: initial?.zipCode ?? '');
     _recipient = TextEditingController(text: initial?.recipient ?? '');
-    _instructions =
-        TextEditingController(text: initial?.deliveryInstructions ?? '');
+    _instructions = TextEditingController(
+      text: initial?.deliveryInstructions ?? '',
+    );
   }
 
   @override
@@ -601,7 +549,10 @@ class _AddressSheetState extends State<_AddressSheet> {
         : <AddressSubdivisionEntity>[
             // El backend exige code no nulo; usamos el nombre como código.
             AddressSubdivisionEntity(
-                type: 'Other', code: subName, name: subName),
+              type: 'Other',
+              code: subName,
+              name: subName,
+            ),
           ];
 
     final params = AddressParams(
@@ -609,10 +560,10 @@ class _AddressSheetState extends State<_AddressSheet> {
       countryCode: country.toUpperCase(),
       lines: lines,
       zipCode: _zip.text.trim().isEmpty ? null : _zip.text.trim(),
-      recipient:
-          _recipient.text.trim().isEmpty ? null : _recipient.text.trim(),
-      deliveryInstructions:
-          _instructions.text.trim().isEmpty ? null : _instructions.text.trim(),
+      recipient: _recipient.text.trim().isEmpty ? null : _recipient.text.trim(),
+      deliveryInstructions: _instructions.text.trim().isEmpty
+          ? null
+          : _instructions.text.trim(),
       subdivisions: subdivisions,
     );
 
@@ -629,7 +580,9 @@ class _AddressSheetState extends State<_AddressSheet> {
     );
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: colors.surfaceContainerLow,
@@ -668,12 +621,16 @@ class _AddressSheetState extends State<_AddressSheet> {
                     border: const OutlineInputBorder(),
                   ),
                   items: _addressTypes
-                      .map((t) => DropdownMenuItem<String>(
-                            value: t,
-                            child: Text(t == 'Billing'
+                      .map(
+                        (t) => DropdownMenuItem<String>(
+                          value: t,
+                          child: Text(
+                            t == 'Billing'
                                 ? l10n.addressTypeBilling
-                                : l10n.addressTypeShipment),
-                          ))
+                                : l10n.addressTypeShipment,
+                          ),
+                        ),
+                      )
                       .toList(),
                   onChanged: (v) => setState(() => _type = v ?? _type),
                 ),
@@ -697,8 +654,12 @@ class _AddressSheetState extends State<_AddressSheet> {
                 const SizedBox(height: 16),
                 _field(context, _recipient, l10n.addressRecipient),
                 const SizedBox(height: 16),
-                _field(context, _instructions, l10n.addressInstructions,
-                    maxLines: 2),
+                _field(
+                  context,
+                  _instructions,
+                  l10n.addressInstructions,
+                  maxLines: 2,
+                ),
                 const SizedBox(height: 22),
                 Row(
                   children: <Widget>[
@@ -707,14 +668,16 @@ class _AddressSheetState extends State<_AddressSheet> {
                         onPressed: inProgress
                             ? null
                             : () => widget.onDelete(widget.initial!.id),
-                        style:
-                            TextButton.styleFrom(foregroundColor: colors.error),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colors.error,
+                        ),
                         child: Text(l10n.addressDelete),
                       ),
                     const Spacer(),
                     TextButton(
-                      onPressed:
-                          inProgress ? null : () => Navigator.pop(context),
+                      onPressed: inProgress
+                          ? null
+                          : () => Navigator.pop(context),
                       child: Text(l10n.addressCancel),
                     ),
                     const SizedBox(width: 8),
@@ -724,8 +687,7 @@ class _AddressSheetState extends State<_AddressSheet> {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child:
-                                  CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(l10n.addressSave),
                     ),
@@ -768,8 +730,9 @@ class _AddressSheetState extends State<_AddressSheet> {
       decoration: InputDecoration(
         labelText: l10n.addressCountry,
         border: const OutlineInputBorder(),
-        errorText:
-            _submitted && _countryCode == null ? l10n.addressCountryInvalid : null,
+        errorText: _submitted && _countryCode == null
+            ? l10n.addressCountryInvalid
+            : null,
       ),
       items: items,
       onChanged: loading

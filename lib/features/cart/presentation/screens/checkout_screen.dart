@@ -1,5 +1,6 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:feyam/features/cart/presentation/screens/checkout_success_screen.dart';
@@ -70,7 +71,8 @@ class _CheckoutViewState extends State<_CheckoutView> {
   /// ya no exista (p. ej. tras borrarla).
   void _syncSelection(List<AddressEntity> shipments) {
     final stillValid =
-        _selectedAddressId != null && shipments.any((a) => a.id == _selectedAddressId);
+        _selectedAddressId != null &&
+        shipments.any((a) => a.id == _selectedAddressId);
     if (stillValid) return;
     final next = shipments.isNotEmpty ? shipments.first.id : null;
     if (next != _selectedAddressId) {
@@ -120,7 +122,9 @@ class _CheckoutViewState extends State<_CheckoutView> {
             children: <Widget>[
               Text(
                 l10n.checkoutAddress,
-                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 12),
               for (final a in shipments)
@@ -234,19 +238,21 @@ class _CheckoutViewState extends State<_CheckoutView> {
             final shipments = _shipmentsOf(addressState);
             _syncSelection(shipments);
 
-            final busy = paymentState.status == PaymentStatus.processing ||
+            final busy =
+                paymentState.status == PaymentStatus.processing ||
                 paymentState.status == PaymentStatus.verifying;
             final pricingReady =
                 paymentState.pricingStatus == CheckoutPricingStatus.loaded &&
                 paymentState.pricing != null;
             final canPay = !busy && pricingReady && _selectedAddressId != null;
             final onPay = canPay
-                ? () => context
-                    .read<PaymentBloc>()
-                    .add(PaymentCheckoutRequested(_selectedAddressId!))
+                ? () => context.read<PaymentBloc>().add(
+                    PaymentCheckoutRequested(_selectedAddressId!),
+                  )
                 : null;
-            void onRetryPricing() =>
-                context.read<PaymentBloc>().add(const PaymentPricingRequested());
+            void onRetryPricing() => context.read<PaymentBloc>().add(
+              const PaymentPricingRequested(),
+            );
 
             final addressSection = _AddressSummaryCard(
               status: addressState.status,
@@ -280,7 +286,9 @@ class _CheckoutViewState extends State<_CheckoutView> {
 // ── Shipping address selection ────────────────────────────────────────────────
 
 String _addressTitle(AddressEntity a) =>
-    (a.recipient != null && a.recipient!.isNotEmpty) ? a.recipient! : a.lines.first;
+    (a.recipient != null && a.recipient!.isNotEmpty)
+    ? a.recipient!
+    : a.lines.first;
 
 String _addressSubtitle(AddressEntity a) {
   final parts = <String>[
@@ -415,23 +423,33 @@ class _AddressSummaryCard extends StatelessWidget {
         style: textTheme.bodySmall?.copyWith(color: colors.error, height: 1.4),
       );
       action = TextButton(
-        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+        ),
         onPressed: onRetry,
         child: Text(l10n.addressRetry),
       );
     } else if (shipments.isEmpty) {
       body = Text(
         l10n.checkoutNoShippingAddress,
-        style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant, height: 1.4),
+        style: textTheme.bodySmall?.copyWith(
+          color: colors.onSurfaceVariant,
+          height: 1.4,
+        ),
       );
       action = TextButton.icon(
-        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+        ),
         onPressed: onAdd,
         icon: const Icon(Icons.add_location_alt_rounded, size: 16),
         label: Text(l10n.addressAdd),
       );
     } else {
-      final selected = _selectedOf(shipments, selectedAddressId) ?? shipments.first;
+      final selected =
+          _selectedOf(shipments, selectedAddressId) ?? shipments.first;
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -455,7 +473,10 @@ class _AddressSummaryCard extends StatelessWidget {
         ],
       );
       action = TextButton(
-        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+        ),
         onPressed: onEdit,
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -581,11 +602,16 @@ class _InfoCardHeader extends StatelessWidget {
     return (name: fallback, color: const Color(0xFF6B7280));
   }
   if (host.isEmpty) return (name: fallback, color: const Color(0xFF6B7280));
-  if (host.contains('amazon')) return (name: 'Amazon', color: const Color(0xFFFF9900));
-  if (host.contains('ebay')) return (name: 'eBay', color: const Color(0xFFE53238));
-  if (host.contains('walmart')) return (name: 'Walmart', color: const Color(0xFF0071DC));
-  if (host.contains('bestbuy')) return (name: 'Best Buy', color: const Color(0xFF0A4ABF));
-  if (host.contains('target')) return (name: 'Target', color: const Color(0xFFCC0000));
+  if (host.contains('amazon'))
+    return (name: 'Amazon', color: const Color(0xFFFF9900));
+  if (host.contains('ebay'))
+    return (name: 'eBay', color: const Color(0xFFE53238));
+  if (host.contains('walmart'))
+    return (name: 'Walmart', color: const Color(0xFF0071DC));
+  if (host.contains('bestbuy'))
+    return (name: 'Best Buy', color: const Color(0xFF0A4ABF));
+  if (host.contains('target'))
+    return (name: 'Target', color: const Color(0xFFCC0000));
   if (host.contains('aliexpress')) {
     return (name: 'AliExpress', color: const Color(0xFFE62E04));
   }
@@ -622,83 +648,6 @@ class _StoreBadge extends StatelessWidget {
 }
 
 // ── Hero header ────────────────────────────────────────────────────────────────
-
-class _CheckoutHeroHeader extends StatelessWidget {
-  const _CheckoutHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(12 * scale, 6 * scale, 16 * scale, 20 * scale),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36 * scale,
-                      minHeight: 36 * scale,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                  Image.asset('assets/branding/logo_white.png', height: 22 * scale),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      AdaptivePlatform.pageRoute<void>(
-                        context: context,
-                        builder: (_) => const NotificationsScreen(),
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.notifications_outlined,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 14 * scale),
-              Text(
-                l10n.checkoutHeroTitle,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 26 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 4 * scale),
-              Text(
-                l10n.checkoutHeroSubtitle,
-                style: TextStyle(
-                  color: colors.onPrimary.withValues(alpha: 0.85),
-                  fontSize: 14 * scale,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ── Checkout content ──────────────────────────────────────────────────────────
 
@@ -737,7 +686,28 @@ class _CheckoutContent extends StatelessWidget {
           backgroundColor: colors.surface,
           body: Column(
             children: <Widget>[
-              _CheckoutHeroHeader(scale: scale),
+              FeyamHeroHeader(
+                scale: scale,
+                showBackButton: true,
+                title: l10n.checkoutHeroTitle,
+                titleFontSize: 26,
+                subtitle: l10n.checkoutHeroSubtitle,
+                trailing: IconButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    AdaptivePlatform.pageRoute<void>(
+                      context: context,
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  ),
+                  padding: EdgeInsets.zero,
+                  icon: Icon(
+                    Icons.notifications_outlined,
+                    color: colors.onPrimary,
+                    size: 22 * scale,
+                  ),
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(
@@ -776,7 +746,12 @@ class _CheckoutContent extends StatelessWidget {
                   border: Border(top: BorderSide(color: colors.outlineVariant)),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 16 * scale),
+                  padding: EdgeInsets.fromLTRB(
+                    16 * scale,
+                    12 * scale,
+                    16 * scale,
+                    16 * scale,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -803,7 +778,9 @@ class _CheckoutContent extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            pricing != null ? _formatCurrency(pricing!.total) : '—',
+                            pricing != null
+                                ? _formatCurrency(pricing!.total)
+                                : '—',
                             style: textTheme.titleLarge?.copyWith(
                               color: colors.secondary,
                               fontWeight: FontWeight.w700,
@@ -822,7 +799,9 @@ class _CheckoutContent extends StatelessWidget {
                                   width: 18 * scale,
                                   height: 18 * scale,
                                   child: CircularProgressIndicator.adaptive(
-                                    valueColor: AlwaysStoppedAnimation(colors.onSecondary),
+                                    valueColor: AlwaysStoppedAnimation(
+                                      colors.onSecondary,
+                                    ),
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -830,8 +809,8 @@ class _CheckoutContent extends StatelessWidget {
                           label: Text(
                             busy
                                 ? (verifying
-                                    ? l10n.checkoutVerifying
-                                    : l10n.checkoutProcessing)
+                                      ? l10n.checkoutVerifying
+                                      : l10n.checkoutProcessing)
                                 : l10n.checkoutConfirm,
                           ),
                           style: FilledButton.styleFrom(
@@ -958,7 +937,8 @@ class _ItemsSummaryCard extends StatelessWidget {
             icon: Icons.shopping_bag_rounded,
             iconColor: colors.primary,
             iconBg: colors.primaryContainer,
-            title: '${l10n.checkoutSummary} '
+            title:
+                '${l10n.checkoutSummary} '
                 '(${cart.items.length} ${l10n.checkoutProductsUnit})',
           ),
           const SizedBox(height: 12),
@@ -1112,7 +1092,9 @@ class _PriceBreakdown extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             l10n.checkoutPriceLoading,
-            style: textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+            style: textTheme.bodyMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
           ),
         ],
       );
@@ -1121,9 +1103,15 @@ class _PriceBreakdown extends StatelessWidget {
     final p = pricing!;
     return Column(
       children: <Widget>[
-        _PriceRow(k: l10n.checkoutSubtotal, v: _formatCurrency(p.productsAmount)),
+        _PriceRow(
+          k: l10n.checkoutSubtotal,
+          v: _formatCurrency(p.productsAmount),
+        ),
         _PriceRow(k: l10n.checkoutService, v: _formatCurrency(p.feyamFee)),
-        _PriceRow(k: l10n.checkoutShipping, v: _formatCurrency(p.estimatedLogistics)),
+        _PriceRow(
+          k: l10n.checkoutShipping,
+          v: _formatCurrency(p.estimatedLogistics),
+        ),
         Divider(height: 24, color: colors.outlineVariant),
         _PriceRow(
           k: l10n.checkoutTotal,
@@ -1135,7 +1123,11 @@ class _PriceBreakdown extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(Icons.info_outline_rounded, size: 13, color: colors.onSurfaceVariant),
+            Icon(
+              Icons.info_outline_rounded,
+              size: 13,
+              color: colors.onSurfaceVariant,
+            ),
             const SizedBox(width: 5),
             Expanded(
               child: Text(
@@ -1236,7 +1228,10 @@ class _CouponRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   l10n.checkoutCouponSoon,
-                  style: textTheme.bodySmall?.copyWith(color: dimmed, fontSize: 11.5),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: dimmed,
+                    fontSize: 11.5,
+                  ),
                 ),
               ],
             ),

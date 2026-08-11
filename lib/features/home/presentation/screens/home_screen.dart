@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/product_search/presentation/screens/product_search_screen.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
@@ -132,7 +133,30 @@ class _MaterialHomeContent extends StatelessWidget {
           color: colors.surface,
           child: Column(
             children: <Widget>[
-              _MaterialHomeHeroHeader(scale: scale),
+              FeyamHeroHeader(
+                scale: scale,
+                trailing: IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                  padding: EdgeInsets.zero,
+                  icon: Badge.count(
+                    count: context.watch<UnreadCountBloc>().state.count,
+                    isLabelVisible:
+                        context.watch<UnreadCountBloc>().state.count > 0,
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 22 * scale,
+                    ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(
@@ -159,58 +183,6 @@ class _MaterialHomeContent extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _MaterialHomeHeroHeader extends StatelessWidget {
-  const _MaterialHomeHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final unreadCount = context.watch<UnreadCountBloc>().state.count;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            16 * scale,
-            8 * scale,
-            8 * scale,
-            8 * scale,
-          ),
-          child: Row(
-            children: <Widget>[
-              Image.asset('assets/branding/logo_white.png', height: 22 * scale),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-                icon: Badge.count(
-                  count: unreadCount,
-                  isLabelVisible: unreadCount > 0,
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: colors.onPrimary,
-                    size: 22 * scale,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

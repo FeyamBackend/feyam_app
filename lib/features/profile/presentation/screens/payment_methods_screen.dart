@@ -1,3 +1,4 @@
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -65,7 +66,11 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           backgroundColor: colors.surface,
           body: Column(
             children: <Widget>[
-              _PaymentMethodsHeroHeader(scale: scale),
+              FeyamHeroHeader(
+                scale: scale,
+                showBackButton: true,
+                title: l10n.paymentTitle,
+              ),
               Expanded(
                 child: DefaultTextStyle(
                   style: const TextStyle(decoration: TextDecoration.none),
@@ -180,68 +185,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _PaymentMethodsHeroHeader extends StatelessWidget {
-  const _PaymentMethodsHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            12 * scale,
-            6 * scale,
-            16 * scale,
-            20 * scale,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36 * scale,
-                      minHeight: 36 * scale,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                  Image.asset(
-                    'assets/branding/logo_white.png',
-                    height: 22 * scale,
-                  ),
-                ],
-              ),
-              SizedBox(height: 14 * scale),
-              Text(
-                l10n.paymentTitle,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

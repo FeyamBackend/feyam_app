@@ -1,6 +1,7 @@
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/push/device_token_service.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -131,7 +132,7 @@ class _NotificationSettingsScreenState
       backgroundColor: colors.surface,
       body: Column(
         children: <Widget>[
-          _NotifSettingsHeroHeader(title: l10n.notifSettingsTitle),
+          FeyamHeroHeader(showBackButton: true, title: l10n.notifSettingsTitle),
           Expanded(
             child: DefaultTextStyle(
               style: const TextStyle(decoration: TextDecoration.none),
@@ -242,59 +243,6 @@ class _NotificationSettingsScreenState
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _NotifSettingsHeroHeader extends StatelessWidget {
-  const _NotifSettingsHeroHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 6, 16, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22,
-                    ),
-                  ),
-                  Image.asset('assets/branding/logo_white.png', height: 22),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                title,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

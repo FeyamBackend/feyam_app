@@ -1,5 +1,6 @@
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_event.dart';
@@ -62,7 +63,30 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
                 color: colors.surface,
                 child: Column(
                   children: <Widget>[
-                    _CartHeroHeader(scale: scale),
+                    FeyamHeroHeader(
+                      scale: scale,
+                      trailing: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const NotificationsScreen(),
+                            ),
+                          );
+                        },
+                        padding: EdgeInsets.zero,
+                        icon: Badge.count(
+                          count: context.watch<UnreadCountBloc>().state.count,
+                          isLabelVisible:
+                              context.watch<UnreadCountBloc>().state.count > 0,
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 22 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
                     Expanded(child: _buildMaterialBody(context, state, scale)),
                   ],
                 ),
@@ -74,21 +98,31 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
     );
   }
 
-  Widget _buildMaterialBody(BuildContext context, CartState state, double scale) {
+  Widget _buildMaterialBody(
+    BuildContext context,
+    CartState state,
+    double scale,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
-    if (state.status == CartStatus.loading || state.status == CartStatus.initial) {
+    if (state.status == CartStatus.loading ||
+        state.status == CartStatus.initial) {
       return Center(
         child: SizedBox(
           width: 28 * scale,
           height: 28 * scale,
-          child: CircularProgressIndicator(strokeWidth: 2.5, color: colors.primary),
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: colors.primary,
+          ),
         ),
       );
     }
 
-    if (state.status == CartStatus.empty || state.cart == null || state.cart!.items.isEmpty) {
+    if (state.status == CartStatus.empty ||
+        state.cart == null ||
+        state.cart!.items.isEmpty) {
       return _MaterialCartEmpty(scale: scale);
     }
 
@@ -96,7 +130,9 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
       return Center(
         child: Text(
           l10n.cartErrorTitle,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: colors.onSurfaceVariant),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: colors.onSurfaceVariant),
         ),
       );
     }
@@ -118,9 +154,9 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
                   _MaterialCartItemCard(
                     scale: scale,
                     item: item,
-                    onRemove: () => context
-                        .read<CartBloc>()
-                        .add(CartItemRemoveRequested(item.itemId)),
+                    onRemove: () => context.read<CartBloc>().add(
+                      CartItemRemoveRequested(item.itemId),
+                    ),
                   ),
                   SizedBox(height: 10 * scale),
                 ],
@@ -136,53 +172,6 @@ class _MaterialCartContentState extends State<_MaterialCartContent> {
         ),
         _MaterialCheckoutBar(scale: scale, total: cart.total),
       ],
-    );
-  }
-}
-
-class _CartHeroHeader extends StatelessWidget {
-  const _CartHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final unreadCount = context.watch<UnreadCountBloc>().state.count;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16 * scale, 8 * scale, 8 * scale, 8 * scale),
-          child: Row(
-            children: <Widget>[
-              Image.asset('assets/branding/logo_white.png', height: 22 * scale),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-                icon: Badge.count(
-                  count: unreadCount,
-                  isLabelVisible: unreadCount > 0,
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: colors.onPrimary,
-                    size: 22 * scale,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -214,7 +203,10 @@ class _CartTitleRow extends StatelessWidget {
           ),
           if (itemCount > 0)
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10 * scale, vertical: 4 * scale),
+              padding: EdgeInsets.symmetric(
+                horizontal: 10 * scale,
+                vertical: 4 * scale,
+              ),
               decoration: BoxDecoration(
                 color: colors.primaryContainer,
                 borderRadius: BorderRadius.circular(999),
@@ -410,8 +402,8 @@ class _MaterialQuantityStepper extends StatelessWidget {
             icon: Icons.remove,
             enabled: canDecrement,
             onTap: () => context.read<CartBloc>().add(
-                  CartItemQuantityUpdateRequested(item.itemId, item.quantity - 1),
-                ),
+              CartItemQuantityUpdateRequested(item.itemId, item.quantity - 1),
+            ),
           ),
           SizedBox(
             width: 26 * scale,
@@ -430,8 +422,8 @@ class _MaterialQuantityStepper extends StatelessWidget {
             icon: Icons.add,
             enabled: item.quantity < 3,
             onTap: () => context.read<CartBloc>().add(
-                  CartItemQuantityUpdateRequested(item.itemId, item.quantity + 1),
-                ),
+              CartItemQuantityUpdateRequested(item.itemId, item.quantity + 1),
+            ),
           ),
         ],
       ),
@@ -503,7 +495,10 @@ class _MaterialCartTotals extends StatelessWidget {
           ),
         ],
       ),
-      padding: EdgeInsets.symmetric(horizontal: 16 * scale, vertical: 14 * scale),
+      padding: EdgeInsets.symmetric(
+        horizontal: 16 * scale,
+        vertical: 14 * scale,
+      ),
       child: Column(
         children: <Widget>[
           _MaterialTotalRow(
@@ -587,7 +582,12 @@ class _MaterialCheckoutBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 16 * scale),
+          padding: EdgeInsets.fromLTRB(
+            16 * scale,
+            12 * scale,
+            16 * scale,
+            16 * scale,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -600,7 +600,9 @@ class _MaterialCheckoutBar extends StatelessWidget {
                     if (cart == null) return;
                     Navigator.push(
                       context,
-                      MaterialPageRoute<void>(builder: (_) => CheckoutScreen(cart: cart)),
+                      MaterialPageRoute<void>(
+                        builder: (_) => CheckoutScreen(cart: cart),
+                      ),
                     );
                   },
                   style: FilledButton.styleFrom(
@@ -686,7 +688,9 @@ class _MaterialCartEmpty extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute<void>(builder: (_) => const AddToCartScreen()),
+                MaterialPageRoute<void>(
+                  builder: (_) => const AddToCartScreen(),
+                ),
               ),
               icon: Icon(Icons.link, size: 18 * scale),
               label: Text(l10n.cartEmptyAction),
@@ -731,7 +735,8 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
   Widget build(BuildContext context) {
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, state) {
-        if (state.status == CartStatus.loading || state.status == CartStatus.initial) {
+        if (state.status == CartStatus.loading ||
+            state.status == CartStatus.initial) {
           return const ColoredBox(
             color: kFeyamBg,
             child: Center(child: CupertinoActivityIndicator()),
@@ -759,9 +764,7 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
       color: kFeyamBg,
       child: Column(
         children: <Widget>[
-          CupertinoNavigationBar(
-            middle: Text(l10n.navCart),
-          ),
+          CupertinoNavigationBar(middle: Text(l10n.navCart)),
           Expanded(
             child: FeyamEmptyState(
               icon: CupertinoIcons.cart_fill,
@@ -791,9 +794,7 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
       color: kFeyamBg,
       child: Column(
         children: <Widget>[
-          CupertinoNavigationBar(
-            middle: Text(l10n.navCart),
-          ),
+          CupertinoNavigationBar(middle: Text(l10n.navCart)),
           Expanded(
             child: FeyamEmptyState(
               icon: CupertinoIcons.exclamationmark_circle,
@@ -839,27 +840,28 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                     children: <Widget>[
                       SizedBox(height: 16 * scale),
                       FeyamListSection(
-                        header: '${items.length} producto${items.length > 1 ? 's' : ''}',
+                        header:
+                            '${items.length} producto${items.length > 1 ? 's' : ''}',
                         children: <Widget>[
                           for (var i = 0; i < items.length; i++)
                             _CupertinoCartRow(
                               item: items[i],
                               isLast: i == items.length - 1,
                               onRemove: () => context.read<CartBloc>().add(
-                                    CartItemRemoveRequested(items[i].itemId),
-                                  ),
+                                CartItemRemoveRequested(items[i].itemId),
+                              ),
                               onDecrement: () => context.read<CartBloc>().add(
-                                    CartItemQuantityUpdateRequested(
-                                      items[i].itemId,
-                                      items[i].quantity - 1,
-                                    ),
-                                  ),
+                                CartItemQuantityUpdateRequested(
+                                  items[i].itemId,
+                                  items[i].quantity - 1,
+                                ),
+                              ),
                               onIncrement: () => context.read<CartBloc>().add(
-                                    CartItemQuantityUpdateRequested(
-                                      items[i].itemId,
-                                      items[i].quantity + 1,
-                                    ),
-                                  ),
+                                CartItemQuantityUpdateRequested(
+                                  items[i].itemId,
+                                  items[i].quantity + 1,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -894,10 +896,17 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.fromLTRB(16 * scale, 12 * scale, 16 * scale, 28 * scale),
+                padding: EdgeInsets.fromLTRB(
+                  16 * scale,
+                  12 * scale,
+                  16 * scale,
+                  28 * scale,
+                ),
                 decoration: const BoxDecoration(
                   color: kFeyamCard,
-                  border: Border(top: BorderSide(color: kFeyamSepLight, width: 0.5)),
+                  border: Border(
+                    top: BorderSide(color: kFeyamSepLight, width: 0.5),
+                  ),
                 ),
                 child: SizedBox(
                   width: double.infinity,
@@ -973,7 +982,11 @@ class _CupertinoCartRow extends StatelessWidget {
                             color: kFeyamLabelSec,
                           ),
                         )
-                      : const Icon(CupertinoIcons.cart, size: 26, color: kFeyamLabelSec),
+                      : const Icon(
+                          CupertinoIcons.cart,
+                          size: 26,
+                          color: kFeyamLabelSec,
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -993,7 +1006,10 @@ class _CupertinoCartRow extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(
                           _variantLabel!,
-                          style: const TextStyle(fontSize: 12, color: kFeyamLabelSec),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: kFeyamLabelSec,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 6),
@@ -1014,7 +1030,11 @@ class _CupertinoCartRow extends StatelessWidget {
                   children: <Widget>[
                     GestureDetector(
                       onTap: onRemove,
-                      child: const Icon(CupertinoIcons.trash, size: 18, color: kFeyamRed),
+                      child: const Icon(
+                        CupertinoIcons.trash,
+                        size: 18,
+                        color: kFeyamRed,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -1022,7 +1042,10 @@ class _CupertinoCartRow extends StatelessWidget {
                         color: kFeyamFillTer,
                         borderRadius: BorderRadius.circular(9999),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
@@ -1031,7 +1054,9 @@ class _CupertinoCartRow extends StatelessWidget {
                             child: Icon(
                               CupertinoIcons.minus_circled,
                               size: 22,
-                              color: item.quantity <= 1 ? kFeyamLabelTer : kFeyamTint,
+                              color: item.quantity <= 1
+                                  ? kFeyamLabelTer
+                                  : kFeyamTint,
                             ),
                           ),
                           const SizedBox(width: 6),

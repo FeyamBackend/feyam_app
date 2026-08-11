@@ -3,6 +3,7 @@ import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/product_search/presentation/screens/product_search_screen.dart';
 import 'package:feyam/features/stores/domain/entities/store_entity.dart';
 import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
@@ -50,11 +51,17 @@ class _StoresScreenState extends State<StoresScreen> {
               backgroundColor: colors.surface,
               body: Column(
                 children: <Widget>[
-                  _StoresHeroHeader(scale: scale),
+                  FeyamHeroHeader(
+                    scale: scale,
+                    // Tiendas is both a bottom-nav tab (nothing to pop) and
+                    // a pushed screen (e.g. from Home's "Ver todas"); only
+                    // show the back arrow when there's a route to pop.
+                    showBackButton: Navigator.of(context).canPop(),
+                    title: l10n.storesTitle,
+                  ),
                   Expanded(
                     child: switch (state.status) {
-                      StoresStatus.initial ||
-                      StoresStatus.loading => Center(
+                      StoresStatus.initial || StoresStatus.loading => Center(
                         child: SizedBox(
                           width: 28 * scale,
                           height: 28 * scale,
@@ -92,7 +99,8 @@ class _StoresScreenState extends State<StoresScreen> {
                       StoresStatus.loaded => ListView.separated(
                         padding: EdgeInsets.all(16 * scale),
                         itemCount: state.stores.length + 1,
-                        separatorBuilder: (_, _) => SizedBox(height: 10 * scale),
+                        separatorBuilder: (_, _) =>
+                            SizedBox(height: 10 * scale),
                         itemBuilder: (context, index) {
                           if (index == 0) {
                             return Padding(
@@ -125,68 +133,6 @@ class _StoresScreenState extends State<StoresScreen> {
   }
 }
 
-class _StoresHeroHeader extends StatelessWidget {
-  const _StoresHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            12 * scale,
-            6 * scale,
-            16 * scale,
-            20 * scale,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36 * scale,
-                      minHeight: 36 * scale,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                  Image.asset(
-                    'assets/branding/logo_white.png',
-                    height: 22 * scale,
-                  ),
-                ],
-              ),
-              SizedBox(height: 14 * scale),
-              Text(
-                l10n.storesTitle,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 Future<void> _openStore(String host) async {
   final uri = Uri.parse('https://$host');
   try {
@@ -200,23 +146,23 @@ void _openStoreSearch(BuildContext context, String host) {
   Navigator.of(context).push(
     AdaptivePlatform.pageRoute(
       context: context,
-      builder: (_) => ProductSearchScreen(initialRetailer: zincRetailerSlugFromHost(host)),
+      builder: (_) =>
+          ProductSearchScreen(initialRetailer: zincRetailerSlugFromHost(host)),
     ),
   );
 }
 
 IconData _materialIconFromName(String iconName) => switch (iconName) {
-      'shopping_bag' => Icons.shopping_bag_rounded,
-      'gavel' => Icons.gavel_rounded,
-      'storefront' => Icons.storefront_rounded,
-      'devices' => Icons.devices_rounded,
-      'checkroom' => Icons.checkroom_rounded,
-      'local_mall' => Icons.local_mall_rounded,
-      _ => Icons.store_rounded,
-    };
+  'shopping_bag' => Icons.shopping_bag_rounded,
+  'gavel' => Icons.gavel_rounded,
+  'storefront' => Icons.storefront_rounded,
+  'devices' => Icons.devices_rounded,
+  'checkroom' => Icons.checkroom_rounded,
+  'local_mall' => Icons.local_mall_rounded,
+  _ => Icons.store_rounded,
+};
 
-Color _colorFromHex(String hex) =>
-    Color(int.parse('FF$hex', radix: 16));
+Color _colorFromHex(String hex) => Color(int.parse('FF$hex', radix: 16));
 
 class _StoreListTile extends StatelessWidget {
   const _StoreListTile({required this.scale, required this.store});
@@ -311,14 +257,14 @@ class _StoreListTile extends StatelessWidget {
 // ── Cupertino Stores ──────────────────────────────────────────────────────────
 
 IconData _cupertinoIconFromName(String iconName) => switch (iconName) {
-      'shopping_bag' => CupertinoIcons.bag_fill,
-      'gavel' => CupertinoIcons.hammer_fill,
-      'storefront' => CupertinoIcons.building_2_fill,
-      'devices' => CupertinoIcons.desktopcomputer,
-      'checkroom' => CupertinoIcons.tag_fill,
-      'local_mall' => CupertinoIcons.bag_fill,
-      _ => CupertinoIcons.bag,
-    };
+  'shopping_bag' => CupertinoIcons.bag_fill,
+  'gavel' => CupertinoIcons.hammer_fill,
+  'storefront' => CupertinoIcons.building_2_fill,
+  'devices' => CupertinoIcons.desktopcomputer,
+  'checkroom' => CupertinoIcons.tag_fill,
+  'local_mall' => CupertinoIcons.bag_fill,
+  _ => CupertinoIcons.bag,
+};
 
 class _CupertinoStoresContent extends StatefulWidget {
   const _CupertinoStoresContent();
@@ -338,101 +284,109 @@ class _CupertinoStoresContentState extends State<_CupertinoStoresContent> {
           child: Column(
             children: <Widget>[
               CupertinoNavigationBar(
-                leading: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(CupertinoIcons.chevron_back, size: 18),
-                      SizedBox(width: 2),
-                      Text('Inicio', style: TextStyle(fontSize: 17)),
-                    ],
-                  ),
-                ),
+                // Tiendas is both a bottom-nav tab (nothing to pop) and a
+                // pushed screen (e.g. from Home's "Ver todas"); only show
+                // the back button when there's actually a route to pop.
+                leading: Navigator.of(context).canPop()
+                    ? CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(CupertinoIcons.chevron_back, size: 18),
+                            SizedBox(width: 2),
+                            Text('Inicio', style: TextStyle(fontSize: 17)),
+                          ],
+                        ),
+                      )
+                    : null,
                 middle: const Text('Tiendas soportadas'),
               ),
               Expanded(
                 child: switch (state.status) {
-                  StoresStatus.initial ||
-                  StoresStatus.loading =>
-                    const Center(child: CupertinoActivityIndicator()),
+                  StoresStatus.initial || StoresStatus.loading => const Center(
+                    child: CupertinoActivityIndicator(),
+                  ),
                   StoresStatus.failure => Center(
-                      child: Text(
-                        'No se pudieron cargar las tiendas.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: kFeyamLabelSec,
-                        ),
+                    child: Text(
+                      'No se pudieron cargar las tiendas.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: kFeyamLabelSec,
                       ),
                     ),
+                  ),
                   StoresStatus.loaded => SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(32, 12, 32, 4),
-                            child: Text(
-                              'Tocá una tienda para buscar productos ahí. Usá el ícono para abrirla en tu navegador.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: kFeyamLabelSec,
-                                height: 1.4,
-                              ),
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(32, 12, 32, 4),
+                          child: Text(
+                            'Tocá una tienda para buscar productos ahí. Usá el ícono para abrirla en tu navegador.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: kFeyamLabelSec,
+                              height: 1.4,
                             ),
                           ),
-                          FeyamListSection(
-                            children: <Widget>[
-                              for (var i = 0;
-                                  i < state.stores.length;
-                                  i++)
-                                FeyamListTile(
-                                  title: Text(state.stores[i].name),
-                                  detail: Text(state.stores[i].host),
-                                  leading: FeyamIconTile(
-                                    icon: _cupertinoIconFromName(
-                                        state.stores[i].iconName),
-                                    color: _colorFromHex(
-                                        state.stores[i].colorHex),
+                        ),
+                        FeyamListSection(
+                          children: <Widget>[
+                            for (var i = 0; i < state.stores.length; i++)
+                              FeyamListTile(
+                                title: Text(state.stores[i].name),
+                                detail: Text(state.stores[i].host),
+                                leading: FeyamIconTile(
+                                  icon: _cupertinoIconFromName(
+                                    state.stores[i].iconName,
                                   ),
-                                  trailing: GestureDetector(
-                                    onTap: () =>
-                                        _openStore(state.stores[i].host),
-                                    child: const Padding(
-                                      padding: EdgeInsets.only(left: 6),
-                                      child: Icon(
-                                          CupertinoIcons.arrow_up_right_square,
-                                          size: 18,
-                                          color: kFeyamTint),
+                                  color: _colorFromHex(
+                                    state.stores[i].colorHex,
+                                  ),
+                                ),
+                                trailing: GestureDetector(
+                                  onTap: () => _openStore(state.stores[i].host),
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(left: 6),
+                                    child: Icon(
+                                      CupertinoIcons.arrow_up_right_square,
+                                      size: 18,
+                                      color: kFeyamTint,
                                     ),
                                   ),
-                                  chevron: false,
-                                  isLast: i == state.stores.length - 1,
-                                  onTap: () => zincRetailerSlugFromHost(
-                                              state.stores[i].host) !=
-                                          null
-                                      ? _openStoreSearch(
-                                          context, state.stores[i].host)
-                                      : _openStore(state.stores[i].host),
                                 ),
-                            ],
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32),
-                            child: Text(
-                              '¿No encontrás tu tienda? Contactanos por Ayuda',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: kFeyamLabelTer,
+                                chevron: false,
+                                isLast: i == state.stores.length - 1,
+                                onTap: () =>
+                                    zincRetailerSlugFromHost(
+                                          state.stores[i].host,
+                                        ) !=
+                                        null
+                                    ? _openStoreSearch(
+                                        context,
+                                        state.stores[i].host,
+                                      )
+                                    : _openStore(state.stores[i].host),
                               ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            '¿No encontrás tu tienda? Contactanos por Ayuda',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: kFeyamLabelTer,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
                 },
               ),
             ],

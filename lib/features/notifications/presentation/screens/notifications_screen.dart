@@ -1,4 +1,5 @@
 import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/notifications/domain/entities/notification_entity.dart';
 import 'package:feyam/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:feyam/features/notifications/presentation/bloc/notifications_event.dart';
@@ -36,7 +37,37 @@ class _NotificationsView extends StatelessWidget {
           backgroundColor: colors.surface,
           body: Column(
             children: <Widget>[
-              _NotificationsHeroHeader(scale: scale),
+              FeyamHeroHeader(
+                scale: scale,
+                showBackButton: true,
+                title: AppLocalizations.of(context)!.notifTitle,
+                trailing: BlocBuilder<NotificationsBloc, NotificationsState>(
+                  buildWhen: (previous, current) =>
+                      previous.unreadCount != current.unreadCount,
+                  builder: (context, state) {
+                    if (state.unreadCount == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return TextButton(
+                      onPressed: () => context.read<NotificationsBloc>().add(
+                        const NotificationsMarkAllReadRequested(),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.notifMarkAllRead,
+                        style: TextStyle(
+                          fontSize: 13 * scale,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
               Expanded(
                 child: BlocBuilder<NotificationsBloc, NotificationsState>(
                   builder: (context, state) {
@@ -51,7 +82,11 @@ class _NotificationsView extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, NotificationsState state, double scale) {
+  Widget _buildBody(
+    BuildContext context,
+    NotificationsState state,
+    double scale,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
 
@@ -105,95 +140,12 @@ class _NotificationsView extends StatelessWidget {
   }
 }
 
-class _NotificationsHeroHeader extends StatelessWidget {
-  const _NotificationsHeroHeader({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            12 * scale,
-            6 * scale,
-            16 * scale,
-            20 * scale,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
-                      minWidth: 36 * scale,
-                      minHeight: 36 * scale,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22 * scale,
-                    ),
-                  ),
-                  Image.asset(
-                    'assets/branding/logo_white.png',
-                    height: 22 * scale,
-                  ),
-                  const Spacer(),
-                  BlocBuilder<NotificationsBloc, NotificationsState>(
-                    buildWhen: (previous, current) =>
-                        previous.unreadCount != current.unreadCount,
-                    builder: (context, state) {
-                      if (state.unreadCount == 0) {
-                        return const SizedBox.shrink();
-                      }
-                      return TextButton(
-                        onPressed: () => context.read<NotificationsBloc>().add(
-                          const NotificationsMarkAllReadRequested(),
-                        ),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colors.onPrimary,
-                        ),
-                        child: Text(
-                          l10n.notifMarkAllRead,
-                          style: TextStyle(
-                            fontSize: 13 * scale,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 14 * scale),
-              Text(
-                l10n.notifTitle,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20 * scale,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _NotifCard extends StatelessWidget {
-  const _NotifCard({required this.scale, required this.item, required this.onTap});
+  const _NotifCard({
+    required this.scale,
+    required this.item,
+    required this.onTap,
+  });
 
   final double scale;
   final NotificationEntity item;

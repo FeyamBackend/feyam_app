@@ -1,4 +1,5 @@
 import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/price_adjustment_payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/price_adjustment_payment_event.dart';
@@ -57,7 +58,10 @@ class _PriceAdjustmentPaymentView extends StatelessWidget {
       backgroundColor: colors.surface,
       body: Column(
         children: <Widget>[
-          _PriceAdjustmentHeroHeader(title: l10n.priceAdjustmentTitle),
+          FeyamHeroHeader(
+            showBackButton: true,
+            title: l10n.priceAdjustmentTitle,
+          ),
           Expanded(
             child: DefaultTextStyle(
               style: const TextStyle(decoration: TextDecoration.none),
@@ -147,59 +151,6 @@ class _PriceAdjustmentPaymentView extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PriceAdjustmentHeroHeader extends StatelessWidget {
-  const _PriceAdjustmentHeroHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 6, 16, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
-                    ),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colors.onPrimary,
-                      size: 22,
-                    ),
-                  ),
-                  Image.asset('assets/branding/logo_white.png', height: 22),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                title,
-                style: TextStyle(
-                  color: colors.onPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
