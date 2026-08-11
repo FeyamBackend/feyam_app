@@ -1829,38 +1829,14 @@ abstract class AppLocalizations {
   /// No description provided for @paymentInfo.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll contact you to coordinate payment once we review your order.'**
+  /// **'Your cards are securely stored with Stripe. Add or remove them anytime.'**
   String get paymentInfo;
 
   /// No description provided for @paymentAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add method'**
+  /// **'Add card'**
   String get paymentAdd;
-
-  /// No description provided for @paymentEdit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit method'**
-  String get paymentEdit;
-
-  /// No description provided for @paymentLabelField.
-  ///
-  /// In en, this message translates to:
-  /// **'Name (Bancolombia, Nequi…)'**
-  String get paymentLabelField;
-
-  /// No description provided for @paymentDetailField.
-  ///
-  /// In en, this message translates to:
-  /// **'Number or alias'**
-  String get paymentDetailField;
-
-  /// No description provided for @paymentRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Required'**
-  String get paymentRequired;
 
   /// No description provided for @paymentNoneTitle.
   ///
@@ -1871,7 +1847,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentNoneBody.
   ///
   /// In en, this message translates to:
-  /// **'Save a payment method to speed up your orders.'**
+  /// **'Save a card to speed up your orders.'**
   String get paymentNoneBody;
 
   /// No description provided for @paymentDefault.
@@ -1880,29 +1856,65 @@ abstract class AppLocalizations {
   /// **'Primary'**
   String get paymentDefault;
 
-  /// No description provided for @paymentTypeNequi.
+  /// No description provided for @paymentSetDefault.
   ///
   /// In en, this message translates to:
-  /// **'Nequi'**
-  String get paymentTypeNequi;
+  /// **'Set as default'**
+  String get paymentSetDefault;
 
-  /// No description provided for @paymentTypeBank.
+  /// No description provided for @paymentExpiryLabel.
   ///
   /// In en, this message translates to:
-  /// **'Bank transfer'**
-  String get paymentTypeBank;
+  /// **'Expires'**
+  String get paymentExpiryLabel;
 
-  /// No description provided for @paymentTypeEfecty.
+  /// No description provided for @paymentDeleteConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Efecty'**
-  String get paymentTypeEfecty;
+  /// **'Delete this payment method?'**
+  String get paymentDeleteConfirmTitle;
 
-  /// No description provided for @paymentTypeCard.
+  /// No description provided for @paymentDeleteConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Card'**
-  String get paymentTypeCard;
+  /// **'This action can\'t be undone.'**
+  String get paymentDeleteConfirmBody;
+
+  /// No description provided for @paymentDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method deleted.'**
+  String get paymentDeleteSuccess;
+
+  /// No description provided for @paymentDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t delete the payment method.'**
+  String get paymentDeleteError;
+
+  /// No description provided for @paymentSetDefaultSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method set as default.'**
+  String get paymentSetDefaultSuccess;
+
+  /// No description provided for @paymentSetDefaultError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t update the default payment method.'**
+  String get paymentSetDefaultError;
+
+  /// No description provided for @paymentAddError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t add the card. Please try again.'**
+  String get paymentAddError;
+
+  /// No description provided for @paymentLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your payment methods.'**
+  String get paymentLoadError;
 
   /// No description provided for @termsTitle.
   ///

@@ -914,44 +914,51 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get paymentInfo =>
-      'Te contactamos para coordinar el pago una vez revisemos tu pedido.';
+      'Tus tarjetas se guardan de forma segura en Stripe. Podés agregar o eliminar las que quieras.';
 
   @override
-  String get paymentAdd => 'Agregar método';
-
-  @override
-  String get paymentEdit => 'Editar método';
-
-  @override
-  String get paymentLabelField => 'Nombre (Bancolombia, Nequi…)';
-
-  @override
-  String get paymentDetailField => 'Número o alias';
-
-  @override
-  String get paymentRequired => 'Requerido';
+  String get paymentAdd => 'Agregar tarjeta';
 
   @override
   String get paymentNoneTitle => 'Sin métodos guardados';
 
   @override
-  String get paymentNoneBody =>
-      'Guardá un método de pago para agilizar tus pedidos.';
+  String get paymentNoneBody => 'Guardá una tarjeta para agilizar tus pedidos.';
 
   @override
   String get paymentDefault => 'Principal';
 
   @override
-  String get paymentTypeNequi => 'Nequi';
+  String get paymentSetDefault => 'Marcar como principal';
 
   @override
-  String get paymentTypeBank => 'Transferencia';
+  String get paymentExpiryLabel => 'Vence';
 
   @override
-  String get paymentTypeEfecty => 'Efecty';
+  String get paymentDeleteConfirmTitle => '¿Eliminar este método de pago?';
 
   @override
-  String get paymentTypeCard => 'Tarjeta';
+  String get paymentDeleteConfirmBody => 'Esta acción no se puede deshacer.';
+
+  @override
+  String get paymentDeleteSuccess => 'Método de pago eliminado.';
+
+  @override
+  String get paymentDeleteError => 'No pudimos eliminar el método de pago.';
+
+  @override
+  String get paymentSetDefaultSuccess => 'Método marcado como principal.';
+
+  @override
+  String get paymentSetDefaultError =>
+      'No pudimos actualizar el método principal.';
+
+  @override
+  String get paymentAddError =>
+      'No pudimos agregar la tarjeta. Intentá de nuevo.';
+
+  @override
+  String get paymentLoadError => 'No pudimos cargar tus métodos de pago.';
 
   @override
   String get termsTitle => 'Términos y condiciones';

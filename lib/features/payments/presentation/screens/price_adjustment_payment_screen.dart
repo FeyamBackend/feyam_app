@@ -40,6 +40,7 @@ class _PriceAdjustmentPaymentView extends StatelessWidget {
       case PaymentFailureCode.cancelled:
         return l10n.paymentCancelled;
       case PaymentFailureCode.serverError:
+      case PaymentFailureCode.notFound:
       case PaymentFailureCode.unknown:
       case null:
         return l10n.paymentErrorGeneric;

@@ -910,44 +910,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentInfo =>
-      'We\'ll contact you to coordinate payment once we review your order.';
+      'Your cards are securely stored with Stripe. Add or remove them anytime.';
 
   @override
-  String get paymentAdd => 'Add method';
-
-  @override
-  String get paymentEdit => 'Edit method';
-
-  @override
-  String get paymentLabelField => 'Name (Bancolombia, Nequi…)';
-
-  @override
-  String get paymentDetailField => 'Number or alias';
-
-  @override
-  String get paymentRequired => 'Required';
+  String get paymentAdd => 'Add card';
 
   @override
   String get paymentNoneTitle => 'No saved methods';
 
   @override
-  String get paymentNoneBody =>
-      'Save a payment method to speed up your orders.';
+  String get paymentNoneBody => 'Save a card to speed up your orders.';
 
   @override
   String get paymentDefault => 'Primary';
 
   @override
-  String get paymentTypeNequi => 'Nequi';
+  String get paymentSetDefault => 'Set as default';
 
   @override
-  String get paymentTypeBank => 'Bank transfer';
+  String get paymentExpiryLabel => 'Expires';
 
   @override
-  String get paymentTypeEfecty => 'Efecty';
+  String get paymentDeleteConfirmTitle => 'Delete this payment method?';
 
   @override
-  String get paymentTypeCard => 'Card';
+  String get paymentDeleteConfirmBody => 'This action can\'t be undone.';
+
+  @override
+  String get paymentDeleteSuccess => 'Payment method deleted.';
+
+  @override
+  String get paymentDeleteError => 'We couldn\'t delete the payment method.';
+
+  @override
+  String get paymentSetDefaultSuccess => 'Payment method set as default.';
+
+  @override
+  String get paymentSetDefaultError =>
+      'We couldn\'t update the default payment method.';
+
+  @override
+  String get paymentAddError => 'We couldn\'t add the card. Please try again.';
+
+  @override
+  String get paymentLoadError => 'We couldn\'t load your payment methods.';
 
   @override
   String get termsTitle => 'Terms & Conditions';

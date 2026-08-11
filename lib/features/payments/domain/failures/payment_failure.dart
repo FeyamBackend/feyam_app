@@ -4,6 +4,7 @@ enum PaymentFailureCode {
   cancelled,
   networkError,
   serverError,
+  notFound,
   unknown,
 }
 

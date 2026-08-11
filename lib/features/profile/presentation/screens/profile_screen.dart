@@ -14,6 +14,7 @@ import 'package:feyam/features/orders/presentation/screens/order_screen.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
 import 'package:feyam/features/profile/domain/entities/address_params.dart';
 import 'package:feyam/features/profile/domain/entities/address_subdivision_entity.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_methods_bloc.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_state.dart';
@@ -159,7 +160,10 @@ class _MaterialProfileContent extends StatelessWidget {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute<void>(
-                            builder: (_) => const PaymentMethodsScreen(),
+                            builder: (_) => BlocProvider<PaymentMethodsBloc>(
+                              create: (_) => sl<PaymentMethodsBloc>(),
+                              child: const PaymentMethodsScreen(),
+                            ),
                           ),
                         ),
                       ),

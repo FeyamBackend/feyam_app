@@ -206,6 +206,7 @@ class _CheckoutViewState extends State<_CheckoutView> {
       case PaymentFailureCode.cancelled:
         return l10n.paymentCancelled;
       case PaymentFailureCode.serverError:
+      case PaymentFailureCode.notFound:
       case PaymentFailureCode.unknown:
       case null:
         return l10n.paymentErrorGeneric;

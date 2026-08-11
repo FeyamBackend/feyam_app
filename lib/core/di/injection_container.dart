@@ -4,6 +4,7 @@ import 'package:feyam/core/config/app_config.dart';
 import 'package:feyam/core/config/app_flavor.dart';
 import 'package:feyam/core/network/authenticated_http_client.dart';
 import 'package:feyam/core/network/session_expired_notifier.dart';
+import 'package:feyam/core/payments/payment_method_gateway_registry.dart';
 import 'package:feyam/core/payments/stripe_payment_service.dart';
 import 'package:feyam/core/push/device_token_service.dart';
 import 'package:feyam/core/push/local_notifications_service.dart';
@@ -24,14 +25,22 @@ import 'package:feyam/features/cart/domain/usecases/remove_cart_item.dart';
 import 'package:feyam/features/cart/domain/usecases/update_cart_item_quantity.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:feyam/features/payments/data/datasources/payment_method_remote_datasource.dart';
 import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
+import 'package:feyam/features/payments/data/repositories/payment_methods_repository_impl.dart';
 import 'package:feyam/features/payments/data/repositories/payment_repository_impl.dart';
+import 'package:feyam/features/payments/domain/repositories/payment_methods_repository.dart';
 import 'package:feyam/features/payments/domain/usecases/create_checkout.dart';
+import 'package:feyam/features/payments/domain/usecases/create_payment_method_setup.dart';
 import 'package:feyam/features/payments/domain/usecases/create_price_adjustment_payment.dart';
+import 'package:feyam/features/payments/domain/usecases/delete_payment_method.dart';
 import 'package:feyam/features/payments/domain/usecases/get_checkout_pricing.dart';
+import 'package:feyam/features/payments/domain/usecases/get_payment_methods.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/domain/usecases/get_price_adjustment_payment_status.dart';
+import 'package:feyam/features/payments/domain/usecases/set_default_payment_method.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_methods_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/price_adjustment_payment_bloc.dart';
 import 'package:feyam/features/notifications/data/datasources/notifications_remote_datasource.dart';
 import 'package:feyam/features/notifications/data/repositories/notifications_repository_impl.dart';
@@ -255,6 +264,51 @@ void configureDependencies({AppConfig? appConfig}) {
       createCheckoutUseCase: sl<CreateCheckoutUseCase>(),
       getPaymentStatusUseCase: sl<GetPaymentStatusUseCase>(),
       stripeService: sl<StripePaymentService>(),
+    ),
+  );
+
+  /**
+   * Payment Methods Module
+   */
+
+  sl.registerLazySingleton(
+    () => PaymentMethodRemoteDataSource(
+      client: sl<http.Client>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerLazySingleton(() => PaymentMethodGatewayRegistry());
+
+  sl.registerLazySingleton<PaymentMethodsRepository>(
+    () => PaymentMethodsRepositoryImpl(
+      remoteDataSource: sl<PaymentMethodRemoteDataSource>(),
+    ),
+  );
+
+  sl.registerFactory<GetPaymentMethodsUseCase>(
+    () => GetPaymentMethodsUseCase(sl<PaymentMethodsRepository>()),
+  );
+
+  sl.registerFactory<CreatePaymentMethodSetupUseCase>(
+    () => CreatePaymentMethodSetupUseCase(sl<PaymentMethodsRepository>()),
+  );
+
+  sl.registerFactory<DeletePaymentMethodUseCase>(
+    () => DeletePaymentMethodUseCase(sl<PaymentMethodsRepository>()),
+  );
+
+  sl.registerFactory<SetDefaultPaymentMethodUseCase>(
+    () => SetDefaultPaymentMethodUseCase(sl<PaymentMethodsRepository>()),
+  );
+
+  sl.registerFactory<PaymentMethodsBloc>(
+    () => PaymentMethodsBloc(
+      getPaymentMethodsUseCase: sl<GetPaymentMethodsUseCase>(),
+      createPaymentMethodSetupUseCase: sl<CreatePaymentMethodSetupUseCase>(),
+      deletePaymentMethodUseCase: sl<DeletePaymentMethodUseCase>(),
+      setDefaultPaymentMethodUseCase: sl<SetDefaultPaymentMethodUseCase>(),
+      gatewayRegistry: sl<PaymentMethodGatewayRegistry>(),
     ),
   );
 
