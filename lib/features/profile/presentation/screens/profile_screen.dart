@@ -20,6 +20,7 @@ import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_state.dart';
 import 'package:feyam/features/profile/presentation/screens/addresses_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/payment_methods_screen.dart';
+import 'package:feyam/features/profile/presentation/widgets/language_picker.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -180,6 +181,15 @@ class _MaterialProfileContent extends StatelessWidget {
                             builder: (_) => const NotificationSettingsScreen(),
                           ),
                         ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _MaterialProfileRowCard(
+                        scale: scale,
+                        title: l10n.profileLanguage,
+                        subtitle: l10n.profileLanguageSubtitle,
+                        icon: Icons.language_outlined,
+                        iconColor: colors.secondary,
+                        onTap: () => showLanguagePicker(context),
                       ),
                       SizedBox(height: 12 * scale),
                       _MaterialProfileRowCard(
@@ -730,6 +740,16 @@ class _CupertinoProfileContentState extends State<_CupertinoProfileContent> {
                                     const NotificationSettingsScreen(),
                               ),
                             ),
+                          ),
+                          FeyamListTile(
+                            title: Text(
+                              AppLocalizations.of(context)!.profileLanguage,
+                            ),
+                            leading: FeyamIconTile(
+                              icon: CupertinoIcons.globe,
+                              color: kFeyamGreen,
+                            ),
+                            onTap: () => showLanguagePicker(context),
                           ),
                           FeyamListTile(
                             title: const Text('Seguridad y acceso'),

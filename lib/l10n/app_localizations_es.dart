@@ -257,6 +257,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profileNotificationsSubtitle => 'Configura tus preferencias';
 
   @override
+  String get profileLanguage => 'Idioma';
+
+  @override
+  String get profileLanguageSubtitle => 'Elige tu idioma preferido';
+
+  @override
+  String get languagePickerTitle => 'Elegir idioma';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageSpanish => 'Español';
+
+  @override
   String get profileHelpSupport => 'Ayuda y soporte';
 
   @override

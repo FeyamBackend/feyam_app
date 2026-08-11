@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:feyam/core/config/app_config.dart';
 import 'package:feyam/core/config/app_flavor.dart';
+import 'package:feyam/core/locale/language_preference_store.dart';
+import 'package:feyam/core/locale/locale_cubit.dart';
 import 'package:feyam/core/network/authenticated_http_client.dart';
 import 'package:feyam/core/network/session_expired_notifier.dart';
 import 'package:feyam/core/payments/payment_method_gateway_registry.dart';
@@ -55,8 +57,11 @@ import 'package:feyam/features/orders/data/repositories/orders_repository_impl.d
 import 'package:feyam/features/orders/domain/usecases/get_recent_orders.dart';
 import 'package:feyam/features/orders/presentation/bloc/recent_orders_bloc.dart';
 import 'package:feyam/features/profile/data/datasources/address_remote_datasource.dart';
+import 'package:feyam/features/profile/data/datasources/language_remote_datasource.dart';
 import 'package:feyam/features/profile/data/repositories/address_repository_impl.dart';
+import 'package:feyam/features/profile/data/repositories/language_repository_impl.dart';
 import 'package:feyam/features/profile/domain/repositories/address_repository.dart';
+import 'package:feyam/features/profile/domain/repositories/language_repository.dart';
 import 'package:feyam/features/profile/domain/usecases/create_address.dart';
 import 'package:feyam/features/profile/domain/usecases/delete_address.dart';
 import 'package:feyam/features/profile/domain/usecases/get_addresses.dart';
@@ -384,6 +389,34 @@ void configureDependencies({AppConfig? appConfig}) {
 
   sl.registerFactory<GetUserCountryCodeUseCase>(
     () => GetUserCountryCodeUseCase(sl<AddressRepository>()),
+  );
+
+  /**
+   * Locale / Language Module
+   */
+
+  sl.registerLazySingleton(
+    () => LanguagePreferenceStore(secureStorage: sl<FlutterSecureStorage>()),
+  );
+
+  sl.registerLazySingleton(
+    () => LanguageRemoteDataSource(
+      client: sl<http.Client>(),
+      apiBaseUrl: sl<AppConfig>().apiBaseUrl,
+    ),
+  );
+
+  sl.registerLazySingleton<LanguageRepository>(
+    () => LanguageRepositoryImpl(
+      remoteDataSource: sl<LanguageRemoteDataSource>(),
+    ),
+  );
+
+  sl.registerLazySingleton(
+    () => LocaleCubit(
+      preferenceStore: sl<LanguagePreferenceStore>(),
+      languageRepository: sl<LanguageRepository>(),
+    ),
   );
 
   /**
