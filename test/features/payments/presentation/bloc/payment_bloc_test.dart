@@ -284,6 +284,10 @@ class _FakePaymentRepository implements PaymentRepository {
   Future<PriceAdjustmentStatusEntity> getPriceAdjustmentPaymentStatus(
     String chargeId,
   ) => throw UnimplementedError('not exercised by these tests');
+
+  @override
+  Future<CheckoutSessionEntity?> payOrderQuote(String orderId) =>
+      throw UnimplementedError('not exercised by these tests');
 }
 
 enum _SheetBehavior { success, cancelled, error }

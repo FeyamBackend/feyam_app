@@ -23,4 +23,11 @@ abstract class PaymentRepository {
   Future<PriceAdjustmentStatusEntity> getPriceAdjustmentPaymentStatus(
     String chargeId,
   );
+
+  /// Inicia (o determina que no hace falta) el cobro de la diferencia entre lo
+  /// pagado al momento del checkout del carrito y el `finalCustomerTotal`
+  /// verificado de la cotización del pedido. Devuelve `null` cuando el backend
+  /// reporta `requiresPayment: false` — el pago del checkout ya cubre la
+  /// cotización, no es un error.
+  Future<CheckoutSessionEntity?> payOrderQuote(String orderId);
 }
