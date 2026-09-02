@@ -3,6 +3,7 @@ enum OrdersFailureCode {
   sessionExpired,
   networkError,
   serverError,
+  notFound,
   unknown,
 }
 

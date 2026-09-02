@@ -1256,6 +1256,162 @@ abstract class AppLocalizations {
   /// **'Current status of your order'**
   String get ordDetailCurrentStatus;
 
+  /// No description provided for @ordDetailItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get ordDetailItems;
+
+  /// No description provided for @ordDetailItemsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items to show.'**
+  String get ordDetailItemsEmpty;
+
+  /// No description provided for @ordDetailItemsError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the order items.'**
+  String get ordDetailItemsError;
+
+  /// No description provided for @ordDetailSubmittedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get ordDetailSubmittedAt;
+
+  /// No description provided for @ordDetailBackendStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Order status'**
+  String get ordDetailBackendStatus;
+
+  /// No description provided for @ordDetailWaitingGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order is waiting to be grouped with other orders from the same store to save on shipping.'**
+  String get ordDetailWaitingGroup;
+
+  /// No description provided for @ordQuoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Final quote'**
+  String get ordQuoteTitle;
+
+  /// No description provided for @ordQuoteAllocatedCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Retailer cost'**
+  String get ordQuoteAllocatedCost;
+
+  /// No description provided for @ordQuoteFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Feyam fee'**
+  String get ordQuoteFee;
+
+  /// No description provided for @ordQuoteNationalLogistics.
+  ///
+  /// In en, this message translates to:
+  /// **'National shipping'**
+  String get ordQuoteNationalLogistics;
+
+  /// No description provided for @ordQuoteInternationalLogistics.
+  ///
+  /// In en, this message translates to:
+  /// **'International shipping'**
+  String get ordQuoteInternationalLogistics;
+
+  /// No description provided for @ordQuoteTaxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes'**
+  String get ordQuoteTaxes;
+
+  /// No description provided for @ordQuoteOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other charges'**
+  String get ordQuoteOther;
+
+  /// No description provided for @ordQuoteTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Final total'**
+  String get ordQuoteTotal;
+
+  /// No description provided for @ordQuoteExpiresAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until'**
+  String get ordQuoteExpiresAt;
+
+  /// No description provided for @ordShipmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipments'**
+  String get ordShipmentsTitle;
+
+  /// No description provided for @ordShipmentsCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'Carrier'**
+  String get ordShipmentsCarrier;
+
+  /// No description provided for @ordShipmentsTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking number(s)'**
+  String get ordShipmentsTracking;
+
+  /// No description provided for @ordShipmentsStatusAwaitingTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting tracking'**
+  String get ordShipmentsStatusAwaitingTracking;
+
+  /// No description provided for @ordShipmentsStatusInTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'In transit'**
+  String get ordShipmentsStatusInTransit;
+
+  /// No description provided for @ordShipmentsStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get ordShipmentsStatusDelivered;
+
+  /// No description provided for @ordShipmentsStatusException.
+  ///
+  /// In en, this message translates to:
+  /// **'Exception'**
+  String get ordShipmentsStatusException;
+
+  /// No description provided for @ordFinalPackageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Received in Venezuela'**
+  String get ordFinalPackageTitle;
+
+  /// No description provided for @ordFinalPackageWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual weight'**
+  String get ordFinalPackageWeight;
+
+  /// No description provided for @ordFinalPackageEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated weight'**
+  String get ordFinalPackageEstimated;
+
+  /// No description provided for @ordFinalPackageDiscrepancyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discrepancies'**
+  String get ordFinalPackageDiscrepancyTitle;
+
   /// No description provided for @storesTitle.
   ///
   /// In en, this message translates to:
@@ -1663,6 +1819,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get priceAdjustmentDoneButton;
+
+  /// No description provided for @ordQuotePayButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay quote'**
+  String get ordQuotePayButton;
+
+  /// No description provided for @quotePaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay quote'**
+  String get quotePaymentTitle;
+
+  /// No description provided for @quotePaymentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and pay the difference between what you paid at checkout and your order\'s final verified total.'**
+  String get quotePaymentIntro;
+
+  /// No description provided for @quotePaymentAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount due'**
+  String get quotePaymentAmountLabel;
+
+  /// No description provided for @quotePaymentPayButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay quote'**
+  String get quotePaymentPayButton;
+
+  /// No description provided for @quotePaymentSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment confirmed'**
+  String get quotePaymentSuccessTitle;
+
+  /// No description provided for @quotePaymentSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! Your quote is now fully paid.'**
+  String get quotePaymentSuccessBody;
+
+  /// No description provided for @quotePaymentNoBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to pay'**
+  String get quotePaymentNoBalanceTitle;
+
+  /// No description provided for @quotePaymentNoBalanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you paid at checkout already covers your order\'s final verified total.'**
+  String get quotePaymentNoBalanceBody;
+
+  /// No description provided for @quotePaymentPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received'**
+  String get quotePaymentPendingTitle;
+
+  /// No description provided for @quotePaymentPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re confirming your payment — this can take a moment. We\'ll notify you once it\'s done.'**
+  String get quotePaymentPendingBody;
+
+  /// No description provided for @quotePaymentFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed'**
+  String get quotePaymentFailureTitle;
+
+  /// No description provided for @quotePaymentRetryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get quotePaymentRetryButton;
+
+  /// No description provided for @quotePaymentDoneButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get quotePaymentDoneButton;
 
   /// No description provided for @successTitle.
   ///

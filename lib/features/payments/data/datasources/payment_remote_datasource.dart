@@ -124,4 +124,32 @@ class PaymentRemoteDataSource {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+
+  /// POST /api/orders/{id}/quote/pay — starts the top-up charge that covers the
+  /// gap between what the client paid at cart-checkout and the order's
+  /// operator-verified quote total. The order id and user are resolved
+  /// server-side from the token/route; the body carries nothing. The response
+  /// carries `payment: null` when `requiresPayment` is `false` (the checkout
+  /// payment already covers the quote), in which case this returns `null`.
+  Future<CheckoutSessionModel?> payOrderQuote(String orderId) async {
+    final uri = Uri.parse('$_apiBaseUrl/api/orders/$orderId/quote/pay');
+
+    final response = await _client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 401) throw const PaymentUnauthorizedException();
+    if (response.statusCode != 200) {
+      throw PaymentServerException(response.statusCode);
+    }
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final requiresPayment = body['requiresPayment'] as bool? ?? false;
+    if (!requiresPayment) return null;
+
+    return CheckoutSessionModel.fromJson(
+      body['payment'] as Map<String, dynamic>,
+    );
+  }
 }

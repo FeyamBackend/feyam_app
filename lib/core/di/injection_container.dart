@@ -40,10 +40,12 @@ import 'package:feyam/features/payments/domain/usecases/get_checkout_pricing.dar
 import 'package:feyam/features/payments/domain/usecases/get_payment_methods.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/domain/usecases/get_price_adjustment_payment_status.dart';
+import 'package:feyam/features/payments/domain/usecases/pay_order_quote.dart';
 import 'package:feyam/features/payments/domain/usecases/set_default_payment_method.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_methods_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/price_adjustment_payment_bloc.dart';
+import 'package:feyam/features/payments/presentation/bloc/quote_payment_bloc.dart';
 import 'package:feyam/features/notifications/data/datasources/notifications_remote_datasource.dart';
 import 'package:feyam/features/notifications/data/repositories/notifications_repository_impl.dart';
 import 'package:feyam/features/notifications/domain/usecases/get_notifications.dart';
@@ -54,8 +56,16 @@ import 'package:feyam/features/notifications/presentation/bloc/notifications_blo
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/orders/data/datasources/orders_remote_datasource.dart';
 import 'package:feyam/features/orders/data/repositories/orders_repository_impl.dart';
+import 'package:feyam/features/orders/domain/usecases/get_order_detail.dart';
+import 'package:feyam/features/orders/domain/usecases/get_order_final_package.dart';
+import 'package:feyam/features/orders/domain/usecases/get_order_quote.dart';
+import 'package:feyam/features/orders/domain/usecases/get_order_shipments.dart';
 import 'package:feyam/features/orders/domain/usecases/get_recent_orders.dart';
+import 'package:feyam/features/orders/presentation/bloc/final_package_bloc.dart';
+import 'package:feyam/features/orders/presentation/bloc/order_detail_bloc.dart';
+import 'package:feyam/features/orders/presentation/bloc/quote_bloc.dart';
 import 'package:feyam/features/orders/presentation/bloc/recent_orders_bloc.dart';
+import 'package:feyam/features/orders/presentation/bloc/shipments_bloc.dart';
 import 'package:feyam/features/profile/data/datasources/address_remote_datasource.dart';
 import 'package:feyam/features/profile/data/datasources/language_remote_datasource.dart';
 import 'package:feyam/features/profile/data/repositories/address_repository_impl.dart';
@@ -263,6 +273,21 @@ void configureDependencies({AppConfig? appConfig}) {
     ),
   );
 
+  sl.registerFactory<PayOrderQuoteUseCase>(
+    () => PayOrderQuoteUseCase(sl<PaymentRepositoryImpl>()),
+  );
+
+  // GetOrderQuoteUseCase se registra en el Orders Module más abajo; GetIt
+  // resuelve las factories de forma perezosa, así que el orden de registro
+  // entre módulos no importa.
+  sl.registerFactory<QuotePaymentBloc>(
+    () => QuotePaymentBloc(
+      payOrderQuoteUseCase: sl<PayOrderQuoteUseCase>(),
+      getOrderQuoteUseCase: sl<GetOrderQuoteUseCase>(),
+      stripeService: sl<StripePaymentService>(),
+    ),
+  );
+
   sl.registerFactory<PaymentBloc>(
     () => PaymentBloc(
       getCheckoutPricingUseCase: sl<GetCheckoutPricingUseCase>(),
@@ -339,6 +364,42 @@ void configureDependencies({AppConfig? appConfig}) {
   sl.registerFactory<RecentOrdersBloc>(
     () =>
         RecentOrdersBloc(getRecentOrdersUseCase: sl<GetRecentOrdersUseCase>()),
+  );
+
+  sl.registerFactory<GetOrderDetailUseCase>(
+    () => GetOrderDetailUseCase(sl<OrdersRepositoryImpl>()),
+  );
+
+  sl.registerFactory<OrderDetailBloc>(
+    () => OrderDetailBloc(getOrderDetailUseCase: sl<GetOrderDetailUseCase>()),
+  );
+
+  sl.registerFactory<GetOrderQuoteUseCase>(
+    () => GetOrderQuoteUseCase(sl<OrdersRepositoryImpl>()),
+  );
+
+  sl.registerFactory<QuoteBloc>(
+    () => QuoteBloc(getOrderQuoteUseCase: sl<GetOrderQuoteUseCase>()),
+  );
+
+  sl.registerFactory<GetOrderShipmentsUseCase>(
+    () => GetOrderShipmentsUseCase(sl<OrdersRepositoryImpl>()),
+  );
+
+  sl.registerFactory<ShipmentsBloc>(
+    () => ShipmentsBloc(
+      getOrderShipmentsUseCase: sl<GetOrderShipmentsUseCase>(),
+    ),
+  );
+
+  sl.registerFactory<GetOrderFinalPackageUseCase>(
+    () => GetOrderFinalPackageUseCase(sl<OrdersRepositoryImpl>()),
+  );
+
+  sl.registerFactory<FinalPackageBloc>(
+    () => FinalPackageBloc(
+      getOrderFinalPackageUseCase: sl<GetOrderFinalPackageUseCase>(),
+    ),
   );
 
   /**

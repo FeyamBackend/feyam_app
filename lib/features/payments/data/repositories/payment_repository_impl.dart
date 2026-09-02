@@ -47,6 +47,11 @@ class PaymentRepositoryImpl implements PaymentRepository {
     );
   }
 
+  @override
+  Future<CheckoutSessionEntity?> payOrderQuote(String orderId) {
+    return _guard(() => _remoteDataSource.payOrderQuote(orderId));
+  }
+
   /// Ejecuta [action] mapeando las excepciones del datasource a [PaymentFailure].
   /// El refresh y el retry de 401 los maneja AuthenticatedHttpClient; un 401 que
   /// llegue acá significa que la sesión expiró (el logout global lo dispara el

@@ -608,6 +608,86 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ordDetailCurrentStatus => 'Estado actual de tu pedido';
 
   @override
+  String get ordDetailItems => 'Artículos';
+
+  @override
+  String get ordDetailItemsEmpty => 'No hay artículos para mostrar.';
+
+  @override
+  String get ordDetailItemsError =>
+      'No pudimos cargar los artículos del pedido.';
+
+  @override
+  String get ordDetailSubmittedAt => 'Enviado';
+
+  @override
+  String get ordDetailBackendStatus => 'Estado del pedido';
+
+  @override
+  String get ordDetailWaitingGroup =>
+      'Tu pedido está esperando agruparse con otros pedidos de la misma tienda para ahorrar en el envío.';
+
+  @override
+  String get ordQuoteTitle => 'Cotización final';
+
+  @override
+  String get ordQuoteAllocatedCost => 'Costo en tienda';
+
+  @override
+  String get ordQuoteFee => 'Comisión Feyam';
+
+  @override
+  String get ordQuoteNationalLogistics => 'Envío nacional';
+
+  @override
+  String get ordQuoteInternationalLogistics => 'Envío internacional';
+
+  @override
+  String get ordQuoteTaxes => 'Impuestos';
+
+  @override
+  String get ordQuoteOther => 'Otros cargos';
+
+  @override
+  String get ordQuoteTotal => 'Total final';
+
+  @override
+  String get ordQuoteExpiresAt => 'Válida hasta';
+
+  @override
+  String get ordShipmentsTitle => 'Envíos';
+
+  @override
+  String get ordShipmentsCarrier => 'Transportista';
+
+  @override
+  String get ordShipmentsTracking => 'Número(s) de seguimiento';
+
+  @override
+  String get ordShipmentsStatusAwaitingTracking => 'Esperando número de guía';
+
+  @override
+  String get ordShipmentsStatusInTransit => 'En tránsito';
+
+  @override
+  String get ordShipmentsStatusDelivered => 'Entregado';
+
+  @override
+  String get ordShipmentsStatusException => 'Incidencia';
+
+  @override
+  String get ordFinalPackageTitle => 'Recibido en Venezuela';
+
+  @override
+  String get ordFinalPackageWeight => 'Peso real';
+
+  @override
+  String get ordFinalPackageEstimated => 'Peso estimado';
+
+  @override
+  String get ordFinalPackageDiscrepancyTitle => 'Discrepancias';
+
+  @override
   String get storesTitle => 'Tiendas soportadas';
 
   @override
@@ -828,6 +908,52 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get priceAdjustmentDoneButton => 'Listo';
+
+  @override
+  String get ordQuotePayButton => 'Pagar cotización';
+
+  @override
+  String get quotePaymentTitle => 'Pagar cotización';
+
+  @override
+  String get quotePaymentIntro =>
+      'Revisá y pagá la diferencia entre lo que pagaste al momento de la compra y el total final verificado de tu pedido.';
+
+  @override
+  String get quotePaymentAmountLabel => 'Monto a pagar';
+
+  @override
+  String get quotePaymentPayButton => 'Pagar cotización';
+
+  @override
+  String get quotePaymentSuccessTitle => 'Pago confirmado';
+
+  @override
+  String get quotePaymentSuccessBody =>
+      '¡Gracias! Tu cotización quedó totalmente pagada.';
+
+  @override
+  String get quotePaymentNoBalanceTitle => 'Nada que pagar';
+
+  @override
+  String get quotePaymentNoBalanceBody =>
+      'Lo que pagaste al momento de la compra ya cubre el total final verificado de tu pedido.';
+
+  @override
+  String get quotePaymentPendingTitle => 'Pago recibido';
+
+  @override
+  String get quotePaymentPendingBody =>
+      'Estamos confirmando tu pago — puede tardar un momento. Te avisamos cuando esté listo.';
+
+  @override
+  String get quotePaymentFailureTitle => 'Pago fallido';
+
+  @override
+  String get quotePaymentRetryButton => 'Reintentar';
+
+  @override
+  String get quotePaymentDoneButton => 'Listo';
 
   @override
   String get successTitle => '¡Pedido confirmado!';
