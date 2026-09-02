@@ -60,6 +60,38 @@ void main() {
     },
   );
 
+  test(
+    'treats an authorized (held) payment as checkout success, without '
+    'waiting for the later real capture',
+    () async {
+      repository.session = _session;
+      repository.statuses = <PaymentStatusEntity>[_status('Authorized')];
+      stripe.behavior = _SheetBehavior.success;
+
+      final bloc = buildBloc();
+      final states = <PaymentState>[];
+      final subscription = bloc.stream.listen(states.add);
+
+      bloc.add(const PaymentCheckoutRequested('addr_1'));
+      await bloc.stream.firstWhere((s) => s.status == PaymentStatus.success);
+
+      await subscription.cancel();
+      await bloc.close();
+
+      expect(
+        states.map((s) => s.status),
+        containsAllInOrder(<PaymentStatus>[
+          PaymentStatus.processing,
+          PaymentStatus.verifying,
+          PaymentStatus.success,
+        ]),
+      );
+      // Solo debió consultar el estado una vez: no debe seguir haciendo
+      // polling esperando 'Succeeded' una vez que ya está 'Authorized'.
+      expect(repository.requestedPaymentIds, <String>['pay_1']);
+    },
+  );
+
   test('emits cancelled when the user dismisses the payment sheet', () async {
     repository.session = _session;
     stripe.behavior = _SheetBehavior.cancelled;

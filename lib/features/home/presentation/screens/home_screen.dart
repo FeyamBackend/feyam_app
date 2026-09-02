@@ -237,6 +237,7 @@ class _InfoCardHeader extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
           width: 36,
@@ -248,6 +249,8 @@ class _InfoCardHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: textTheme.bodyLarge?.copyWith(
               color: colors.onSurface,
               fontWeight: FontWeight.w600,
@@ -255,7 +258,8 @@ class _InfoCardHeader extends StatelessWidget {
             ),
           ),
         ),
-        ?action,
+        if (action != null)
+          Padding(padding: const EdgeInsets.only(top: 2), child: action!),
       ],
     );
   }
@@ -713,7 +717,7 @@ class _MaterialStoresSection extends StatelessWidget {
             iconBg: colors.secondaryContainer,
             title: l10n.homeSupportedStores,
             action: _SectionViewAllLink(
-              label: l10n.homeViewAllStores,
+              label: l10n.homeViewAll,
               onTap: () {
                 Navigator.push(
                   context,

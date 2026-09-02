@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
 
 /// Estado de un pago según el backend (`GET /api/payments/{id}`).
-/// `status` arranca en "Pending" y pasa a "Succeeded"/"Failed" cuando
-/// el webhook de Stripe es procesado por el servidor.
+/// `status` arranca en "Pending", pasa a "Authorized" cuando Stripe retiene
+/// los fondos (checkout con captura manual) y recién llega a "Succeeded"
+/// cuando un operador verifica el precio real y se captura el cobro —
+/// eso puede ocurrir horas o días después del checkout.
 class PaymentStatusEntity extends Equatable {
   const PaymentStatusEntity({
     required this.id,
@@ -24,7 +26,11 @@ class PaymentStatusEntity extends Equatable {
   final double feyamFee;
   final double estimatedLogistics;
 
-  bool get isSucceeded => status.toLowerCase() == 'succeeded';
+  static const _completedStatuses = {'authorized', 'succeeded'};
+
+  /// El checkout está completo (fondos retenidos o ya capturados). No
+  /// distingue entre "autorizado" y "capturado" — para eso usar [status].
+  bool get isCheckoutComplete => _completedStatuses.contains(status.toLowerCase());
   bool get isFailed => status.toLowerCase() == 'failed';
 
   @override

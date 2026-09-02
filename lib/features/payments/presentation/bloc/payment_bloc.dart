@@ -95,7 +95,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     try {
       for (var attempt = 0; attempt < _pollMaxAttempts; attempt++) {
         final payment = await _getPaymentStatus(session.paymentId);
-        if (payment.isSucceeded) {
+        if (payment.isCheckoutComplete) {
           emit(state.copyWith(status: PaymentStatus.success));
           return;
         }
