@@ -777,7 +777,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get checkoutPayMethodDesc =>
-      'Pagos procesados de forma segura con tarjeta.';
+      'No se te cobrará nada ahora. Un miembro de nuestro equipo confirmará el precio final y podrás pagarlo de forma segura con tarjeta.';
 
   @override
   String get checkoutPayInfo =>
@@ -1127,4 +1127,57 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get logoutBody =>
       'Vas a salir de tu cuenta de Feyam en este dispositivo.';
+
+  @override
+  String get ordersStatusCancelado => 'Cancelado';
+
+  @override
+  String get orderSubmittedTitle => 'Pedido enviado';
+
+  @override
+  String get orderSubmittedBody =>
+      'Tu pedido fue enviado a revisión. Te avisaremos cuando el precio final esté confirmado para que puedas pagarlo.';
+
+  @override
+  String get orderPaymentTitle => 'Pagar pedido';
+
+  @override
+  String get orderPaymentIntro =>
+      'Confirmamos el precio final de tu pedido. Revisa el monto y paga para continuar.';
+
+  @override
+  String get orderPaymentAmountLabel => 'Monto a pagar';
+
+  @override
+  String get orderPaymentPayButton => 'Pagar pedido';
+
+  @override
+  String get orderPaymentSuccessTitle => 'Pago confirmado';
+
+  @override
+  String get orderPaymentSuccessBody =>
+      '¡Gracias! Tu pedido fue pagado con éxito.';
+
+  @override
+  String get orderPaymentPendingTitle => 'Pago recibido';
+
+  @override
+  String get orderPaymentPendingBody =>
+      'Estamos confirmando tu pago — puede tardar un momento. Te avisamos cuando esté listo.';
+
+  @override
+  String get orderPaymentFailureTitle => 'Pago fallido';
+
+  @override
+  String get orderPaymentRetryButton => 'Reintentar';
+
+  @override
+  String get orderPaymentDoneButton => 'Listo';
+
+  @override
+  String get orderDetailPayNowButton => 'Pagar ahora';
+
+  @override
+  String get orderDetailAwaitingPaymentBanner =>
+      'Tu pedido está listo — paga el monto confirmado para continuar.';
 }

@@ -5,10 +5,13 @@ class RecentOrderModel extends RecentOrderEntity {
     required super.orderId,
     required super.title,
     required super.itemCount,
-    required super.chargedAmount,
+    required super.status,
+    required super.estimatedTotal,
+    super.confirmedTotal,
     required super.currencyCode,
-    required super.financialStatus,
     required super.createdDate,
+    super.chargedAmount,
+    super.financialStatus,
     super.imageUrl,
   });
 
@@ -17,10 +20,13 @@ class RecentOrderModel extends RecentOrderEntity {
       orderId: json['orderId'] as String,
       title: json['title'] as String,
       itemCount: json['itemCount'] as int,
-      chargedAmount: (json['chargedAmount'] as num).toDouble(),
+      status: json['status'] as String,
+      estimatedTotal: (json['estimatedTotal'] as num).toDouble(),
+      confirmedTotal: (json['confirmedTotal'] as num?)?.toDouble(),
       currencyCode: json['currencyCode'] as String,
-      financialStatus: json['financialStatus'] as String,
       createdDate: DateTime.parse(json['createdDate'] as String),
+      chargedAmount: (json['chargedAmount'] as num?)?.toDouble(),
+      financialStatus: json['financialStatus'] as String?,
       imageUrl: json['imageUrl'] as String?,
     );
   }

@@ -30,4 +30,8 @@ abstract class PaymentRepository {
   /// reporta `requiresPayment: false` — el pago del checkout ya cubre la
   /// cotización, no es un error.
   Future<CheckoutSessionEntity?> payOrderQuote(String orderId);
+
+  /// Charges the customer the exact amount a price_confirmator confirmed for
+  /// their order.
+  Future<CheckoutSessionEntity> payConfirmedOrder(String orderId);
 }

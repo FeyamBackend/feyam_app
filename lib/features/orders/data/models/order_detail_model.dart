@@ -28,6 +28,10 @@ class OrderDetailModel extends OrderDetailEntity {
     required super.status,
     required super.submittedAt,
     required super.lines,
+    required super.estimatedTotal,
+    super.confirmedTotal,
+    required super.currencyCode,
+    super.rejectionReason,
   });
 
   factory OrderDetailModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,10 @@ class OrderDetailModel extends OrderDetailEntity {
       lines: rawLines
           .map((e) => OrderLineModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      estimatedTotal: (json['estimatedTotal'] as num).toDouble(),
+      confirmedTotal: (json['confirmedTotal'] as num?)?.toDouble(),
+      currencyCode: json['currencyCode'] as String,
+      rejectionReason: json['rejectionReason'] as String?,
     );
   }
 }

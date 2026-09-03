@@ -320,6 +320,10 @@ class _FakePaymentRepository implements PaymentRepository {
   @override
   Future<CheckoutSessionEntity?> payOrderQuote(String orderId) =>
       throw UnimplementedError('not exercised by these tests');
+
+  @override
+  Future<CheckoutSessionEntity> payConfirmedOrder(String orderId) =>
+      throw UnimplementedError('not exercised by these tests');
 }
 
 enum _SheetBehavior { success, cancelled, error }
