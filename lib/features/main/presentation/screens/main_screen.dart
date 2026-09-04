@@ -14,6 +14,7 @@ import 'package:feyam/features/home/presentation/screens/home_screen.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_bloc.dart';
 import 'package:feyam/features/notifications/presentation/bloc/unread_count_event.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:feyam/features/payments/presentation/screens/order_payment_screen.dart';
 import 'package:feyam/features/payments/presentation/screens/price_adjustment_payment_screen.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
 import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
@@ -105,9 +106,9 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  /// Opens the notification history, unless the push carries a "PriceAdjustment" deep link
-  /// (see PushDispatcherBackgroundService's data payload on the backend), in which case it
-  /// opens the payment screen directly with the PurchaseId it needs.
+  /// Opens the notification history, unless the push carries a "PriceAdjustment" or
+  /// "OrderPriceConfirmed" deep link (see PushDispatcherBackgroundService's data payload on the
+  /// backend), in which case it opens the relevant payment screen directly with the id it needs.
   void _openFromPush(RemoteMessage message) {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -122,6 +123,16 @@ class _MainScreenState extends State<MainScreen> {
             context: context,
             builder: (_) =>
                 PriceAdjustmentPaymentScreen(purchaseId: relatedEntityId),
+          ),
+        );
+        return;
+      }
+
+      if (relatedEntityType == 'OrderPriceConfirmed' && relatedEntityId != null) {
+        Navigator.of(context).push(
+          AdaptivePlatform.pageRoute<void>(
+            context: context,
+            builder: (_) => OrderPaymentScreen(orderId: relatedEntityId),
           ),
         );
         return;

@@ -7,4 +7,8 @@ abstract class CartRepository {
   Future<CartEntity?> getCart();
   Future<CartEntity> removeCartItem(String itemId);
   Future<CartEntity> updateCartItemQuantity(String itemId, int newQuantity);
+
+  /// Envía el carrito activo con envío a [addressId], sin cobrar nada.
+  /// Devuelve el id de la orden creada.
+  Future<String> submitCart(String addressId);
 }
