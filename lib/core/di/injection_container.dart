@@ -24,11 +24,9 @@ import 'package:feyam/features/cart/data/repositories/cart_repository_impl.dart'
 import 'package:feyam/features/cart/domain/usecases/add_to_cart.dart';
 import 'package:feyam/features/cart/domain/usecases/get_cart.dart';
 import 'package:feyam/features/cart/domain/usecases/remove_cart_item.dart';
-import 'package:feyam/features/cart/domain/usecases/submit_cart.dart';
 import 'package:feyam/features/cart/domain/usecases/update_cart_item_quantity.dart';
 import 'package:feyam/features/cart/presentation/bloc/add_to_cart_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_bloc.dart';
-import 'package:feyam/features/cart/presentation/bloc/cart_submit_bloc.dart';
 import 'package:feyam/features/payments/data/datasources/payment_method_remote_datasource.dart';
 import 'package:feyam/features/payments/data/datasources/payment_remote_datasource.dart';
 import 'package:feyam/features/payments/data/repositories/payment_methods_repository_impl.dart';
@@ -42,10 +40,8 @@ import 'package:feyam/features/payments/domain/usecases/get_checkout_pricing.dar
 import 'package:feyam/features/payments/domain/usecases/get_payment_methods.dart';
 import 'package:feyam/features/payments/domain/usecases/get_payment_status.dart';
 import 'package:feyam/features/payments/domain/usecases/get_price_adjustment_payment_status.dart';
-import 'package:feyam/features/payments/domain/usecases/pay_confirmed_order.dart';
 import 'package:feyam/features/payments/domain/usecases/pay_order_quote.dart';
 import 'package:feyam/features/payments/domain/usecases/set_default_payment_method.dart';
-import 'package:feyam/features/payments/presentation/bloc/order_payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_methods_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/price_adjustment_payment_bloc.dart';
@@ -229,14 +225,6 @@ void configureDependencies({AppConfig? appConfig}) {
     ),
   );
 
-  sl.registerFactory<SubmitCartUseCase>(
-    () => SubmitCartUseCase(sl<CartRepositoryImpl>()),
-  );
-
-  sl.registerFactory<CartSubmitBloc>(
-    () => CartSubmitBloc(submitCartUseCase: sl<SubmitCartUseCase>()),
-  );
-
   /**
    * Payments Module
    */
@@ -296,21 +284,6 @@ void configureDependencies({AppConfig? appConfig}) {
     () => QuotePaymentBloc(
       payOrderQuoteUseCase: sl<PayOrderQuoteUseCase>(),
       getOrderQuoteUseCase: sl<GetOrderQuoteUseCase>(),
-      stripeService: sl<StripePaymentService>(),
-    ),
-  );
-
-  sl.registerFactory<PayConfirmedOrderUseCase>(
-    () => PayConfirmedOrderUseCase(sl<PaymentRepositoryImpl>()),
-  );
-
-  // GetOrderDetailUseCase se registra en el Orders Module más abajo; GetIt
-  // resuelve las factories de forma perezosa, así que el orden de registro
-  // entre módulos no importa.
-  sl.registerFactory<OrderPaymentBloc>(
-    () => OrderPaymentBloc(
-      payConfirmedOrderUseCase: sl<PayConfirmedOrderUseCase>(),
-      getOrderDetailUseCase: sl<GetOrderDetailUseCase>(),
       stripeService: sl<StripePaymentService>(),
     ),
   );

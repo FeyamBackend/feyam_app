@@ -78,33 +78,22 @@ String _formatDate(DateTime d) {
 _OrderVm _toOrderVm(RecentOrderEntity o) => _OrderVm(
   id: o.orderId,
   title: o.title,
-  price: _formatPrice(o.displayAmount),
+  price: _formatPrice(o.chargedAmount),
   date: _formatDate(o.createdDate),
   status: o.displayStatus,
   imageUrl: o.imageUrl,
 );
 
 String _statusLabel(AppLocalizations l10n, OrderDisplayStatus s) => switch (s) {
-  OrderDisplayStatus.pendingReview => l10n.ordersStatusEnRevision,
-  OrderDisplayStatus.awaitingPayment => l10n.ordersStatusPorPagar,
   OrderDisplayStatus.review => l10n.ordersStatusEnRevision,
   OrderDisplayStatus.payment => l10n.ordersStatusPorPagar,
   OrderDisplayStatus.shipping => l10n.ordersStatusEnCamino,
   OrderDisplayStatus.delivered => l10n.ordersStatusEntregado,
-  OrderDisplayStatus.cancelled => l10n.ordersStatusCancelado,
 };
 
 /// Status pill colors — match the STATUS table in the Feyam MD3 Design System,
 /// shared verbatim with [FeyamStatusBadge] so both platforms render identically.
 ({Color bg, Color fg}) _statusStyle(OrderDisplayStatus s) => switch (s) {
-  OrderDisplayStatus.pendingReview => (
-    bg: const Color(0xFFFDF1E0),
-    fg: const Color(0xFFA8710F),
-  ),
-  OrderDisplayStatus.awaitingPayment => (
-    bg: const Color(0xFFDEE8C3),
-    fg: const Color(0xFF5C6600),
-  ),
   OrderDisplayStatus.review => (
     bg: const Color(0xFFFDF1E0),
     fg: const Color(0xFFA8710F),
@@ -118,28 +107,6 @@ String _statusLabel(AppLocalizations l10n, OrderDisplayStatus s) => switch (s) {
     bg: const Color(0xFFD2EAD1),
     fg: const Color(0xFF1F6B26),
   ),
-  OrderDisplayStatus.cancelled => (
-    bg: const Color(0xFFF9DADA),
-    fg: const Color(0xFFB3261E),
-  ),
-};
-
-/// Maps the full [OrderDisplayStatus] set to the 4-step vocabulary
-/// `OrderDetailScreen`'s stepper still understands (review/payment/shipping/
-/// delivered) — the new pre-payment states slot into the closest existing
-/// step rather than requiring a stepper redesign; `cancelled` has no slot of
-/// its own, so it defensively falls back to the first step.
-String _stepperStatusKey(OrderDisplayStatus s) => switch (s) {
-  OrderDisplayStatus.pendingReview => 'review',
-  OrderDisplayStatus.awaitingPayment => 'payment',
-  OrderDisplayStatus.cancelled => 'review',
-  _ => orderDisplayStatusKey(s),
-};
-
-const _reviewLikeStatuses = <OrderDisplayStatus>{
-  OrderDisplayStatus.pendingReview,
-  OrderDisplayStatus.awaitingPayment,
-  OrderDisplayStatus.review,
 };
 
 /// tabIndex: 0=todos, 1=en revisión, 2=en tránsito, 3=entregados.
@@ -147,7 +114,7 @@ List<_OrderVm> _filterOrders(
   List<_OrderVm> orders,
   int tabIndex,
 ) => switch (tabIndex) {
-  1 => orders.where((o) => _reviewLikeStatuses.contains(o.status)).toList(),
+  1 => orders.where((o) => o.status == OrderDisplayStatus.review).toList(),
   2 => orders.where((o) => o.status == OrderDisplayStatus.shipping).toList(),
   3 => orders.where((o) => o.status == OrderDisplayStatus.delivered).toList(),
   _ => orders,
@@ -540,7 +507,7 @@ class _Md3OrderCard extends StatelessWidget {
               orderId: order.id,
               title: order.title,
               price: order.price,
-              status: _stepperStatusKey(order.status),
+              status: orderDisplayStatusKey(order.status),
               date: order.date,
               imageUrl: order.imageUrl,
             ),
@@ -957,7 +924,7 @@ class _CupertinoOrderCard extends StatelessWidget {
             orderId: order.id,
             title: order.title,
             price: order.price,
-            status: _stepperStatusKey(order.status),
+            status: orderDisplayStatusKey(order.status),
             date: order.date,
             imageUrl: order.imageUrl,
           ),

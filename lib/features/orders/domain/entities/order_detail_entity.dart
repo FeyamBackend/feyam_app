@@ -36,45 +36,19 @@ class OrderDetailEntity extends Equatable {
     required this.status,
     required this.submittedAt,
     required this.lines,
-    required this.estimatedTotal,
-    this.confirmedTotal,
-    required this.currencyCode,
-    this.rejectionReason,
   });
 
   final String id;
 
-  /// Raw order-lifecycle status from the detail endpoint (e.g.
-  /// "PendingPriceReview", "AwaitingPayment", "Paid", "InTransitUs",
-  /// "Delivered"). This is a *separate, unrelated* vocabulary from
-  /// `RecentOrderEntity.financialStatus` / `OrderDisplayStatus` — do not feed
-  /// it into `orderDisplayStatusFromFinancial()` or the list-screen stepper
-  /// widgets.
+  /// Raw order-lifecycle status from the detail endpoint (e.g. "Submitted",
+  /// "InTransitUs", "Delivered"). This is a *separate, unrelated* vocabulary
+  /// from `RecentOrderEntity.financialStatus` / `OrderDisplayStatus` — do not
+  /// feed it into `orderDisplayStatusFromFinancial()` or the list-screen
+  /// stepper widgets.
   final String status;
   final DateTime submittedAt;
   final List<OrderLineEntity> lines;
 
-  /// Rough total computed at submit time — shown while the order is still
-  /// `PendingPriceReview`. Never what the customer is actually charged.
-  final double estimatedTotal;
-
-  /// The exact amount the customer must pay, set by a price_confirmator. Null
-  /// until the order reaches `PriceConfirmed`/`AwaitingPayment`/`Paid`.
-  final double? confirmedTotal;
-  final String currencyCode;
-
-  /// Set when the order was cancelled during price review.
-  final String? rejectionReason;
-
   @override
-  List<Object?> get props => [
-        id,
-        status,
-        submittedAt,
-        lines,
-        estimatedTotal,
-        confirmedTotal,
-        currencyCode,
-        rejectionReason,
-      ];
+  List<Object?> get props => [id, status, submittedAt, lines];
 }

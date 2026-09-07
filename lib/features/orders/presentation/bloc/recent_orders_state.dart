@@ -15,11 +15,10 @@ class RecentOrdersState extends Equatable {
   final List<RecentOrderEntity> orders;
   final OrdersFailure? failure;
 
-  /// Sum of the display amount (charged, confirmed, or estimated) of orders
-  /// not yet delivered.
+  /// Sum of charged amounts of orders not yet delivered.
   double get activeTotal => orders
       .where((o) => o.isActive)
-      .fold(0, (sum, o) => sum + o.displayAmount);
+      .fold(0, (sum, o) => sum + o.chargedAmount);
 
   /// Number of orders not yet delivered.
   int get activeCount => orders.where((o) => o.isActive).length;

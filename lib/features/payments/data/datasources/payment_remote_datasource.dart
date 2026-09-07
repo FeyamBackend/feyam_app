@@ -152,25 +152,4 @@ class PaymentRemoteDataSource {
       body['payment'] as Map<String, dynamic>,
     );
   }
-
-  /// POST /api/orders/{id}/pay — charges the customer the exact amount a
-  /// price_confirmator confirmed for their order. The order id and user are
-  /// resolved server-side from the route/token; the body carries nothing.
-  Future<CheckoutSessionModel> payConfirmedOrder(String orderId) async {
-    final uri = Uri.parse('$_apiBaseUrl/api/orders/$orderId/pay');
-
-    final response = await _client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 401) throw const PaymentUnauthorizedException();
-    if (response.statusCode != 200) {
-      throw PaymentServerException(response.statusCode);
-    }
-
-    return CheckoutSessionModel.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
-    );
-  }
 }

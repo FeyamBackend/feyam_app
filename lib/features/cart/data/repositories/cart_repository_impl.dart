@@ -47,11 +47,6 @@ class CartRepositoryImpl implements CartRepository {
     );
   }
 
-  @override
-  Future<String> submitCart(String addressId) {
-    return _guard(() => _remoteDataSource.submitCart(addressId));
-  }
-
   /// Ejecuta [action] mapeando las excepciones del datasource a [CartFailure].
   /// El refresh y el retry de 401 los maneja AuthenticatedHttpClient; un 401 que
   /// llegue acá significa que la sesión expiró (el logout global lo dispara el

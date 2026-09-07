@@ -4,7 +4,6 @@ import 'package:feyam/features/notifications/domain/entities/notification_entity
 import 'package:feyam/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:feyam/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:feyam/features/notifications/presentation/bloc/notifications_state.dart';
-import 'package:feyam/features/payments/presentation/screens/order_payment_screen.dart';
 import 'package:feyam/features/payments/presentation/screens/price_adjustment_payment_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -130,15 +129,6 @@ class _NotificationsView extends StatelessWidget {
                       builder: (_) => PriceAdjustmentPaymentScreen(
                         purchaseId: item.relatedEntityId!,
                       ),
-                    ),
-                  );
-                } else if (item.relatedEntityType == 'OrderPriceConfirmed' &&
-                    item.relatedEntityId != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          OrderPaymentScreen(orderId: item.relatedEntityId!),
                     ),
                   );
                 }
