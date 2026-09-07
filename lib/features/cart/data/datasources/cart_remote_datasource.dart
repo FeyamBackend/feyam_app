@@ -90,23 +90,4 @@ class CartRemoteDataSource {
 
     return CartModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
-
-  /// POST /api/cart/submit — envía el carrito activo sin cobrar nada. El
-  /// backend crea la orden (sin pago) y, más adelante, un price_confirmator
-  /// fija el monto final que el cliente deberá pagar.
-  Future<String> submitCart(String addressId) async {
-    final uri = Uri.parse('$_apiBaseUrl/api/cart/submit');
-
-    final response = await _client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'addressId': addressId}),
-    );
-
-    if (response.statusCode == 401) throw const CartUnauthorizedException();
-    if (response.statusCode != 200) throw CartServerException(response.statusCode);
-
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    return body['orderId'] as String;
-  }
 }

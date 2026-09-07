@@ -68,35 +68,25 @@ String _formatDate(DateTime d) {
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
 
-// The home screen's preview widgets only understand the 4 post-payment
-// display states; the new pre-payment states (pendingReview/awaitingPayment)
-// and cancelled slot into the closest one rather than requiring a redesign
-// of this preview card — mirrors order_screen.dart's _stepperStatusKey.
 _OrderStatus _toMaterialStatus(OrderDisplayStatus s) => switch (s) {
-  OrderDisplayStatus.pendingReview => _OrderStatus.review,
-  OrderDisplayStatus.awaitingPayment => _OrderStatus.payment,
   OrderDisplayStatus.review => _OrderStatus.review,
   OrderDisplayStatus.payment => _OrderStatus.payment,
   OrderDisplayStatus.shipping => _OrderStatus.shipping,
   OrderDisplayStatus.delivered => _OrderStatus.delivered,
-  OrderDisplayStatus.cancelled => _OrderStatus.review,
 };
 
 FeyamOrderStatus _toFeyamStatus(OrderDisplayStatus s) => switch (s) {
-  OrderDisplayStatus.pendingReview => FeyamOrderStatus.enRevision,
-  OrderDisplayStatus.awaitingPayment => FeyamOrderStatus.porPagar,
   OrderDisplayStatus.review => FeyamOrderStatus.enRevision,
   OrderDisplayStatus.payment => FeyamOrderStatus.porPagar,
   OrderDisplayStatus.shipping => FeyamOrderStatus.enCamino,
   OrderDisplayStatus.delivered => FeyamOrderStatus.entregado,
-  OrderDisplayStatus.cancelled => FeyamOrderStatus.enRevision,
 };
 
 _OrderPreview _toPreview(RecentOrderEntity o) => _OrderPreview(
   id: o.orderId,
   title: o.title,
   status: _toMaterialStatus(o.displayStatus),
-  price: _formatPrice(o.displayAmount),
+  price: _formatPrice(o.chargedAmount),
   date: _formatDate(o.createdDate),
 );
 
@@ -1040,14 +1030,14 @@ class _CupertinoRecentOrders extends StatelessWidget {
         padding: const EdgeInsets.only(top: 3),
         child: FeyamStatusBadge(status: status),
       ),
-      detail: Text(_formatPrice(order.displayAmount)),
+      detail: Text(_formatPrice(order.chargedAmount)),
       isLast: isLast,
       onTap: () => Navigator.of(context).push(
         CupertinoPageRoute<void>(
           builder: (_) => OrderDetailScreen(
             orderId: order.orderId,
             title: order.title,
-            price: _formatPrice(order.displayAmount),
+            price: _formatPrice(order.chargedAmount),
             status: order.displayStatus.name,
             date: _formatDate(order.createdDate),
           ),

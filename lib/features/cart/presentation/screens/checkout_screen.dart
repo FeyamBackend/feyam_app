@@ -3,13 +3,10 @@ import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
 import 'package:feyam/core/widgets/feyam_hero_header.dart';
 import 'package:feyam/features/cart/domain/entities/cart_entity.dart';
 import 'package:feyam/features/cart/domain/entities/cart_item_entity.dart';
-import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
-import 'package:feyam/features/cart/presentation/bloc/cart_submit_bloc.dart';
-import 'package:feyam/features/cart/presentation/bloc/cart_submit_event.dart';
-import 'package:feyam/features/cart/presentation/bloc/cart_submit_state.dart';
-import 'package:feyam/features/cart/presentation/screens/order_submitted_screen.dart';
+import 'package:feyam/features/cart/presentation/screens/checkout_success_screen.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
+import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
@@ -34,11 +31,7 @@ class CheckoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // Pricing preview only now — PaymentCheckoutRequested (immediate
-        // charge at cart-submit time) is superseded by CartSubmitBloc, which
-        // submits the cart with no payment at all.
         BlocProvider<PaymentBloc>(create: (_) => sl<PaymentBloc>()),
-        BlocProvider<CartSubmitBloc>(create: (_) => sl<CartSubmitBloc>()),
         BlocProvider<AddressesBloc>(create: (_) => sl<AddressesBloc>()),
       ],
       child: _CheckoutView(cart: cart),
@@ -162,43 +155,59 @@ class _CheckoutViewState extends State<_CheckoutView> {
     );
   }
 
-  void _onState(BuildContext context, CartSubmitState state) {
+  void _onState(BuildContext context, PaymentState state) {
     final l10n = AppLocalizations.of(context)!;
     switch (state.status) {
-      case CartSubmitStatus.success:
+      case PaymentStatus.success:
         Navigator.pushReplacement(
           context,
           AdaptivePlatform.pageRoute<void>(
             context: context,
-            builder: (_) => const OrderSubmittedScreen(),
+            builder: (_) => const CheckoutSuccessScreen(),
           ),
         );
-      case CartSubmitStatus.failure:
+      case PaymentStatus.pendingConfirmation:
+        // El cobro se realizó; el backend lo confirmará por webhook.
+        Navigator.pushReplacement(
+          context,
+          AdaptivePlatform.pageRoute<void>(
+            context: context,
+            builder: (_) => const CheckoutSuccessScreen(pending: true),
+          ),
+        );
+      case PaymentStatus.cancelled:
+        // El usuario cerró el sheet a propósito: volvemos sin error intrusivo.
+        break;
+      case PaymentStatus.failure:
         {
           final code = state.failure?.code;
-          if (code == CartFailureCode.sessionExpired ||
-              code == CartFailureCode.unauthorized) {
+          if (code == PaymentFailureCode.sessionExpired ||
+              code == PaymentFailureCode.unauthorized) {
             // El logout es global (AuthenticatedHttpClient → AuthBloc): no
             // mostramos diálogo, MainScreen navega a LoginScreen.
             break;
           }
           _showError(context, _failureMessage(l10n, state.failure));
         }
-      case CartSubmitStatus.initial:
-      case CartSubmitStatus.processing:
+      case PaymentStatus.initial:
+      case PaymentStatus.processing:
+      case PaymentStatus.verifying:
         break;
     }
   }
 
-  String _failureMessage(AppLocalizations l10n, CartFailure? failure) {
+  String _failureMessage(AppLocalizations l10n, PaymentFailure? failure) {
     switch (failure?.code) {
-      case CartFailureCode.networkError:
+      case PaymentFailureCode.networkError:
         return l10n.paymentErrorNetwork;
-      case CartFailureCode.sessionExpired:
-      case CartFailureCode.unauthorized:
+      case PaymentFailureCode.sessionExpired:
+      case PaymentFailureCode.unauthorized:
         return l10n.paymentErrorSession;
-      case CartFailureCode.serverError:
-      case CartFailureCode.unknown:
+      case PaymentFailureCode.cancelled:
+        return l10n.paymentCancelled;
+      case PaymentFailureCode.serverError:
+      case PaymentFailureCode.notFound:
+      case PaymentFailureCode.unknown:
       case null:
         return l10n.paymentErrorGeneric;
     }
@@ -221,57 +230,52 @@ class _CheckoutViewState extends State<_CheckoutView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CartSubmitBloc, CartSubmitState>(
+    return BlocConsumer<PaymentBloc, PaymentState>(
       listenWhen: (prev, curr) => prev.status != curr.status,
       listener: _onState,
-      builder: (context, submitState) {
-        return BlocBuilder<PaymentBloc, PaymentState>(
-          builder: (context, paymentState) {
-            return BlocBuilder<AddressesBloc, AddressesState>(
-              builder: (context, addressState) {
-                final shipments = _shipmentsOf(addressState);
-                _syncSelection(shipments);
+      builder: (context, paymentState) {
+        return BlocBuilder<AddressesBloc, AddressesState>(
+          builder: (context, addressState) {
+            final shipments = _shipmentsOf(addressState);
+            _syncSelection(shipments);
 
-                final busy = submitState.status == CartSubmitStatus.processing;
-                final pricingReady =
-                    paymentState.pricingStatus ==
-                        CheckoutPricingStatus.loaded &&
-                    paymentState.pricing != null;
-                final canPay =
-                    !busy && pricingReady && _selectedAddressId != null;
-                final onPay = canPay
-                    ? () => context.read<CartSubmitBloc>().add(
-                        CartSubmitRequested(_selectedAddressId!),
-                      )
-                    : null;
-                void onRetryPricing() => context.read<PaymentBloc>().add(
-                  const PaymentPricingRequested(),
-                );
+            final busy =
+                paymentState.status == PaymentStatus.processing ||
+                paymentState.status == PaymentStatus.verifying;
+            final pricingReady =
+                paymentState.pricingStatus == CheckoutPricingStatus.loaded &&
+                paymentState.pricing != null;
+            final canPay = !busy && pricingReady && _selectedAddressId != null;
+            final onPay = canPay
+                ? () => context.read<PaymentBloc>().add(
+                    PaymentCheckoutRequested(_selectedAddressId!),
+                  )
+                : null;
+            void onRetryPricing() => context.read<PaymentBloc>().add(
+              const PaymentPricingRequested(),
+            );
 
-                final addressSection = _AddressSummaryCard(
-                  status: addressState.status,
-                  shipments: shipments,
-                  selectedAddressId: _selectedAddressId,
-                  onEdit: () => _showAddressPicker(shipments),
-                  onAdd: _addAddress,
-                  onRetry: () {
-                    final lang = Localizations.localeOf(context).languageCode;
-                    context.read<AddressesBloc>().add(
-                      AddressesLoadRequested(lang),
-                    );
-                  },
-                );
-
-                return _CheckoutContent(
-                  cart: widget.cart,
-                  pricingStatus: paymentState.pricingStatus,
-                  pricing: paymentState.pricing,
-                  onRetryPricing: onRetryPricing,
-                  busy: busy,
-                  onPay: onPay,
-                  addressSection: addressSection,
-                );
+            final addressSection = _AddressSummaryCard(
+              status: addressState.status,
+              shipments: shipments,
+              selectedAddressId: _selectedAddressId,
+              onEdit: () => _showAddressPicker(shipments),
+              onAdd: _addAddress,
+              onRetry: () {
+                final lang = Localizations.localeOf(context).languageCode;
+                context.read<AddressesBloc>().add(AddressesLoadRequested(lang));
               },
+            );
+
+            return _CheckoutContent(
+              cart: widget.cart,
+              pricingStatus: paymentState.pricingStatus,
+              pricing: paymentState.pricing,
+              onRetryPricing: onRetryPricing,
+              busy: busy,
+              verifying: paymentState.status == PaymentStatus.verifying,
+              onPay: onPay,
+              addressSection: addressSection,
             );
           },
         );
@@ -655,6 +659,7 @@ class _CheckoutContent extends StatelessWidget {
     required this.pricing,
     required this.onRetryPricing,
     required this.busy,
+    required this.verifying,
     required this.onPay,
     required this.addressSection,
   });
@@ -664,6 +669,7 @@ class _CheckoutContent extends StatelessWidget {
   final CheckoutPricingEntity? pricing;
   final VoidCallback onRetryPricing;
   final bool busy;
+  final bool verifying;
   final VoidCallback? onPay;
   final Widget addressSection;
 
@@ -800,9 +806,13 @@ class _CheckoutContent extends StatelessWidget {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Icon(Icons.send_rounded),
+                              : const Icon(Icons.lock_rounded),
                           label: Text(
-                            busy ? l10n.checkoutProcessing : l10n.checkoutConfirm,
+                            busy
+                                ? (verifying
+                                      ? l10n.checkoutVerifying
+                                      : l10n.checkoutProcessing)
+                                : l10n.checkoutConfirm,
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.secondary,

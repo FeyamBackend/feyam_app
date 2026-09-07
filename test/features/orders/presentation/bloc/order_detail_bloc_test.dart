@@ -75,7 +75,7 @@ void main() {
 
 final _detail = OrderDetailEntity(
   id: 'order_1',
-  status: 'PendingPriceReview',
+  status: 'Submitted',
   submittedAt: DateTime.utc(2026, 8, 15, 12),
   lines: const <OrderLineEntity>[
     OrderLineEntity(
@@ -87,8 +87,6 @@ final _detail = OrderDetailEntity(
       storeName: 'Acme',
     ),
   ],
-  estimatedTotal: 100.0,
-  currencyCode: 'USD',
 );
 
 class _FakeOrdersRepository implements OrdersRepository {

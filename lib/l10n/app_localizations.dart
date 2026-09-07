@@ -1577,7 +1577,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutPayMethodDesc.
   ///
   /// In en, this message translates to:
-  /// **'You won\'t be charged now. Our team will confirm the final price and you\'ll be able to pay it securely by card.'**
+  /// **'Payments are securely processed by card.'**
   String get checkoutPayMethodDesc;
 
   /// No description provided for @checkoutPayInfo.
@@ -2233,102 +2233,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You will be signed out of your Feyam account on this device.'**
   String get logoutBody;
-
-  /// No description provided for @ordersStatusCancelado.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelled'**
-  String get ordersStatusCancelado;
-
-  /// No description provided for @orderSubmittedTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Order submitted'**
-  String get orderSubmittedTitle;
-
-  /// No description provided for @orderSubmittedBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Your order was submitted for review. We\'ll let you know once the final price is confirmed so you can pay.'**
-  String get orderSubmittedBody;
-
-  /// No description provided for @orderPaymentTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Pay order'**
-  String get orderPaymentTitle;
-
-  /// No description provided for @orderPaymentIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'We confirmed your order\'s final price. Review the amount and pay to continue.'**
-  String get orderPaymentIntro;
-
-  /// No description provided for @orderPaymentAmountLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Amount to pay'**
-  String get orderPaymentAmountLabel;
-
-  /// No description provided for @orderPaymentPayButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Pay order'**
-  String get orderPaymentPayButton;
-
-  /// No description provided for @orderPaymentSuccessTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment confirmed'**
-  String get orderPaymentSuccessTitle;
-
-  /// No description provided for @orderPaymentSuccessBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Thank you! Your order was paid successfully.'**
-  String get orderPaymentSuccessBody;
-
-  /// No description provided for @orderPaymentPendingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment received'**
-  String get orderPaymentPendingTitle;
-
-  /// No description provided for @orderPaymentPendingBody.
-  ///
-  /// In en, this message translates to:
-  /// **'We\'re confirming your payment — it may take a moment. We\'ll let you know when it\'s ready.'**
-  String get orderPaymentPendingBody;
-
-  /// No description provided for @orderPaymentFailureTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Payment failed'**
-  String get orderPaymentFailureTitle;
-
-  /// No description provided for @orderPaymentRetryButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get orderPaymentRetryButton;
-
-  /// No description provided for @orderPaymentDoneButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get orderPaymentDoneButton;
-
-  /// No description provided for @orderDetailPayNowButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Pay now'**
-  String get orderDetailPayNowButton;
-
-  /// No description provided for @orderDetailAwaitingPaymentBanner.
-  ///
-  /// In en, this message translates to:
-  /// **'Your order is ready — pay the confirmed amount to continue.'**
-  String get orderDetailAwaitingPaymentBanner;
 }
 
 class _AppLocalizationsDelegate

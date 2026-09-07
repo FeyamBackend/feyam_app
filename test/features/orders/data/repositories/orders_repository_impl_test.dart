@@ -198,7 +198,7 @@ class _FakeDataSource extends OrdersRemoteDataSource {
       case _Behavior.ok:
         return OrderDetailModel.fromJson(<String, dynamic>{
           'id': orderId,
-          'status': 'PendingPriceReview',
+          'status': 'Submitted',
           'submittedAt': '2026-08-15T12:00:00Z',
           'lines': <dynamic>[
             <String, dynamic>{
@@ -210,8 +210,6 @@ class _FakeDataSource extends OrdersRemoteDataSource {
               'storeName': null,
             },
           ],
-          'estimatedTotal': 10.0,
-          'currencyCode': 'USD',
         });
       case _Behavior.notFound:
         throw const OrdersOrderNotFoundException();

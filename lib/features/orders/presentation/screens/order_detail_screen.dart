@@ -18,7 +18,6 @@ import 'package:feyam/features/orders/presentation/bloc/quote_state.dart';
 import 'package:feyam/features/orders/presentation/bloc/shipments_bloc.dart';
 import 'package:feyam/features/orders/presentation/bloc/shipments_event.dart';
 import 'package:feyam/features/orders/presentation/bloc/shipments_state.dart';
-import 'package:feyam/features/payments/presentation/screens/order_payment_screen.dart';
 import 'package:feyam/features/payments/presentation/screens/quote_payment_screen.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
@@ -115,76 +114,6 @@ String _shipmentStatusLabel(String status, AppLocalizations l10n) {
 /// built directly in Dart (not through l10n interpolation, which has no
 /// existing precedent in this project's .arb files yet) the same way
 /// `_formatSubmittedAt` already builds its own formatted string.
-/// Whether the order's price has been confirmed and the customer must pay —
-/// i.e. it's past `PendingPriceReview` but not yet `Paid`.
-bool _isAwaitingPayment(OrderDetailEntity detail) =>
-    (detail.status == 'PriceConfirmed' || detail.status == 'AwaitingPayment') &&
-    detail.confirmedTotal != null;
-
-/// "Pagar ahora" banner shown on the order detail screen once a
-/// price_confirmator has confirmed the final price — mirrors the CTA in
-/// `_Md3QuoteSection` (the existing "pay the gap" flow) but for the order's
-/// entire confirmed total.
-class _PayNowBanner extends StatelessWidget {
-  const _PayNowBanner({
-    required this.scale,
-    required this.l10n,
-    required this.detail,
-  });
-
-  final double scale;
-  final AppLocalizations l10n;
-  final OrderDetailEntity detail;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(12 * scale),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(14 * scale),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              l10n.orderDetailAwaitingPaymentBanner,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colors.onPrimaryContainer,
-                fontSize: 13 * scale,
-                height: 1.4,
-              ),
-            ),
-            SizedBox(height: 10 * scale),
-            SizedBox(
-              height: 42 * scale,
-              child: FilledButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  AdaptivePlatform.pageRoute<void>(
-                    context: context,
-                    builder: (_) => OrderPaymentScreen(orderId: detail.id),
-                  ),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colors.secondary,
-                  foregroundColor: colors.onSecondary,
-                  shape: const StadiumBorder(),
-                ),
-                icon: const Icon(Icons.payment_rounded),
-                label: Text(l10n.orderDetailPayNowButton),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 String? _waitingGroupMessage(OrderDetailEntity detail, AppLocalizations l10n) {
   if (detail.status != 'WaitingGroup') return null;
 
@@ -632,10 +561,6 @@ class _Md3OrderItemsSection extends StatelessWidget {
               label: l10n.ordDetailBackendStatus,
               value: detail.status,
             ),
-            if (_isAwaitingPayment(detail)) ...<Widget>[
-              SizedBox(height: 8 * scale),
-              _PayNowBanner(scale: scale, l10n: l10n, detail: detail),
-            ],
             if (_waitingGroupMessage(detail, l10n) case final String message) ...<Widget>[
               SizedBox(height: 8 * scale),
               Row(
@@ -1530,7 +1455,7 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
                       BlocBuilder<OrderDetailBloc, OrderDetailState>(
                         builder: (context, state) => FeyamListSection(
                           header: 'Artículos',
-                          children: _cupertinoOrderItemsChildren(context, state),
+                          children: _cupertinoOrderItemsChildren(state),
                         ),
                       ),
                       // Final quote fetched from GET /api/orders/{id}/quote,
@@ -1602,10 +1527,7 @@ class _CupertinoOrderDetailContent extends StatelessWidget {
 
 /// Builds the tiles for the Cupertino "Artículos" section from the
 /// GET /api/orders/{id} fetch state.
-List<Widget> _cupertinoOrderItemsChildren(
-  BuildContext context,
-  OrderDetailState state,
-) {
+List<Widget> _cupertinoOrderItemsChildren(OrderDetailState state) {
   switch (state.status) {
     case OrderDetailStatus.initial:
     case OrderDetailStatus.loading:
@@ -1644,28 +1566,6 @@ List<Widget> _cupertinoOrderItemsChildren(
           chevron: false,
         ),
       ];
-
-      if (_isAwaitingPayment(detail)) {
-        tiles.add(
-          FeyamListTile(
-            title: const Text(
-              'Pagar ahora',
-              style: TextStyle(fontWeight: FontWeight.w600, color: kFeyamTint),
-            ),
-            subtitle: Text(
-              '${detail.confirmedTotal!.toStringAsFixed(2)} ${detail.currencyCode}',
-            ),
-            onTap: () {
-              Navigator.of(context).push(
-                AdaptivePlatform.pageRoute<void>(
-                  context: context,
-                  builder: (_) => OrderPaymentScreen(orderId: detail.id),
-                ),
-              );
-            },
-          ),
-        );
-      }
 
       // Hardcoded Spanish, matching this Cupertino section's existing
       // convention (it doesn't thread AppLocalizations through, unlike the
