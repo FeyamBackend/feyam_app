@@ -6,4 +6,6 @@ abstract class ProductSearchRepository {
     String? retailer,
     int page = 1,
   });
+
+  Future<ProductSearchResultEntity> lookupByUrl({required String url});
 }

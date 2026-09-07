@@ -32,4 +32,19 @@ class ProductSearchRepositoryImpl implements ProductSearchRepository {
       throw const ProductSearchFailure(ProductSearchFailureCode.unknown);
     }
   }
+
+  @override
+  Future<ProductSearchResultEntity> lookupByUrl({required String url}) async {
+    try {
+      return await remoteDataSource.lookupByUrl(url: url);
+    } on ProductSearchUnauthorizedException {
+      throw const ProductSearchFailure(ProductSearchFailureCode.sessionExpired);
+    } on ProductSearchServerException {
+      throw const ProductSearchFailure(ProductSearchFailureCode.serverError);
+    } on SocketException {
+      throw const ProductSearchFailure(ProductSearchFailureCode.networkError);
+    } catch (_) {
+      throw const ProductSearchFailure(ProductSearchFailureCode.unknown);
+    }
+  }
 }

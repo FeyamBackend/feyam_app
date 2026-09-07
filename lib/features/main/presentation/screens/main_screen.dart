@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:feyam/core/di/injection_container.dart';
 import 'package:feyam/core/push/local_notifications_service.dart';
+import 'package:feyam/core/utils/product_url_detector.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_widgets.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/auth/presentation/screens/login_screen.dart';
@@ -16,6 +17,9 @@ import 'package:feyam/features/notifications/presentation/bloc/unread_count_even
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/payments/presentation/screens/order_payment_screen.dart';
 import 'package:feyam/features/payments/presentation/screens/price_adjustment_payment_screen.dart';
+import 'package:feyam/features/product_search/domain/entities/product_search_result_entity.dart';
+import 'package:feyam/features/product_search/domain/failures/product_search_failure.dart';
+import 'package:feyam/features/product_search/domain/usecases/lookup_product_by_url.dart';
 import 'package:feyam/features/profile/presentation/screens/profile_screen.dart';
 import 'package:feyam/features/stores/presentation/bloc/stores_bloc.dart';
 import 'package:feyam/features/stores/presentation/screens/stores_screen.dart';
@@ -27,12 +31,44 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// A product link received from the native share-intent handler, with the
-/// title (if any) already separated from the URL.
+/// title (if any) already separated from the URL. [priceAmount]/[imageUrl]
+/// are only ever set after a successful lookup resolution — see
+/// [mergeSharedLinkWithLookup].
 class SharedProductLink {
-  const SharedProductLink({required this.url, this.title});
+  const SharedProductLink({
+    required this.url,
+    this.title,
+    this.priceAmount,
+    this.imageUrl,
+  });
 
   final String url;
   final String? title;
+  final double? priceAmount;
+  final String? imageUrl;
+}
+
+/// Combines a native share payload with the outcome of resolving its URL
+/// against the backend's product-lookup endpoint (same one the search box
+/// uses for a pasted URL — see LookupProductByUrlUseCase). Resolved
+/// title/price/image win when present; the shared URL is always kept as-is.
+/// A null/empty [lookupResult] — the retailer isn't supported, the lookup
+/// failed, or it was never attempted — falls back to [link] unchanged, i.e.
+/// today's manual-entry behavior.
+SharedProductLink mergeSharedLinkWithLookup(
+  SharedProductLink link,
+  ProductSearchResultEntity? lookupResult,
+) {
+  final items = lookupResult?.items;
+  if (items == null || items.isEmpty) return link;
+
+  final resolved = items.first;
+  return SharedProductLink(
+    url: link.url,
+    title: resolved.title,
+    priceAmount: resolved.price,
+    imageUrl: resolved.imageUrl,
+  );
 }
 
 /// Parses the payload emitted by the native `.../share` EventChannel.
@@ -128,7 +164,8 @@ class _MainScreenState extends State<MainScreen> {
         return;
       }
 
-      if (relatedEntityType == 'OrderPriceConfirmed' && relatedEntityId != null) {
+      if (relatedEntityType == 'OrderPriceConfirmed' &&
+          relatedEntityId != null) {
         Navigator.of(context).push(
           AdaptivePlatform.pageRoute<void>(
             context: context,
@@ -150,19 +187,64 @@ class _MainScreenState extends State<MainScreen> {
   void _onSharedUrl(dynamic share) {
     final link = parseSharedProductEvent(share);
     if (link != null) {
-      _openAddToCart(link.url, title: link.title);
+      unawaited(
+        _resolveAndOpenSharedLink(
+          SharedProductLink(
+            url: stripUrlQueryParams(link.url),
+            title: link.title,
+          ),
+        ),
+      );
     }
   }
 
-  void _openAddToCart(String url, {String? title}) {
+  /// Resolves the shared URL against the same backend lookup the search box
+  /// uses for a pasted URL, then opens Add to Cart prefilled with whatever
+  /// it found. A brief blocking spinner covers the network round-trip, since
+  /// there's no results list to show progress in here (unlike the search
+  /// screen) — any failure/unsupported-retailer outcome degrades to today's
+  /// unresolved manual-entry flow rather than surfacing an error.
+  Future<void> _resolveAndOpenSharedLink(SharedProductLink link) async {
+    if (!looksLikeProductUrl(link.url)) {
+      _openAddToCart(link);
+      return;
+    }
+
+    if (!mounted) return;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const _ResolvingSharedLinkDialog(),
+      ),
+    );
+
+    ProductSearchResultEntity? lookupResult;
+    try {
+      lookupResult = await sl<LookupProductByUrlUseCase>()(url: link.url);
+    } on ProductSearchFailure {
+      lookupResult = null;
+    }
+
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    _openAddToCart(mergeSharedLinkWithLookup(link, lookupResult));
+  }
+
+  void _openAddToCart(SharedProductLink link) {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.of(context).push(
         AdaptivePlatform.pageRoute<void>(
           context: context,
-          builder: (_) =>
-              AddToCartScreen(initialUrl: url, initialProductName: title),
+          builder: (_) => AddToCartScreen(
+            initialUrl: link.url,
+            initialProductName: link.title,
+            initialPriceAmount: link.priceAmount,
+            initialImageUrl: link.imageUrl,
+          ),
         ),
       );
     });
@@ -316,6 +398,41 @@ class _CartNavIcon extends StatelessWidget {
       isLabelVisible: count > 0,
       backgroundColor: const Color(0xFF4CAF50),
       child: icon,
+    );
+  }
+}
+
+class _ResolvingSharedLinkDialog extends StatelessWidget {
+  const _ResolvingSharedLinkDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+        ),
+        const SizedBox(width: 16),
+        Flexible(child: Text(l10n.sharedLinkResolving)),
+      ],
+    );
+
+    return PopScope(
+      canPop: false,
+      child: AdaptivePlatform.isCupertino(context)
+          ? CupertinoAlertDialog(
+              content: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: content,
+              ),
+            )
+          : Dialog(
+              child: Padding(padding: const EdgeInsets.all(24), child: content),
+            ),
     );
   }
 }
