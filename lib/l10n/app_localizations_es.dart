@@ -735,6 +735,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get productSearchLoadMore => 'Ver más resultados';
 
   @override
+  String get sharedLinkResolving => 'Obteniendo los datos del producto…';
+
+  @override
   String get storesLoadError => 'No pudimos cargar las tiendas.';
 
   @override

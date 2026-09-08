@@ -51,4 +51,26 @@ class ProductSearchRemoteDataSource {
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }
+
+  /// Resolves a single product's data from a pasted product page URL, via
+  /// Feyam's own backend (which in turn calls Zinc's structured per-product
+  /// details endpoint) — never a text search against the raw URL string.
+  Future<ProductSearchResultModel> lookupByUrl({required String url}) async {
+    final uri = Uri.parse('$_apiBaseUrl/api/products/lookup').replace(
+      queryParameters: {'url': url},
+    );
+
+    final response = await _client.get(uri);
+
+    if (response.statusCode == 401) {
+      throw const ProductSearchUnauthorizedException();
+    }
+    if (response.statusCode != 200) {
+      throw ProductSearchServerException(response.statusCode);
+    }
+
+    return ProductSearchResultModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
 }

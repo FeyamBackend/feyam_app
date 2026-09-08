@@ -1496,6 +1496,12 @@ abstract class AppLocalizations {
   /// **'See more results'**
   String get productSearchLoadMore;
 
+  /// No description provided for @sharedLinkResolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting product details…'**
+  String get sharedLinkResolving;
+
   /// No description provided for @storesLoadError.
   ///
   /// In en, this message translates to:

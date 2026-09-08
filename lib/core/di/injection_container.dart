@@ -85,6 +85,7 @@ import 'package:feyam/features/profile/domain/usecases/update_address.dart';
 import 'package:feyam/features/product_search/data/datasources/product_search_remote_datasource.dart';
 import 'package:feyam/features/product_search/data/repositories/product_search_repository_impl.dart';
 import 'package:feyam/features/product_search/domain/repositories/product_search_repository.dart';
+import 'package:feyam/features/product_search/domain/usecases/lookup_product_by_url.dart';
 import 'package:feyam/features/product_search/domain/usecases/search_products.dart';
 import 'package:feyam/features/product_search/presentation/bloc/product_search_bloc.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
@@ -554,8 +555,15 @@ void configureDependencies({AppConfig? appConfig}) {
     () => SearchProductsUseCase(sl<ProductSearchRepository>()),
   );
 
+  sl.registerFactory<LookupProductByUrlUseCase>(
+    () => LookupProductByUrlUseCase(sl<ProductSearchRepository>()),
+  );
+
   sl.registerFactory<ProductSearchBloc>(
-    () => ProductSearchBloc(searchProductsUseCase: sl<SearchProductsUseCase>()),
+    () => ProductSearchBloc(
+      searchProductsUseCase: sl<SearchProductsUseCase>(),
+      lookupProductByUrlUseCase: sl<LookupProductByUrlUseCase>(),
+    ),
   );
 
   /**

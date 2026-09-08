@@ -1,4 +1,6 @@
+import 'package:feyam/core/utils/product_url_detector.dart';
 import 'package:feyam/features/product_search/domain/failures/product_search_failure.dart';
+import 'package:feyam/features/product_search/domain/usecases/lookup_product_by_url.dart';
 import 'package:feyam/features/product_search/domain/usecases/search_products.dart';
 import 'package:feyam/features/product_search/presentation/bloc/product_search_event.dart';
 import 'package:feyam/features/product_search/presentation/bloc/product_search_state.dart';
@@ -10,8 +12,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 const int kMinProductSearchQueryLength = 3;
 
 class ProductSearchBloc extends Bloc<ProductSearchEvent, ProductSearchState> {
-  ProductSearchBloc({required SearchProductsUseCase searchProductsUseCase})
-      : _searchProducts = searchProductsUseCase,
+  ProductSearchBloc({
+    required SearchProductsUseCase searchProductsUseCase,
+    required LookupProductByUrlUseCase lookupProductByUrlUseCase,
+  })  : _searchProducts = searchProductsUseCase,
+        _lookupProductByUrl = lookupProductByUrlUseCase,
         super(const ProductSearchState()) {
     on<ProductSearchQueryChanged>(_onQueryChanged);
     on<ProductSearchRetailerChanged>(_onRetailerChanged);
@@ -21,6 +26,7 @@ class ProductSearchBloc extends Bloc<ProductSearchEvent, ProductSearchState> {
   }
 
   final SearchProductsUseCase _searchProducts;
+  final LookupProductByUrlUseCase _lookupProductByUrl;
 
   // The screen already debounces keystrokes with a Timer before dispatching
   // ProductSearchQueryChanged; this counter additionally guards against a
@@ -117,6 +123,18 @@ class ProductSearchBloc extends Bloc<ProductSearchEvent, ProductSearchState> {
     required String? retailer,
     required Emitter<ProductSearchState> emit,
   }) async {
+    // A pasted product URL is resolved by a single deterministic lookup, not
+    // fed to the text-search endpoint as garbage input. Checked here (rather
+    // than only in _onQueryChanged) so ProductSearchRetried re-detects it too
+    // instead of falling through to a text search of the raw URL. Query
+    // params are stripped first — retailers tack referral/tracking params
+    // (Amazon's ref, pf_rd_*, sbo, etc.) onto pasted links that are
+    // irrelevant to the lookup and shouldn't end up stored on the cart item.
+    if (looksLikeProductUrl(query)) {
+      await _runLookup(query: stripUrlQueryParams(query), emit: emit);
+      return;
+    }
+
     final requestId = ++_requestId;
     emit(state.copyWith(
       status: ProductSearchStatus.loading,
@@ -139,6 +157,42 @@ class ProductSearchBloc extends Bloc<ProductSearchEvent, ProductSearchState> {
         isPartial: result.isPartial,
         nextPage: result.nextPage,
         clearNextPage: result.nextPage == null,
+      ));
+    } on ProductSearchFailure catch (failure) {
+      if (requestId != _requestId) return;
+      emit(state.copyWith(
+        status: ProductSearchStatus.failure,
+        items: const [],
+        failure: failure,
+        clearNextPage: true,
+      ));
+    }
+  }
+
+  Future<void> _runLookup({
+    required String query,
+    required Emitter<ProductSearchState> emit,
+  }) async {
+    final requestId = ++_requestId;
+    emit(state.copyWith(
+      status: ProductSearchStatus.loading,
+      query: query,
+      clearRetailer: true,
+      failure: null,
+    ));
+
+    try {
+      final result = await _lookupProductByUrl(url: query);
+      if (requestId != _requestId) return;
+
+      emit(state.copyWith(
+        status: result.items.isEmpty
+            ? ProductSearchStatus.empty
+            : ProductSearchStatus.loaded,
+        items: result.items,
+        sources: result.sources,
+        isPartial: result.isPartial,
+        clearNextPage: true,
       ));
     } on ProductSearchFailure catch (failure) {
       if (requestId != _requestId) return;
