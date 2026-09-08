@@ -229,10 +229,17 @@ class _MainScreenState extends State<MainScreen> {
     if (!mounted) return;
     Navigator.of(context, rootNavigator: true).pop();
 
-    _openAddToCart(mergeSharedLinkWithLookup(link, lookupResult));
+    final lookupSucceeded = lookupResult?.items.isNotEmpty ?? false;
+    _openAddToCart(
+      mergeSharedLinkWithLookup(link, lookupResult),
+      showLookupFailedNotice: !lookupSucceeded,
+    );
   }
 
-  void _openAddToCart(SharedProductLink link) {
+  void _openAddToCart(
+    SharedProductLink link, {
+    bool showLookupFailedNotice = false,
+  }) {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -244,6 +251,7 @@ class _MainScreenState extends State<MainScreen> {
             initialProductName: link.title,
             initialPriceAmount: link.priceAmount,
             initialImageUrl: link.imageUrl,
+            showLookupFailedNotice: showLookupFailedNotice,
           ),
         ),
       );

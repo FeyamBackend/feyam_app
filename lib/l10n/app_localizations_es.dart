@@ -735,6 +735,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get productSearchLoadMore => 'Ver más resultados';
 
   @override
+  String get productLookupFailedTitle =>
+      'No pudimos obtener los datos de este producto';
+
+  @override
+  String get productLookupFailedBody =>
+      'Revisá el link o completá los datos manualmente.';
+
+  @override
   String get sharedLinkResolving => 'Obteniendo los datos del producto…';
 
   @override

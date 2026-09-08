@@ -9,13 +9,17 @@ import 'package:google_fonts/google_fonts.dart';
 /// Zinc only covers a subset of retailers/products — this keeps today's
 /// manual paste-link flow one tap away instead of removing it.
 class PasteLinkFallbackCard extends StatelessWidget {
-  const PasteLinkFallbackCard({super.key});
+  const PasteLinkFallbackCard({super.key, this.prefillUrl});
+
+  /// The URL the user already typed/pasted, so a failed lookup doesn't force
+  /// them to retype it when they fall back to manual entry.
+  final String? prefillUrl;
 
   void _openManualAddToCart(BuildContext context) {
     Navigator.of(context).push(
       AdaptivePlatform.pageRoute(
         context: context,
-        builder: (_) => const AddToCartScreen(),
+        builder: (_) => AddToCartScreen(initialUrl: prefillUrl),
       ),
     );
   }

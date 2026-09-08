@@ -62,6 +62,7 @@ class AddToCartScreen extends StatelessWidget {
     this.initialProductName,
     this.initialPriceAmount,
     this.initialImageUrl,
+    this.showLookupFailedNotice = false,
   });
 
   final String? initialUrl;
@@ -73,6 +74,11 @@ class AddToCartScreen extends StatelessWidget {
   final double? initialPriceAmount;
   final String? initialImageUrl;
 
+  /// True when this screen was opened after a shared-link Zinc lookup that
+  /// failed or returned no data — shows a one-time notice so the manual
+  /// fallback isn't silent (see MainScreen._resolveAndOpenSharedLink).
+  final bool showLookupFailedNotice;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -82,6 +88,7 @@ class AddToCartScreen extends StatelessWidget {
         initialProductName: initialProductName,
         initialPriceAmount: initialPriceAmount,
         initialImageUrl: initialImageUrl,
+        showLookupFailedNotice: showLookupFailedNotice,
       ),
     );
   }
@@ -93,12 +100,14 @@ class _AddToCartView extends StatefulWidget {
     this.initialProductName,
     this.initialPriceAmount,
     this.initialImageUrl,
+    this.showLookupFailedNotice = false,
   });
 
   final String? initialUrl;
   final String? initialProductName;
   final double? initialPriceAmount;
   final String? initialImageUrl;
+  final bool showLookupFailedNotice;
 
   @override
   State<_AddToCartView> createState() => _AddToCartViewState();
@@ -128,6 +137,18 @@ class _AddToCartViewState extends State<_AddToCartView> {
   final _notesController = TextEditingController();
 
   bool _pendingCheckout = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showLookupFailedNotice) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
+        _showPlatformNotice(context, l10n.productLookupFailedTitle);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -258,25 +279,28 @@ class _AddToCartViewState extends State<_AddToCartView> {
     if (state.status == AddToCartStatus.failure) {
       final failure = state.failure!;
       if (failure.code == CartFailureCode.sessionExpired) return;
-      final message = _failureMessage(context, failure);
-      if (AdaptivePlatform.isCupertino(context)) {
-        showCupertinoDialog<void>(
-          context: context,
-          builder: (_) => CupertinoAlertDialog(
-            title: const Text('Error'),
-            content: Text(message),
-            actions: [
-              CupertinoDialogAction(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
-      }
+      _showPlatformNotice(context, _failureMessage(context, failure));
+    }
+  }
+
+  void _showPlatformNotice(BuildContext context, String message) {
+    if (AdaptivePlatform.isCupertino(context)) {
+      showCupertinoDialog<void>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
