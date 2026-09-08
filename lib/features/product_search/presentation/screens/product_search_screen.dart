@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:feyam/core/di/injection_container.dart';
+import 'package:feyam/core/utils/product_url_detector.dart';
 import 'package:feyam/core/widgets/adaptive/adaptive_platform.dart';
 import 'package:feyam/core/widgets/cupertino/feyam_cupertino_kit.dart';
 import 'package:feyam/core/widgets/feyam_hero_header.dart';
@@ -176,6 +177,7 @@ class _MaterialProductSearch extends StatelessWidget {
                   Expanded(
                     child: BlocBuilder<ProductSearchBloc, ProductSearchState>(
                       builder: (context, state) {
+                        final isUrlLookup = looksLikeProductUrl(state.query);
                         return switch (state.status) {
                           ProductSearchStatus.initial => _MaterialMessage(
                             icon: Icons.search_rounded,
@@ -188,7 +190,12 @@ class _MaterialProductSearch extends StatelessWidget {
                           ),
                           ProductSearchStatus.failure => _MaterialMessage(
                             icon: Icons.error_outline_rounded,
-                            title: l10n.productSearchErrorTitle,
+                            title: isUrlLookup
+                                ? l10n.productLookupFailedTitle
+                                : l10n.productSearchErrorTitle,
+                            subtitle: isUrlLookup
+                                ? l10n.productLookupFailedBody
+                                : null,
                             actions: <Widget>[
                               FilledButton.tonal(
                                 onPressed: () => context
@@ -197,14 +204,26 @@ class _MaterialProductSearch extends StatelessWidget {
                                 child: Text(l10n.productSearchRetry),
                               ),
                               const SizedBox(height: 12),
-                              const PasteLinkFallbackCard(),
+                              PasteLinkFallbackCard(
+                                prefillUrl:
+                                    isUrlLookup ? state.query : null,
+                              ),
                             ],
                           ),
                           ProductSearchStatus.empty => _MaterialMessage(
                             icon: Icons.search_off_rounded,
-                            title: l10n.productSearchEmptyTitle,
-                            subtitle: l10n.productSearchEmptyBody,
-                            actions: const <Widget>[PasteLinkFallbackCard()],
+                            title: isUrlLookup
+                                ? l10n.productLookupFailedTitle
+                                : l10n.productSearchEmptyTitle,
+                            subtitle: isUrlLookup
+                                ? l10n.productLookupFailedBody
+                                : l10n.productSearchEmptyBody,
+                            actions: <Widget>[
+                              PasteLinkFallbackCard(
+                                prefillUrl:
+                                    isUrlLookup ? state.query : null,
+                              ),
+                            ],
                           ),
                           ProductSearchStatus.loaded => Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -406,6 +425,7 @@ class _CupertinoProductSearch extends StatelessWidget {
             Expanded(
               child: BlocBuilder<ProductSearchBloc, ProductSearchState>(
                 builder: (context, state) {
+                  final isUrlLookup = looksLikeProductUrl(state.query);
                   return switch (state.status) {
                     ProductSearchStatus.initial => FeyamEmptyState(
                       icon: CupertinoIcons.search,
@@ -416,7 +436,10 @@ class _CupertinoProductSearch extends StatelessWidget {
                     ),
                     ProductSearchStatus.failure => FeyamEmptyState(
                       icon: CupertinoIcons.exclamationmark_triangle,
-                      title: l10n.productSearchErrorTitle,
+                      title: isUrlLookup
+                          ? l10n.productLookupFailedTitle
+                          : l10n.productSearchErrorTitle,
+                      subtitle: isUrlLookup ? l10n.productLookupFailedBody : null,
                       action: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
@@ -428,15 +451,23 @@ class _CupertinoProductSearch extends StatelessWidget {
                                 .add(const ProductSearchRetried()),
                           ),
                           const SizedBox(height: 12),
-                          const PasteLinkFallbackCard(),
+                          PasteLinkFallbackCard(
+                            prefillUrl: isUrlLookup ? state.query : null,
+                          ),
                         ],
                       ),
                     ),
                     ProductSearchStatus.empty => FeyamEmptyState(
                       icon: CupertinoIcons.search,
-                      title: l10n.productSearchEmptyTitle,
-                      subtitle: l10n.productSearchEmptyBody,
-                      action: const PasteLinkFallbackCard(),
+                      title: isUrlLookup
+                          ? l10n.productLookupFailedTitle
+                          : l10n.productSearchEmptyTitle,
+                      subtitle: isUrlLookup
+                          ? l10n.productLookupFailedBody
+                          : l10n.productSearchEmptyBody,
+                      action: PasteLinkFallbackCard(
+                        prefillUrl: isUrlLookup ? state.query : null,
+                      ),
                     ),
                     ProductSearchStatus.loaded => Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,

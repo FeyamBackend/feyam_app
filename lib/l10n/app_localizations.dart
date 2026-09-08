@@ -1496,6 +1496,18 @@ abstract class AppLocalizations {
   /// **'See more results'**
   String get productSearchLoadMore;
 
+  /// No description provided for @productLookupFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t get this product\'s data'**
+  String get productLookupFailedTitle;
+
+  /// No description provided for @productLookupFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the link or fill in the details manually.'**
+  String get productLookupFailedBody;
+
   /// No description provided for @sharedLinkResolving.
   ///
   /// In en, this message translates to:

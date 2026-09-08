@@ -232,6 +232,8 @@
     "productSearchErrorTitle": "No pudimos completar la búsqueda",
     "productSearchRetry": "Reintentar",
     "productSearchLoadMore": "Ver más resultados",
+    "productLookupFailedTitle": "No pudimos obtener los datos de este producto",
+    "productLookupFailedBody": "Revisá el link o completá los datos manualmente.",
     "sharedLinkResolving": "Obteniendo los datos del producto…",
     "storesLoadError": "No pudimos cargar las tiendas.",
     "storesRetry": "Reintentar",
