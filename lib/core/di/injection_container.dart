@@ -17,6 +17,7 @@ import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
+import 'package:feyam/features/auth/domain/usecases/refresh_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/register.dart';
 import 'package:feyam/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:feyam/features/cart/data/datasources/cart_remote_datasource.dart';
@@ -154,6 +155,10 @@ void configureDependencies({AppConfig? appConfig}) {
     () => GetCurrentUserUseCase(sl<AuthRepository>()),
   );
 
+  sl.registerFactory<RefreshAuthSessionUseCase>(
+    () => RefreshAuthSessionUseCase(sl<AuthRepository>()),
+  );
+
   // Blocs
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(
@@ -162,6 +167,7 @@ void configureDependencies({AppConfig? appConfig}) {
       logoutUseCase: sl<LogoutUseCase>(),
       checkAuthSessionUseCase: sl<CheckAuthSessionUseCase>(),
       getCurrentUserUseCase: sl<GetCurrentUserUseCase>(),
+      refreshAuthSessionUseCase: sl<RefreshAuthSessionUseCase>(),
       sessionExpiredStream: sl<SessionExpiredNotifier>().stream,
     ),
   );
