@@ -76,7 +76,7 @@ class KeycloakDataSource {
                 tokenEndpoint:
                     '$_baseUrl/realms/$_realm/protocol/openid-connect/token',
               ),
-              scopes: ['openid', 'profile', 'email'],
+              scopes: ['openid', 'profile', 'email', 'offline_access'],
             ),
           );
 
@@ -148,9 +148,10 @@ class KeycloakDataSource {
     return accessToken != null && accessToken.isNotEmpty;
   }
 
-  /// Claims del `id_token` (emitido con scopes `openid profile email`), que ya
-  /// trae `name`/`email` validados por Keycloak: evita pegarle a un endpoint
-  /// de perfil aparte solo para mostrar esos datos.
+  /// Claims del `id_token` (emitido con scopes `openid profile email
+  /// offline_access`), que ya trae `name`/`email` validados por Keycloak:
+  /// evita pegarle a un endpoint de perfil aparte solo para mostrar esos
+  /// datos.
   Future<Map<String, dynamic>?> getIdTokenClaims() async {
     final idToken = await _secureStorage.read(key: _idTokenKey);
     if (idToken == null || idToken.isEmpty) {
@@ -196,7 +197,7 @@ class KeycloakDataSource {
             tokenEndpoint:
                 '$_baseUrl/realms/$_realm/protocol/openid-connect/token',
           ),
-          scopes: ['openid', 'profile', 'email'],
+          scopes: ['openid', 'profile', 'email', 'offline_access'],
         ),
       );
       if (result.accessToken == null) {
