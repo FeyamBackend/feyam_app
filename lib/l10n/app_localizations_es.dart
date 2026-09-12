@@ -813,7 +813,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checkoutSubtotal => 'Subtotal productos';
 
   @override
-  String get checkoutService => 'Servicio Feyam (12%)';
+  String get checkoutService => 'Servicio Feyam';
 
   @override
   String get checkoutShipping => 'Envío internacional';
