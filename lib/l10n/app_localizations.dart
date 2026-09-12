@@ -1643,7 +1643,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutService.
   ///
   /// In en, this message translates to:
-  /// **'Feyam service (12%)'**
+  /// **'Feyam service'**
   String get checkoutService;
 
   /// No description provided for @checkoutShipping.

@@ -7,7 +7,9 @@ import 'package:feyam/features/auth/domain/usecases/check_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/get_current_user.dart';
 import 'package:feyam/features/auth/domain/usecases/login.dart';
 import 'package:feyam/features/auth/domain/usecases/logout.dart';
+import 'package:feyam/features/auth/domain/usecases/refresh_auth_session.dart';
 import 'package:feyam/features/auth/domain/usecases/register.dart';
+import 'package:feyam/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'auth_event.dart';
@@ -20,18 +22,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required LogoutUseCase logoutUseCase,
     required CheckAuthSessionUseCase checkAuthSessionUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
+    required RefreshAuthSessionUseCase refreshAuthSessionUseCase,
     Stream<void>? sessionExpiredStream,
   }) : _loginUseCase = loginUseCase,
        _registerUseCase = registerUseCase,
        _logoutUseCase = logoutUseCase,
        _checkAuthSessionUseCase = checkAuthSessionUseCase,
        _getCurrentUserUseCase = getCurrentUserUseCase,
+       _refreshAuthSessionUseCase = refreshAuthSessionUseCase,
        super(const AuthState()) {
     on<SignInPressed>(_onSignInPressed);
     on<SignUpPressed>(_onSignUpPressed);
     on<SignOutPressed>(_onSignOutPressed);
     on<AuthSessionChecked>(_onAuthSessionChecked);
     on<SessionExpired>(_onSessionExpired);
+    on<AppResumed>(_onAppResumed);
 
     // La expiración real de sesión (refresh token inválido) llega por este
     // stream desde AuthenticatedHttpClient y desloguea de forma centralizada,
@@ -46,6 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUseCase _logoutUseCase;
   final CheckAuthSessionUseCase _checkAuthSessionUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final RefreshAuthSessionUseCase _refreshAuthSessionUseCase;
   StreamSubscription<void>? _sessionExpiredSubscription;
 
   @override
@@ -136,7 +142,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SessionExpired event,
     Emitter<AuthState> emit,
   ) async {
-    // Tokens ya limpiados por _clearSession() en KeycloakDataSource.refreshToken()
+    _emitSessionExpired(emit);
+  }
+
+  /// Refresh proactivo al volver de background (ver [AppResumed]): sin esto,
+  /// una sesión offline muerta recién se descubre cuando el usuario dispara
+  /// la primera request real y le rebota un 401, lo que se percibe como un
+  /// logout instantáneo sin aviso. Solo aplica si había una sesión activa;
+  /// un error transitorio de red no debe deslogear al usuario.
+  Future<void> _onAppResumed(AppResumed event, Emitter<AuthState> emit) async {
+    if (state.status != AuthStatus.success) {
+      return;
+    }
+
+    try {
+      await _refreshAuthSessionUseCase();
+    } on AuthTokenExpiredException {
+      _emitSessionExpired(emit);
+    } on AuthTokenRefreshTransientException {
+      // Red inestable al volver de background: la sesión sigue vigente,
+      // se reintentará en el próximo resume o request.
+    }
+  }
+
+  // Tokens ya limpiados por _clearSession() en KeycloakDataSource.refreshToken()
+  void _emitSessionExpired(Emitter<AuthState> emit) {
     emit(
       state.copyWith(
         status: AuthStatus.initial,

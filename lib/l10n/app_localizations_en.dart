@@ -809,7 +809,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutSubtotal => 'Product subtotal';
 
   @override
-  String get checkoutService => 'Feyam service (12%)';
+  String get checkoutService => 'Feyam service';
 
   @override
   String get checkoutShipping => 'International shipping';

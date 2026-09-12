@@ -100,7 +100,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   static const _shareChannel = EventChannel('com.feyamuniversellc.feyam/share');
 
   var _currentIndex = 0;
@@ -113,6 +113,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _sharingSubscription = _shareChannel.receiveBroadcastStream().listen(
       _onSharedUrl,
     );
@@ -121,6 +122,16 @@ class _MainScreenState extends State<MainScreen> {
       ..add(const UnreadCountRefreshRequested());
     _cartBloc = sl<CartBloc>()..add(const CartLoadRequested());
     _setUpPushListeners();
+  }
+
+  /// Refresca el token proactivamente al volver de background: sin esto, una
+  /// sesión SSO/offline muerta recién se descubre cuando el usuario dispara
+  /// la primera request real (ver [AuthBloc]/`AppResumed`).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      context.read<AuthBloc>().add(AppResumed());
+    }
   }
 
   void _setUpPushListeners() {
@@ -260,6 +271,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _sharingSubscription.cancel();
     _foregroundMessageSubscription?.cancel();
     _openedAppMessageSubscription?.cancel();
