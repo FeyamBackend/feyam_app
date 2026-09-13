@@ -137,6 +137,7 @@ class PaymentRemoteDataSource {
     final response = await _client.post(
       uri,
       headers: {'Content-Type': 'application/json'},
+      body: '{}',
     );
 
     if (response.statusCode == 401) throw const PaymentUnauthorizedException();
@@ -162,6 +163,7 @@ class PaymentRemoteDataSource {
     final response = await _client.post(
       uri,
       headers: {'Content-Type': 'application/json'},
+      body: '{}',
     );
 
     if (response.statusCode == 401) throw const PaymentUnauthorizedException();

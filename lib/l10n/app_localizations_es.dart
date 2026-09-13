@@ -758,7 +758,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checkoutHeroTitle => 'Finalizar compra';
 
   @override
-  String get checkoutHeroSubtitle => 'Revisa los detalles y confirma tu pedido';
+  String get checkoutHeroSubtitle => 'Revisa los detalles y paga tu pedido';
 
   @override
   String get checkoutAddress => 'Dirección de entrega';
@@ -788,7 +788,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get checkoutPayMethodDesc =>
-      'No se te cobrará nada ahora. Un miembro de nuestro equipo confirmará el precio final y podrás pagarlo de forma segura con tarjeta.';
+      'Se te cobrará el total estimado al pagar, de forma segura con tarjeta. Si el precio real difiere, se ajusta después.';
 
   @override
   String get checkoutPayInfo =>
