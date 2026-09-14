@@ -1772,6 +1772,12 @@ abstract class AppLocalizations {
   /// **'Payment cancelled.'**
   String get paymentCancelled;
 
+  /// No description provided for @cartPendingOrderError.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have an order waiting for payment. Pay it, or wait for it to resolve, before submitting a new one.'**
+  String get cartPendingOrderError;
+
   /// No description provided for @priceAdjustmentTitle.
   ///
   /// In en, this message translates to:
@@ -2323,6 +2329,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment failed'**
   String get orderPaymentFailureTitle;
+
+  /// No description provided for @orderPaymentCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled'**
+  String get orderPaymentCancelledTitle;
 
   /// No description provided for @orderPaymentRetryButton.
   ///

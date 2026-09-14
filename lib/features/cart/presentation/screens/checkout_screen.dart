@@ -9,10 +9,14 @@ import 'package:feyam/features/cart/presentation/bloc/cart_submit_event.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_submit_state.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
+import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
+import 'package:feyam/features/payments/presentation/bloc/order_payment_bloc.dart';
+import 'package:feyam/features/payments/presentation/bloc/order_payment_event.dart';
+import 'package:feyam/features/payments/presentation/bloc/order_payment_state.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
-import 'package:feyam/features/payments/presentation/screens/order_payment_screen.dart';
+import 'package:feyam/features/payments/presentation/widgets/payment_result_card.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
@@ -34,11 +38,14 @@ class CheckoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // Pricing preview only now — PaymentCheckoutRequested (immediate
-        // charge at cart-submit time) is superseded by CartSubmitBloc, which
-        // submits the cart with no payment at all.
+        // PaymentBloc is pricing-preview only — the amount it shows is exactly
+        // what gets charged, since the order the cart submits into is created
+        // already confirmed for that same total (see OrderPaymentBloc below).
         BlocProvider<PaymentBloc>(create: (_) => sl<PaymentBloc>()),
         BlocProvider<CartSubmitBloc>(create: (_) => sl<CartSubmitBloc>()),
+        // Charges the order the moment CartSubmitBloc creates it — no
+        // separate "confirm and pay" screen; see _onCartSubmitState below.
+        BlocProvider<OrderPaymentBloc>(create: (_) => sl<OrderPaymentBloc>()),
         BlocProvider<AddressesBloc>(create: (_) => sl<AddressesBloc>()),
       ],
       child: _CheckoutView(cart: cart),
@@ -58,6 +65,11 @@ class _CheckoutView extends StatefulWidget {
 class _CheckoutViewState extends State<_CheckoutView> {
   /// Dirección de envío seleccionada. Hasta que haya una, no se permite pagar.
   String? _selectedAddressId;
+
+  /// Id de la orden que OrderPaymentBloc está cobrando (recién creada, o una
+  /// ya existente y pendiente de pago). No nulo ⇒ mostramos
+  /// [_CheckoutPaymentStatusView] en vez del formulario.
+  String? _activeOrderId;
 
   @override
   void initState() {
@@ -162,17 +174,14 @@ class _CheckoutViewState extends State<_CheckoutView> {
     );
   }
 
-  void _onState(BuildContext context, CartSubmitState state) {
+  void _onCartSubmitState(BuildContext context, CartSubmitState state) {
     final l10n = AppLocalizations.of(context)!;
     switch (state.status) {
       case CartSubmitStatus.success:
-        Navigator.pushReplacement(
-          context,
-          AdaptivePlatform.pageRoute<void>(
-            context: context,
-            builder: (_) => OrderPaymentScreen(orderId: widget.cart.cartId),
-          ),
-        );
+        // The order comes back already confirmed and awaiting payment (see
+        // Order.SubmitFromCart on the backend) — charge it immediately
+        // instead of making the customer tap a second "pay" button.
+        _payOrder(state.orderId!);
       case CartSubmitStatus.failure:
         {
           final code = state.failure?.code;
@@ -182,7 +191,16 @@ class _CheckoutViewState extends State<_CheckoutView> {
             // mostramos diálogo, MainScreen navega a LoginScreen.
             break;
           }
-          _showError(context, _failureMessage(l10n, state.failure));
+          if (code == CartFailureCode.pendingOrder) {
+            // A live order already exists for this cart (Order.Id ==
+            // Cart.Id, see the backend) — retrying the submit can't create a
+            // second one. From the customer's side they just tapped Pay, so
+            // pay that existing order straight away instead of surfacing
+            // this backend-plumbing detail as an error dialog.
+            _payOrder(widget.cart.cartId);
+            break;
+          }
+          _showError(context, _cartFailureMessage(l10n, state.failure));
         }
       case CartSubmitStatus.initial:
       case CartSubmitStatus.processing:
@@ -190,15 +208,43 @@ class _CheckoutViewState extends State<_CheckoutView> {
     }
   }
 
-  String _failureMessage(AppLocalizations l10n, CartFailure? failure) {
+  void _payOrder(String orderId) {
+    setState(() => _activeOrderId = orderId);
+    context.read<OrderPaymentBloc>().add(OrderPaymentRequested(orderId));
+  }
+
+  /// Message for a cart-submit failure dialog. [CartFailureCode.pendingOrder]
+  /// never reaches here — it's resolved silently in [_onCartSubmitState].
+  String _cartFailureMessage(AppLocalizations l10n, CartFailure? failure) {
     switch (failure?.code) {
       case CartFailureCode.networkError:
         return l10n.paymentErrorNetwork;
       case CartFailureCode.sessionExpired:
       case CartFailureCode.unauthorized:
         return l10n.paymentErrorSession;
+      case CartFailureCode.pendingOrder:
       case CartFailureCode.serverError:
       case CartFailureCode.unknown:
+      case null:
+        return l10n.paymentErrorGeneric;
+    }
+  }
+
+  String _paymentFailureMessage(
+    AppLocalizations l10n,
+    PaymentFailure? failure,
+  ) {
+    switch (failure?.code) {
+      case PaymentFailureCode.networkError:
+        return l10n.paymentErrorNetwork;
+      case PaymentFailureCode.sessionExpired:
+      case PaymentFailureCode.unauthorized:
+        return l10n.paymentErrorSession;
+      case PaymentFailureCode.cancelled:
+        return l10n.paymentCancelled;
+      case PaymentFailureCode.serverError:
+      case PaymentFailureCode.notFound:
+      case PaymentFailureCode.unknown:
       case null:
         return l10n.paymentErrorGeneric;
     }
@@ -223,8 +269,20 @@ class _CheckoutViewState extends State<_CheckoutView> {
   Widget build(BuildContext context) {
     return BlocConsumer<CartSubmitBloc, CartSubmitState>(
       listenWhen: (prev, curr) => prev.status != curr.status,
-      listener: _onState,
+      listener: _onCartSubmitState,
       builder: (context, submitState) {
+        if (_activeOrderId != null) {
+          // Either the cart was just submitted into a fresh order, or one
+          // already existed for it — either way OrderPaymentBloc is charging
+          // _activeOrderId now, so show that outcome in place of the form.
+          return BlocBuilder<OrderPaymentBloc, OrderPaymentState>(
+            builder: (context, paymentState) => _CheckoutPaymentStatusView(
+              state: paymentState,
+              orderId: _activeOrderId!,
+              failureMessage: _paymentFailureMessage,
+            ),
+          );
+        }
         return BlocBuilder<PaymentBloc, PaymentState>(
           builder: (context, paymentState) {
             return BlocBuilder<AddressesBloc, AddressesState>(
@@ -276,6 +334,133 @@ class _CheckoutViewState extends State<_CheckoutView> {
           },
         );
       },
+    );
+  }
+}
+
+/// Replaces the checkout form once the order has been submitted: drives
+/// [OrderPaymentBloc] straight from `initial`/`processing` through to a
+/// terminal result, in place, with no separate "confirm and pay" screen.
+class _CheckoutPaymentStatusView extends StatelessWidget {
+  const _CheckoutPaymentStatusView({
+    required this.state,
+    required this.orderId,
+    required this.failureMessage,
+  });
+
+  final OrderPaymentState state;
+  final String orderId;
+  final String Function(AppLocalizations l10n, PaymentFailure? failure)
+  failureMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget content;
+    switch (state.status) {
+      case OrderPaymentStatus.success:
+        content = PaymentResultCard(
+          icon: Icons.check_circle_rounded,
+          iconColor: colors.secondary,
+          iconBg: colors.secondaryContainer,
+          title: l10n.orderPaymentSuccessTitle,
+          body: l10n.orderPaymentSuccessBody,
+          actionLabel: l10n.orderPaymentDoneButton,
+          onAction: () => Navigator.of(context).pop(),
+        );
+      case OrderPaymentStatus.pendingConfirmation:
+        content = PaymentResultCard(
+          icon: Icons.hourglass_top_rounded,
+          iconColor: colors.primary,
+          iconBg: colors.primaryContainer,
+          title: l10n.orderPaymentPendingTitle,
+          body: l10n.orderPaymentPendingBody,
+          actionLabel: l10n.orderPaymentDoneButton,
+          onAction: () => Navigator.of(context).pop(),
+        );
+      case OrderPaymentStatus.failure:
+        content = PaymentResultCard(
+          icon: Icons.error_outline_rounded,
+          iconColor: colors.error,
+          iconBg: colors.errorContainer,
+          title: l10n.orderPaymentFailureTitle,
+          body: failureMessage(l10n, state.failure),
+          actionLabel: l10n.orderPaymentRetryButton,
+          primaryAction: false,
+          onAction: () => context.read<OrderPaymentBloc>().add(
+            OrderPaymentRequested(orderId),
+          ),
+        );
+      case OrderPaymentStatus.cancelled:
+        // The customer dismissed Stripe's sheet themselves — a deliberate
+        // "not now", not an error. The order stays pending (confirmed,
+        // unpaid; see CheckoutCartOnOrderPaidHandler on the backend), so we
+        // keep them right here in checkout to retry instead of bouncing them
+        // back out to the cart.
+        content = PaymentResultCard(
+          icon: Icons.cancel_outlined,
+          iconColor: colors.error,
+          iconBg: colors.errorContainer,
+          title: l10n.orderPaymentCancelledTitle,
+          body: l10n.paymentCancelled,
+          actionLabel: l10n.orderPaymentRetryButton,
+          primaryAction: false,
+          onAction: () => context.read<OrderPaymentBloc>().add(
+            OrderPaymentRequested(orderId),
+          ),
+        );
+      case OrderPaymentStatus.initial:
+      case OrderPaymentStatus.processing:
+      case OrderPaymentStatus.verifying:
+        content = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            CircularProgressIndicator.adaptive(
+              valueColor: AlwaysStoppedAnimation(colors.primary),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              state.status == OrderPaymentStatus.verifying
+                  ? l10n.checkoutVerifying
+                  : l10n.checkoutProcessing,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        );
+    }
+
+    // A charge is actively in flight — leaving now would abandon it mid-way
+    // (and fight the native Stripe sheet for the screen). Block both the
+    // header's back arrow and the system back gesture/button until it
+    // settles into a state the customer can act on.
+    final busy =
+        state.status == OrderPaymentStatus.processing ||
+        state.status == OrderPaymentStatus.verifying;
+
+    return PopScope(
+      canPop: !busy,
+      child: Scaffold(
+        backgroundColor: colors.surface,
+        body: Column(
+          children: <Widget>[
+            FeyamHeroHeader(
+              showBackButton: !busy,
+              title: l10n.checkoutHeroTitle,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Center(child: content),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -802,7 +987,9 @@ class _CheckoutContent extends StatelessWidget {
                                 )
                               : const Icon(Icons.send_rounded),
                           label: Text(
-                            busy ? l10n.checkoutProcessing : l10n.checkoutPayButton,
+                            busy
+                                ? l10n.checkoutProcessing
+                                : l10n.checkoutPayButton,
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.secondary,
