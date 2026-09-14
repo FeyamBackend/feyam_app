@@ -595,15 +595,20 @@ class _MaterialCheckoutBar extends StatelessWidget {
                 height: 52 * scale,
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final cart = context.read<CartBloc>().state.cart;
                     if (cart == null) return;
-                    Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute<void>(
                         builder: (_) => CheckoutScreen(cart: cart),
                       ),
                     );
+                    if (!context.mounted) return;
+                    // Checkout may have paid this cart (cleared server-side)
+                    // or left it as-is — reload either way so we're not
+                    // still showing items the customer already paid for.
+                    context.read<CartBloc>().add(const CartLoadRequested());
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: colors.secondary,
@@ -912,13 +917,17 @@ class _CupertinoCartContentState extends State<_CupertinoCartContent> {
                   width: double.infinity,
                   child: FeyamButton(
                     label: 'Proceder al checkout',
-                    onPressed: () {
+                    onPressed: () async {
                       final cart = context.read<CartBloc>().state.cart;
                       if (cart == null) return;
-                      Navigator.of(context).push(
+                      await Navigator.of(context).push(
                         CupertinoPageRoute<void>(
                           builder: (_) => CheckoutScreen(cart: cart),
                         ),
+                      );
+                      if (!context.mounted) return;
+                      context.read<CartBloc>().add(
+                        const CartLoadRequested(),
                       );
                     },
                   ),

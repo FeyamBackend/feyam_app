@@ -885,6 +885,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get paymentCancelled => 'Pago cancelado.';
 
   @override
+  String get cartPendingOrderError =>
+      'Ya tenés un pedido esperando pago. Pagalo, o esperá a que se resuelva, antes de enviar uno nuevo.';
+
+  @override
   String get priceAdjustmentTitle => 'Diferencia de precio';
 
   @override
@@ -1178,6 +1182,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get orderPaymentFailureTitle => 'Pago fallido';
+
+  @override
+  String get orderPaymentCancelledTitle => 'Pago cancelado';
 
   @override
   String get orderPaymentRetryButton => 'Reintentar';

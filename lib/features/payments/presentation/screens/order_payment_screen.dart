@@ -4,15 +4,17 @@ import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/order_payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/order_payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/order_payment_state.dart';
+import 'package:feyam/features/payments/presentation/widgets/payment_result_card.dart';
 import 'package:feyam/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Reached from a "your order's price is confirmed" push notification, or
-/// from a "Pay now" CTA on the order detail screen. Charges the customer the
-/// exact amount a price_confirmator confirmed for [orderId] — a single,
-/// full, immediate-capture charge (no hold, unlike the old cart-checkout
-/// flow).
+/// Charges the customer the exact amount confirmed for [orderId] — a single,
+/// full, immediate-capture charge. Reached from a "Pay now" CTA on the order
+/// detail screen (retrying a checkout payment that was abandoned or failed),
+/// from a "your order's price is confirmed" push notification for legacy
+/// orders that still went through manual price review, or as a deep link
+/// from either.
 class OrderPaymentScreen extends StatelessWidget {
   const OrderPaymentScreen({required this.orderId, super.key});
 
@@ -74,7 +76,7 @@ class _OrderPaymentView extends StatelessWidget {
                   Widget content;
                   switch (state.status) {
                     case OrderPaymentStatus.success:
-                      content = _ResultCard(
+                      content = PaymentResultCard(
                         icon: Icons.check_circle_rounded,
                         iconColor: colors.secondary,
                         iconBg: colors.secondaryContainer,
@@ -84,7 +86,7 @@ class _OrderPaymentView extends StatelessWidget {
                         onAction: () => Navigator.of(context).pop(),
                       );
                     case OrderPaymentStatus.pendingConfirmation:
-                      content = _ResultCard(
+                      content = PaymentResultCard(
                         icon: Icons.hourglass_top_rounded,
                         iconColor: colors.primary,
                         iconBg: colors.primaryContainer,
@@ -94,7 +96,7 @@ class _OrderPaymentView extends StatelessWidget {
                         onAction: () => Navigator.of(context).pop(),
                       );
                     case OrderPaymentStatus.failure:
-                      content = _ResultCard(
+                      content = PaymentResultCard(
                         icon: Icons.error_outline_rounded,
                         iconColor: colors.error,
                         iconBg: colors.errorContainer,
@@ -253,85 +255,6 @@ class _PayPrompt extends StatelessWidget {
                   : l10n.orderPaymentPayButton,
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ResultCard extends StatelessWidget {
-  const _ResultCard({
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.title,
-    required this.body,
-    required this.actionLabel,
-    required this.onAction,
-    this.primaryAction = true,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String title;
-  final String body;
-  final String actionLabel;
-  final VoidCallback onAction;
-  final bool primaryAction;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          width: 88,
-          height: 88,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: iconBg),
-          child: Icon(icon, size: 40, color: iconColor),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: textTheme.titleMedium?.copyWith(
-            color: colors.onSurface,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          body,
-          textAlign: TextAlign.center,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colors.onSurfaceVariant,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: primaryAction
-              ? FilledButton(
-                  onPressed: onAction,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colors.secondary,
-                    foregroundColor: colors.onSecondary,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Text(actionLabel),
-                )
-              : FilledButton.tonal(
-                  onPressed: onAction,
-                  style: FilledButton.styleFrom(shape: const StadiumBorder()),
-                  child: Text(actionLabel),
-                ),
         ),
       ],
     );

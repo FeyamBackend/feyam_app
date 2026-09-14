@@ -881,6 +881,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentCancelled => 'Payment cancelled.';
 
   @override
+  String get cartPendingOrderError =>
+      'You already have an order waiting for payment. Pay it, or wait for it to resolve, before submitting a new one.';
+
+  @override
   String get priceAdjustmentTitle => 'Price difference';
 
   @override
@@ -1172,6 +1176,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderPaymentFailureTitle => 'Payment failed';
+
+  @override
+  String get orderPaymentCancelledTitle => 'Payment cancelled';
 
   @override
   String get orderPaymentRetryButton => 'Retry';

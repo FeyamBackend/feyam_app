@@ -310,7 +310,10 @@ class _AddToCartViewState extends State<_AddToCartView> {
       CartFailureCode.unauthorized => l10n.addToCartErrorUnauthorized,
       CartFailureCode.sessionExpired => l10n.addToCartErrorUnauthorized,
       CartFailureCode.networkError => l10n.addToCartErrorNetwork,
-      CartFailureCode.serverError => l10n.addToCartErrorServer,
+      // pendingOrder is only ever returned by submitCart, never addItem —
+      // kept here just so this switch stays exhaustive if that changes.
+      CartFailureCode.serverError ||
+      CartFailureCode.pendingOrder => l10n.addToCartErrorServer,
       CartFailureCode.unknown => l10n.addToCartErrorUnknown,
     };
   }

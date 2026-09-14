@@ -10,7 +10,7 @@ import 'package:feyam/features/cart/domain/usecases/add_to_cart.dart';
 
 class CartRepositoryImpl implements CartRepository {
   CartRepositoryImpl({required CartRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   final CartRemoteDataSource _remoteDataSource;
 
@@ -61,8 +61,16 @@ class CartRepositoryImpl implements CartRepository {
       return await action();
     } on CartUnauthorizedException {
       throw const CartFailure(CartFailureCode.sessionExpired);
-    } on CartServerException {
-      throw const CartFailure(CartFailureCode.serverError);
+    } on CartServerException catch (e) {
+      // 409: this cart already has a live order awaiting payment — a
+      // distinct, non-retryable-as-is case the UI points the customer at
+      // instead of a generic "try again" (see SubmitCartCommandHandler's
+      // Result.Conflict on the backend).
+      throw CartFailure(
+        e.statusCode == 409
+            ? CartFailureCode.pendingOrder
+            : CartFailureCode.serverError,
+      );
     } on SocketException {
       throw const CartFailure(CartFailureCode.networkError);
     } catch (_) {
