@@ -1541,7 +1541,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutHeroSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Review the details and confirm your order'**
+  /// **'Review the details and pay for your order'**
   String get checkoutHeroSubtitle;
 
   /// No description provided for @checkoutAddress.
@@ -1595,7 +1595,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutPayMethodDesc.
   ///
   /// In en, this message translates to:
-  /// **'You won\'t be charged now. Our team will confirm the final price and you\'ll be able to pay it securely by card.'**
+  /// **'You\'ll be charged the estimated total when you pay, securely by card. If the real price differs, it\'s adjusted afterward.'**
   String get checkoutPayMethodDesc;
 
   /// No description provided for @checkoutPayInfo.

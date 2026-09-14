@@ -7,12 +7,12 @@ import 'package:feyam/features/cart/domain/failures/cart_failure.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_submit_bloc.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_submit_event.dart';
 import 'package:feyam/features/cart/presentation/bloc/cart_submit_state.dart';
-import 'package:feyam/features/cart/presentation/screens/order_submitted_screen.dart';
 import 'package:feyam/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:feyam/features/payments/domain/entities/checkout_pricing_entity.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
+import 'package:feyam/features/payments/presentation/screens/order_payment_screen.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_bloc.dart';
 import 'package:feyam/features/profile/presentation/bloc/addresses_event.dart';
@@ -170,7 +170,7 @@ class _CheckoutViewState extends State<_CheckoutView> {
           context,
           AdaptivePlatform.pageRoute<void>(
             context: context,
-            builder: (_) => const OrderSubmittedScreen(),
+            builder: (_) => OrderPaymentScreen(orderId: widget.cart.cartId),
           ),
         );
       case CartSubmitStatus.failure:
@@ -802,7 +802,7 @@ class _CheckoutContent extends StatelessWidget {
                                 )
                               : const Icon(Icons.send_rounded),
                           label: Text(
-                            busy ? l10n.checkoutProcessing : l10n.checkoutConfirm,
+                            busy ? l10n.checkoutProcessing : l10n.checkoutPayButton,
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.secondary,

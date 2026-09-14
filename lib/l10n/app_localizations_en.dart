@@ -755,7 +755,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkoutHeroSubtitle =>
-      'Review the details and confirm your order';
+      'Review the details and pay for your order';
 
   @override
   String get checkoutAddress => 'Delivery address';
@@ -784,7 +784,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkoutPayMethodDesc =>
-      'You won\'t be charged now. Our team will confirm the final price and you\'ll be able to pay it securely by card.';
+      'You\'ll be charged the estimated total when you pay, securely by card. If the real price differs, it\'s adjusted afterward.';
 
   @override
   String get checkoutPayInfo =>
