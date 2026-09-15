@@ -787,6 +787,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'You\'ll be charged the estimated total when you pay, securely by card. If the real price differs, it\'s adjusted afterward.';
 
   @override
+  String get checkoutNoPaymentMethod =>
+      'You don\'t have a saved card. Add one to pay.';
+
+  @override
   String get checkoutPayInfo =>
       'We\'ll contact you to coordinate payment once we review your order.';
 

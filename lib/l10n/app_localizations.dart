@@ -1598,6 +1598,12 @@ abstract class AppLocalizations {
   /// **'You\'ll be charged the estimated total when you pay, securely by card. If the real price differs, it\'s adjusted afterward.'**
   String get checkoutPayMethodDesc;
 
+  /// No description provided for @checkoutNoPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have a saved card. Add one to pay.'**
+  String get checkoutNoPaymentMethod;
+
   /// No description provided for @checkoutPayInfo.
   ///
   /// In en, this message translates to:

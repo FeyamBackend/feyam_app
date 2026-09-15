@@ -13,8 +13,12 @@ import 'package:feyam/features/payments/domain/failures/payment_failure.dart';
 import 'package:feyam/features/payments/presentation/bloc/order_payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/order_payment_event.dart';
 import 'package:feyam/features/payments/presentation/bloc/order_payment_state.dart';
+import 'package:feyam/features/payments/domain/entities/payment_method_entity.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_bloc.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_event.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_methods_bloc.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_methods_event.dart';
+import 'package:feyam/features/payments/presentation/bloc/payment_methods_state.dart';
 import 'package:feyam/features/payments/presentation/bloc/payment_state.dart';
 import 'package:feyam/features/payments/presentation/widgets/payment_result_card.dart';
 import 'package:feyam/features/profile/domain/entities/address_entity.dart';
@@ -47,6 +51,7 @@ class CheckoutScreen extends StatelessWidget {
         // separate "confirm and pay" screen; see _onCartSubmitState below.
         BlocProvider<OrderPaymentBloc>(create: (_) => sl<OrderPaymentBloc>()),
         BlocProvider<AddressesBloc>(create: (_) => sl<AddressesBloc>()),
+        BlocProvider<PaymentMethodsBloc>(create: (_) => sl<PaymentMethodsBloc>()),
       ],
       child: _CheckoutView(cart: cart),
     );
@@ -75,6 +80,7 @@ class _CheckoutViewState extends State<_CheckoutView> {
   void initState() {
     super.initState();
     context.read<PaymentBloc>().add(const PaymentPricingRequested());
+    context.read<PaymentMethodsBloc>().add(const PaymentMethodsLoadRequested());
     // El locale se lee tras el primer frame (Localizations no está en initState).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -172,6 +178,89 @@ class _CheckoutViewState extends State<_CheckoutView> {
         ),
       ),
     );
+  }
+
+  /// Bottom sheet con las tarjetas guardadas para elegir cuál queda como
+  /// default (la que Stripe precarga/cobra al confirmar el pedido).
+  Future<void> _showPaymentMethodPicker(List<PaymentMethodEntity> methods) async {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final bloc = context.read<PaymentMethodsBloc>();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: colors.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                l10n.checkoutPayMethod,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final m in methods)
+                _PaymentMethodOption(
+                  method: m,
+                  selected: m.isDefault,
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    if (!m.isDefault) {
+                      bloc.add(PaymentMethodSetDefaultRequested(m.id));
+                    }
+                  },
+                ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    bloc.add(const PaymentMethodAddRequested());
+                  },
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(l10n.paymentAdd),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _toast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  void _onPaymentMethodsState(BuildContext context, PaymentMethodsState state) {
+    final l10n = AppLocalizations.of(context)!;
+    if (state.actionStatus == PaymentMethodActionStatus.success &&
+        state.actionKind == PaymentMethodActionKind.setDefault) {
+      _toast(l10n.paymentSetDefaultSuccess);
+    } else if (state.actionStatus == PaymentMethodActionStatus.failure) {
+      switch (state.actionKind) {
+        case PaymentMethodActionKind.add:
+          _toast(l10n.paymentAddError);
+        case PaymentMethodActionKind.setDefault:
+          _toast(l10n.paymentSetDefaultError);
+        case PaymentMethodActionKind.delete:
+        case PaymentMethodActionKind.none:
+          break;
+      }
+    }
   }
 
   void _onCartSubmitState(BuildContext context, CartSubmitState state) {
@@ -287,47 +376,71 @@ class _CheckoutViewState extends State<_CheckoutView> {
           builder: (context, paymentState) {
             return BlocBuilder<AddressesBloc, AddressesState>(
               builder: (context, addressState) {
-                final shipments = _shipmentsOf(addressState);
-                _syncSelection(shipments);
+                return BlocConsumer<PaymentMethodsBloc, PaymentMethodsState>(
+                  listenWhen: (prev, curr) =>
+                      prev.actionStatus != curr.actionStatus,
+                  listener: _onPaymentMethodsState,
+                  builder: (context, paymentMethodsState) {
+                    final shipments = _shipmentsOf(addressState);
+                    _syncSelection(shipments);
 
-                final busy = submitState.status == CartSubmitStatus.processing;
-                final pricingReady =
-                    paymentState.pricingStatus ==
-                        CheckoutPricingStatus.loaded &&
-                    paymentState.pricing != null;
-                final canPay =
-                    !busy && pricingReady && _selectedAddressId != null;
-                final onPay = canPay
-                    ? () => context.read<CartSubmitBloc>().add(
-                        CartSubmitRequested(_selectedAddressId!),
-                      )
-                    : null;
-                void onRetryPricing() => context.read<PaymentBloc>().add(
-                  const PaymentPricingRequested(),
-                );
+                    final busy =
+                        submitState.status == CartSubmitStatus.processing;
+                    final pricingReady =
+                        paymentState.pricingStatus ==
+                            CheckoutPricingStatus.loaded &&
+                        paymentState.pricing != null;
+                    final canPay =
+                        !busy && pricingReady && _selectedAddressId != null;
+                    final onPay = canPay
+                        ? () => context.read<CartSubmitBloc>().add(
+                            CartSubmitRequested(_selectedAddressId!),
+                          )
+                        : null;
+                    void onRetryPricing() => context.read<PaymentBloc>().add(
+                      const PaymentPricingRequested(),
+                    );
 
-                final addressSection = _AddressSummaryCard(
-                  status: addressState.status,
-                  shipments: shipments,
-                  selectedAddressId: _selectedAddressId,
-                  onEdit: () => _showAddressPicker(shipments),
-                  onAdd: _addAddress,
-                  onRetry: () {
-                    final lang = Localizations.localeOf(context).languageCode;
-                    context.read<AddressesBloc>().add(
-                      AddressesLoadRequested(lang),
+                    final addressSection = _AddressSummaryCard(
+                      status: addressState.status,
+                      shipments: shipments,
+                      selectedAddressId: _selectedAddressId,
+                      onEdit: () => _showAddressPicker(shipments),
+                      onAdd: _addAddress,
+                      onRetry: () {
+                        final lang =
+                            Localizations.localeOf(context).languageCode;
+                        context.read<AddressesBloc>().add(
+                          AddressesLoadRequested(lang),
+                        );
+                      },
+                    );
+
+                    final paymentMethodSection = _PaymentMethodSummaryCard(
+                      status: paymentMethodsState.status,
+                      methods: paymentMethodsState.paymentMethods,
+                      onChange: () => _showPaymentMethodPicker(
+                        paymentMethodsState.paymentMethods,
+                      ),
+                      onAdd: () => context.read<PaymentMethodsBloc>().add(
+                        const PaymentMethodAddRequested(),
+                      ),
+                      onRetry: () => context.read<PaymentMethodsBloc>().add(
+                        const PaymentMethodsLoadRequested(),
+                      ),
+                    );
+
+                    return _CheckoutContent(
+                      cart: widget.cart,
+                      pricingStatus: paymentState.pricingStatus,
+                      pricing: paymentState.pricing,
+                      onRetryPricing: onRetryPricing,
+                      busy: busy,
+                      onPay: onPay,
+                      addressSection: addressSection,
+                      paymentMethodSection: paymentMethodSection,
                     );
                   },
-                );
-
-                return _CheckoutContent(
-                  cart: widget.cart,
-                  pricingStatus: paymentState.pricingStatus,
-                  pricing: paymentState.pricing,
-                  onRetryPricing: onRetryPricing,
-                  busy: busy,
-                  onPay: onPay,
-                  addressSection: addressSection,
                 );
               },
             );
@@ -696,6 +809,237 @@ class _AddressSummaryCard extends StatelessWidget {
   }
 }
 
+// ── Payment method selection ──────────────────────────────────────────────────
+
+String _capitalize(String value) =>
+    value.isEmpty ? value : '${value[0].toUpperCase()}${value.substring(1)}';
+
+String _paymentMethodTitle(PaymentMethodEntity m) =>
+    '${_capitalize(m.brand)} •••• ${m.last4}';
+
+String _paymentMethodExpiry(PaymentMethodEntity m) =>
+    '${m.expMonth.toString().padLeft(2, '0')}/'
+    '${(m.expYear % 100).toString().padLeft(2, '0')}';
+
+PaymentMethodEntity? _defaultOf(List<PaymentMethodEntity> methods) {
+  for (final m in methods) {
+    if (m.isDefault) return m;
+  }
+  return null;
+}
+
+class _PaymentMethodOption extends StatelessWidget {
+  const _PaymentMethodOption({
+    required this.method,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final PaymentMethodEntity method;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: selected ? colors.primaryContainer : colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 20,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        _paymentMethodTitle(method),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${l10n.paymentExpiryLabel} ${_paymentMethodExpiry(method)}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Card que resume el método de pago que va a usarse (el marcado como
+/// default en la pasarela), con acceso a un selector (bottom sheet) para
+/// cambiarlo. Mismo patrón que [_AddressSummaryCard].
+class _PaymentMethodSummaryCard extends StatelessWidget {
+  const _PaymentMethodSummaryCard({
+    required this.status,
+    required this.methods,
+    required this.onChange,
+    required this.onAdd,
+    required this.onRetry,
+  });
+
+  final PaymentMethodsStatus status;
+  final List<PaymentMethodEntity> methods;
+  final VoidCallback onChange;
+  final VoidCallback onAdd;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget body;
+    Widget? action;
+
+    if (status == PaymentMethodsStatus.loading && methods.isEmpty) {
+      body = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+          ),
+        ),
+      );
+    } else if (status == PaymentMethodsStatus.failure && methods.isEmpty) {
+      body = Text(
+        l10n.paymentLoadError,
+        style: textTheme.bodySmall?.copyWith(color: colors.error, height: 1.4),
+      );
+      action = TextButton(
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+        ),
+        onPressed: onRetry,
+        child: Text(l10n.addressRetry),
+      );
+    } else if (methods.isEmpty) {
+      body = Text(
+        l10n.checkoutNoPaymentMethod,
+        style: textTheme.bodySmall?.copyWith(
+          color: colors.onSurfaceVariant,
+          height: 1.4,
+        ),
+      );
+      action = TextButton.icon(
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+        ),
+        onPressed: onAdd,
+        icon: const Icon(Icons.add_rounded, size: 16),
+        label: Text(l10n.paymentAdd),
+      );
+    } else {
+      final selected = _defaultOf(methods) ?? methods.first;
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            _paymentMethodTitle(selected),
+            style: textTheme.bodyMedium?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            '${l10n.paymentExpiryLabel} ${_paymentMethodExpiry(selected)}',
+            style: textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              height: 1.4,
+              fontSize: 12.5,
+            ),
+          ),
+        ],
+      );
+      action = TextButton(
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+        ),
+        onPressed: onChange,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              l10n.checkoutEdit,
+              style: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 16, color: colors.primary),
+          ],
+        ),
+      );
+    }
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _InfoCardHeader(
+            icon: Icons.credit_card_rounded,
+            iconColor: colors.primary,
+            iconBg: colors.primaryContainer,
+            title: l10n.checkoutPayMethod,
+            action: action,
+          ),
+          const SizedBox(height: 10),
+          body,
+          const SizedBox(height: 10),
+          Text(
+            l10n.checkoutPayMethodDesc,
+            style: textTheme.bodySmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              height: 1.4,
+              fontSize: 12.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Shared card chrome ────────────────────────────────────────────────────────
 
 class _InfoCard extends StatelessWidget {
@@ -842,6 +1186,7 @@ class _CheckoutContent extends StatelessWidget {
     required this.busy,
     required this.onPay,
     required this.addressSection,
+    required this.paymentMethodSection,
   });
 
   final CartEntity cart;
@@ -851,6 +1196,7 @@ class _CheckoutContent extends StatelessWidget {
   final bool busy;
   final VoidCallback? onPay;
   final Widget addressSection;
+  final Widget paymentMethodSection;
 
   @override
   Widget build(BuildContext context) {
@@ -901,7 +1247,7 @@ class _CheckoutContent extends StatelessWidget {
                     children: <Widget>[
                       addressSection,
                       SizedBox(height: 14 * scale),
-                      _PayMethodCard(l10n: l10n),
+                      paymentMethodSection,
                       SizedBox(height: 14 * scale),
                       _ShippingMethodCard(l10n: l10n),
                       SizedBox(height: 14 * scale),
@@ -1010,44 +1356,6 @@ class _CheckoutContent extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// Card estática con información sobre cómo se procesa el pago. La app no
-/// guarda tarjetas: Stripe gestiona la selección/entrada de la tarjeta en su
-/// propio sheet nativo al confirmar el pedido.
-class _PayMethodCard extends StatelessWidget {
-  const _PayMethodCard({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return _InfoCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _InfoCardHeader(
-            icon: Icons.credit_card_rounded,
-            iconColor: colors.primary,
-            iconBg: colors.primaryContainer,
-            title: l10n.checkoutPayMethod,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            l10n.checkoutPayMethodDesc,
-            style: textTheme.bodySmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              height: 1.4,
-              fontSize: 12.5,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

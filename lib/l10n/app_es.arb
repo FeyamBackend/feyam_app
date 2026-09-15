@@ -249,6 +249,7 @@
     "checkoutGenericStore": "Tienda",
     "checkoutPayMethod": "Método de pago",
     "checkoutPayMethodDesc": "Se te cobrará el total estimado al pagar, de forma segura con tarjeta. Si el precio real difiere, se ajusta después.",
+    "checkoutNoPaymentMethod": "No tenés una tarjeta guardada. Agregá una para pagar.",
     "checkoutPayInfo": "Te contactamos para coordinar el pago una vez revisemos tu pedido.",
     "checkoutShippingMethodTitle": "Método de envío",
     "checkoutShippingStandardLabel": "Envío estándar",
