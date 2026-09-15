@@ -791,6 +791,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Se te cobrará el total estimado al pagar, de forma segura con tarjeta. Si el precio real difiere, se ajusta después.';
 
   @override
+  String get checkoutNoPaymentMethod =>
+      'No tenés una tarjeta guardada. Agregá una para pagar.';
+
+  @override
   String get checkoutPayInfo =>
       'Te contactamos para coordinar el pago una vez revisemos tu pedido.';
 
